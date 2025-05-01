@@ -11,9 +11,8 @@ namespace JLGames.Infra.Crypto.Symmetric
         protected byte[] m_Key;
         protected PaddingMode m_PaddingMode;
         protected SymmetricAlgorithm m_Des;
-
-        // private IBlockCipher _blockCipher;
-        // private ICipherParameters _cipherParameters;
+        public int KeySize => DesDefines.KeySize;
+        public virtual int BlockSize => DesDefines.BlockSize;
 
         protected DesCipher()
         {
@@ -25,19 +24,19 @@ namespace JLGames.Infra.Crypto.Symmetric
             var keyLen = key.Length;
             switch (keyLen)
             {
-                case 8:
+                case DesDefines.KeySize:
                     m_Key = key;
                     m_Des = DES.Create();
                     m_Des.Key = key;
                     break;
-                case 16:
+                case DesDefines.KeySize * 2:
                     m_Key = new byte[24];
                     Buffer.BlockCopy(key, 0, m_Key, 0, 16);
                     Buffer.BlockCopy(key, 0, m_Key, 16, 8);
                     m_Des = TripleDES.Create();
                     m_Des.Key = m_Key;
                     break;
-                case 24:
+                case DesDefines.TripleKeySize:
                     m_Key = key;
                     m_Des = TripleDES.Create();
                     m_Des.Key = m_Key;
@@ -48,6 +47,7 @@ namespace JLGames.Infra.Crypto.Symmetric
 
             m_PaddingMode = PaddingMode.PKCS7;
         }
+
 
         /// <summary>
         /// 设置填充方式
@@ -115,6 +115,8 @@ namespace JLGames.Infra.Crypto.Symmetric
             }
         }
 
+        // ECB ---------- ---------- ---------- ---------- ----------
+        
         /// <summary>
         /// ECB模式加密
         /// </summary>
@@ -151,6 +153,8 @@ namespace JLGames.Infra.Crypto.Symmetric
             }
         }
 
+        // CBC ---------- ---------- ---------- ---------- ----------
+        
         /// <summary>
         /// CBC模式加密
         /// </summary>
@@ -161,7 +165,7 @@ namespace JLGames.Infra.Crypto.Symmetric
             using (var encryptor = m_Des.CreateEncryptor())
             {
                 var encrypted = encryptor.TransformFinalBlock(plaintext, 0, plaintext.Length);
-                return Combine(m_Des.IV, encrypted);
+                return CryptoUtils.Combine(m_Des.IV, encrypted);
             }
         }
 
@@ -172,7 +176,7 @@ namespace JLGames.Infra.Crypto.Symmetric
             using (var encryptor = m_Des.CreateEncryptor())
             {
                 var encrypted = encryptor.TransformFinalBlock(plaintext, 0, plaintext.Length);
-                return Combine(iv, encrypted);
+                return CryptoUtils.Combine(iv, encrypted);
             }
         }
 
@@ -181,7 +185,7 @@ namespace JLGames.Infra.Crypto.Symmetric
         /// </summary>
         public byte[] DecryptCbc(byte[] ciphertext)
         {
-            Extract(ciphertext, 8, out var iv, out var data);
+            CryptoUtils.Extract(ciphertext, DesDefines.BlockSize, out var iv, out var data);
             return DecryptCbc(data, iv);
         }
 
@@ -195,11 +199,13 @@ namespace JLGames.Infra.Crypto.Symmetric
             }
         }
 
+        // CTR ---------- ---------- ---------- ---------- ----------
+        
         public byte[] EncryptCtr(byte[] plaintext)
         {
             m_Des.GenerateIV();
             var encrypted = EncryptCtr(plaintext, m_Des.IV);
-            return Combine(m_Des.IV, encrypted);
+            return CryptoUtils.Combine(m_Des.IV, encrypted);
         }
 
         public byte[] EncryptCtr(byte[] plaintext, byte[] iv)
@@ -209,8 +215,8 @@ namespace JLGames.Infra.Crypto.Symmetric
 
         public byte[] DecryptCtr(byte[] ciphertext)
         {
-            Extract(ciphertext, 8, out var iv, out var data);
-            return DecryptCtr(ciphertext, iv);
+            CryptoUtils.Extract(ciphertext, DesDefines.BlockSize, out var iv, out var data);
+            return DecryptCtr(data, iv);
         }
 
         public byte[] DecryptCtr(byte[] ciphertext, byte[] iv)
@@ -224,16 +230,16 @@ namespace JLGames.Infra.Crypto.Symmetric
             m_Des.Mode = CipherMode.ECB; // 使用 ECB 模式加密计数器
             m_Des.Padding = PaddingMode.None; // CTR不使用Padding
 
-            using (var encryptor = m_Des.CreateEncryptor())
+            using (var encryptor = m_Des.CreateEncryptor()) // 加解密都应该使用CreateEncryptor
             {
                 var counter = (byte[])iv.Clone();
                 var output = new byte[data.Length];
 
-                for (var i = 0; i < data.Length; i += 8)
+                for (var i = 0; i < data.Length; i += DesDefines.BlockSize)
                 {
                     var encryptedCounter = encryptor.TransformFinalBlock(counter, 0, 8);
 
-                    for (var j = 0; j < Math.Min(8, data.Length - i); j++)
+                    for (var j = 0; j < Math.Min(DesDefines.BlockSize, data.Length - i); j++)
                     {
                         output[i + j] = (byte)(data[i + j] ^ encryptedCounter[j]);
                     }
@@ -251,22 +257,6 @@ namespace JLGames.Infra.Crypto.Symmetric
             {
                 if (++counter[i] != 0) break;
             }
-        }
-
-        private byte[] Combine(byte[] iv, byte[] ciphertext)
-        {
-            var result = new byte[iv.Length + ciphertext.Length];
-            Buffer.BlockCopy(iv, 0, result, 0, iv.Length);
-            Buffer.BlockCopy(ciphertext, 0, result, iv.Length, ciphertext.Length);
-            return result;
-        }
-
-        private void Extract(byte[] cipherData, int ivSize, out byte[] iv, out byte[] ciphertext)
-        {
-            iv = new byte[ivSize];
-            ciphertext = new byte[cipherData.Length - iv.Length];
-            Buffer.BlockCopy(cipherData, 0, iv, 0, ivSize);
-            Buffer.BlockCopy(cipherData, ivSize, ciphertext, 0, ciphertext.Length);
         }
     }
 }

@@ -13,6 +13,16 @@ namespace JLGames.Infra.Crypto.Symmetric
     public interface IDesCipher : ICipher
     {
         /// <summary>
+        /// 密钥长度
+        /// </summary>
+        int KeySize { get; }
+
+        /// <summary>
+        /// 块大小
+        /// </summary>
+        int BlockSize { get; }
+
+        /// <summary>
         /// 设置填充模式
         /// </summary>
         /// <param name="paddingMode">填充模式</param>

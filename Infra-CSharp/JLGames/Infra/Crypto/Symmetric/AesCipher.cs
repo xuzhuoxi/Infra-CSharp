@@ -23,7 +23,7 @@ namespace JLGames.Infra.Crypto.Symmetric
         }
 
         public byte[] Key => (byte[])m_Key.Clone();
-        public int BlockSize => 16;
+        public int BlockSize => AesDefines.BlockSize;
 
         public void SetPadding(PaddingMode paddingMode)
         {
@@ -100,12 +100,14 @@ namespace JLGames.Infra.Crypto.Symmetric
             }
         }
 
+        // CBC ---------- ---------- ---------- ---------- ----------
+
         public byte[] EncryptCbc(byte[] plaintext)
         {
-            var iv = new byte[BlockSize];
+            var iv = new byte[AesDefines.BlockSize];
             new Random().NextBytes(iv);
             var output = EncryptCbc(plaintext, iv);
-            return Combine(iv, output);
+            return CryptoUtils.Combine(iv, output);
         }
 
         public byte[] EncryptCbc(byte[] plaintext, byte[] iv)
@@ -126,7 +128,7 @@ namespace JLGames.Infra.Crypto.Symmetric
 
         public byte[] DecryptCbc(byte[] ciphertext)
         {
-            Extract(ciphertext, BlockSize, out var iv, out var data);
+            CryptoUtils.Extract(ciphertext, AesDefines.BlockSize, out var iv, out var data);
             return DecryptCbc(data, iv);
         }
 
@@ -146,12 +148,14 @@ namespace JLGames.Infra.Crypto.Symmetric
             }
         }
 
+        // CTR ---------- ---------- ---------- ---------- ----------
+
         public byte[] EncryptCtr(byte[] plaintext)
         {
-            var iv = new byte[BlockSize];
+            var iv = new byte[AesDefines.BlockSize];
             new Random().NextBytes(iv);
             var output = EncryptCtr(plaintext, iv);
-            return Combine(iv, output);
+            return CryptoUtils.Combine(iv, output);
         }
 
         public byte[] EncryptCtr(byte[] plaintext, byte[] iv)
@@ -170,7 +174,7 @@ namespace JLGames.Infra.Crypto.Symmetric
 
         public byte[] DecryptCtr(byte[] ciphertext)
         {
-            Extract(ciphertext, BlockSize, out var iv, out var data);
+            CryptoUtils.Extract(ciphertext, AesDefines.BlockSize, out var iv, out var data);
             return DecryptCtr(data, iv);
         }
 
@@ -188,12 +192,14 @@ namespace JLGames.Infra.Crypto.Symmetric
             return output.Take(processedBytes + finalBytes).ToArray();
         }
 
+        // GCM ---------- ---------- ---------- ---------- ----------
+
         public byte[] EncryptGcm(byte[] plaintext)
         {
             var nonce = new byte[GcmNonceSize]; // GCM nonce size is 12 bytes
             new Random().NextBytes(nonce);
             var output = EncryptGcm(plaintext, nonce);
-            return Combine(nonce, output);
+            return CryptoUtils.Combine(nonce, output);
         }
 
         public byte[] EncryptGcm(byte[] plaintext, byte[] nonce)
@@ -213,7 +219,7 @@ namespace JLGames.Infra.Crypto.Symmetric
 
         public byte[] DecryptGcm(byte[] ciphertext)
         {
-            Extract(ciphertext, GcmNonceSize, out var nonce, out var data); // GCM nonce size is 12 bytes
+            CryptoUtils.Extract(ciphertext, GcmNonceSize, out var nonce, out var data); // GCM nonce size is 12 bytes
             return DecryptGcm(data, nonce);
         }
 
@@ -230,22 +236,6 @@ namespace JLGames.Infra.Crypto.Symmetric
             blockCipher.DoFinal(output, length); // 结束解密过程
 
             return output;
-        }
-
-        private byte[] Combine(byte[] iv, byte[] ciphertext)
-        {
-            var result = new byte[iv.Length + ciphertext.Length];
-            Buffer.BlockCopy(iv, 0, result, 0, iv.Length);
-            Buffer.BlockCopy(ciphertext, 0, result, iv.Length, ciphertext.Length);
-            return result;
-        }
-
-        private void Extract(byte[] cipherData, int ivSize, out byte[] iv, out byte[] ciphertext)
-        {
-            iv = new byte[ivSize];
-            ciphertext = new byte[cipherData.Length - iv.Length];
-            Buffer.BlockCopy(cipherData, 0, iv, 0, ivSize);
-            Buffer.BlockCopy(cipherData, ivSize, ciphertext, 0, ciphertext.Length);
         }
     }
 }

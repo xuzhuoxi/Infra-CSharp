@@ -5,24 +5,26 @@ namespace JLGames.Infra.Crypto.Symmetric
 {
     public class TripleDesCipher : DesCipher
     {
+        public override int BlockSize => DesDefines.TripleKeySize;
+
         public TripleDesCipher(byte[] key)
         {
             if (null == key) throw new ArgumentException("Key must not be Null.");
             var keyLen = key.Length;
             switch (keyLen)
             {
-                case 8:
+                case DesDefines.KeySize:
                     m_Key = new byte[24];
                     Buffer.BlockCopy(key, 0, m_Key, 0, 8);
                     Buffer.BlockCopy(key, 0, m_Key, 8, 8);
                     Buffer.BlockCopy(key, 0, m_Key, 16, 8);
                     break;
-                case 16:
+                case DesDefines.KeySize * 2:
                     m_Key = new byte[24];
                     Buffer.BlockCopy(key, 0, m_Key, 0, 16);
                     Buffer.BlockCopy(key, 0, m_Key, 16, 8);
                     break;
-                case 24:
+                case DesDefines.TripleKeySize:
                     m_Key = key;
                     break;
                 default:
