@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace JLGames.Infra.Crypto.Symmetric
+﻿namespace JLGames.Infra.Crypto.Symmetric
 {
     public static class AesDefines
     {

@@ -69,7 +69,6 @@ namespace JLGames.Infra.Crypto.Asymmetric
         {
             var plaintext = PrivateKey.Decrypt(encryptedKey, m_PaddingMode);
             CryptoUtils.Extract(plaintext, AesDefines.DefaultKeyLength, out aesKey, out aesIv);
-            return;
         }
 
         /// <summary>

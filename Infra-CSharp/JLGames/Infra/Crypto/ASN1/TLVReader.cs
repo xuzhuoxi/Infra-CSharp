@@ -123,7 +123,6 @@ namespace JLGames.Infra.Crypto.ASN1
         /// <summary>
         /// 读取 ASN.1 标记（Tag）
         /// </summary>
-        /// <param name="reader"></param>
         /// <returns>标记值</returns>
         public byte ReadTag()
         {
@@ -134,7 +133,6 @@ namespace JLGames.Infra.Crypto.ASN1
         /// <summary>
         /// 读取 ASN.1 标记（Tag）并验证
         /// </summary>
-        /// <param name="reader"></param>
         /// <param name="expectedTag"></param>
         /// <returns>标记值</returns>
         public byte ReadTag(byte expectedTag)

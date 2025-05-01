@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <!-- 配置默认构建模式 -->
+        <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+        <SolutionFile>../Infra-CSharp.sln</SolutionFile>
+    </PropertyGroup>
+
+    <!-- 只包含库项目，排除 NUnit 项目 -->
+<!--    <ItemGroup>-->
+<!--        <ProjectsToBuild Include="Infra-CSharp.csproj"/>-->
+<!--    </ItemGroup>-->
+    
+    <!-- 构建任务 -->
+    <Target Name="Build" DependsOnTargets="Clean">
+        <Message Text="Building $(SolutionFile) with configuration: $(Configuration)" Importance="High"/>
+        <MSBuild Projects="$(SolutionFile)"
+                 Properties="Configuration=$(Configuration)"
+                 Targets="Build"/>
+    </Target>
+
+    <!-- 清理任务 -->
+    <Target Name="Clean">
+        <Message Text="Cleaning solution: $(SolutionFile)" Importance="High"/>
+        <MSBuild Projects="$(SolutionFile)"
+                 Targets="Clean"/>
+    </Target>
+</Project>

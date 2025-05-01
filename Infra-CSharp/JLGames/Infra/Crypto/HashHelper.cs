@@ -7,9 +7,6 @@ namespace JLGames.Infra.Crypto
 {
     public class HashHelper
     {
-        // 错误信息常量
-        private static readonly string m_ErrUnsupportedHash = "unsupported hash";
-
         /// <summary>
         /// MD5 哈希计算
         /// </summary>
