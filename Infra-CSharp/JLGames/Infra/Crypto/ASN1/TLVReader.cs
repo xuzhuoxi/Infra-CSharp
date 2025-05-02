@@ -197,7 +197,7 @@ namespace JLGames.Infra.Crypto.ASN1
         private byte[] RemoveLeadingZero(byte[] data)
         {
             var newData = new byte[data.Length - 1];
-            Buffer.BlockCopy(data, 1, newData, 0, newData.Length);
+            System.Buffer.BlockCopy(data, 1, newData, 0, newData.Length);
             return newData;
         }
     }

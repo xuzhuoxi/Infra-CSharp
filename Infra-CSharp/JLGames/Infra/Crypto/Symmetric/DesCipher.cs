@@ -31,8 +31,8 @@ namespace JLGames.Infra.Crypto.Symmetric
                     break;
                 case DesDefines.KeySize * 2:
                     m_Key = new byte[24];
-                    Buffer.BlockCopy(key, 0, m_Key, 0, 16);
-                    Buffer.BlockCopy(key, 0, m_Key, 16, 8);
+                    System.Buffer.BlockCopy(key, 0, m_Key, 0, 16);
+                    System.Buffer.BlockCopy(key, 0, m_Key, 16, 8);
                     m_Des = TripleDES.Create();
                     m_Des.Key = m_Key;
                     break;

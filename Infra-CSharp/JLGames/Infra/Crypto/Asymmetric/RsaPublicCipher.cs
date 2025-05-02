@@ -62,8 +62,8 @@ namespace JLGames.Infra.Crypto.Asymmetric
 
             // 合并两段密文            
             var rs = new byte[keyCiphertext.Length + ciphertext.Length];
-            Buffer.BlockCopy(keyCiphertext, 0, rs, 0, keyCiphertext.Length);
-            Buffer.BlockCopy(ciphertext, 0, rs, keyCiphertext.Length, ciphertext.Length);
+            System.Buffer.BlockCopy(keyCiphertext, 0, rs, 0, keyCiphertext.Length);
+            System.Buffer.BlockCopy(ciphertext, 0, rs, keyCiphertext.Length, ciphertext.Length);
             return rs;
         }
 

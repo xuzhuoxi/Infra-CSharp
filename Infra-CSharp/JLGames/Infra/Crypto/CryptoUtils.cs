@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace JLGames.Infra.Crypto
+﻿namespace JLGames.Infra.Crypto
 {
     public static class CryptoUtils
     {
@@ -13,8 +11,8 @@ namespace JLGames.Infra.Crypto
         public static byte[] Combine(byte[] bs, byte[] bs1)
         {
             var result = new byte[bs.Length + bs1.Length];
-            Buffer.BlockCopy(bs, 0, result, 0, bs.Length);
-            Buffer.BlockCopy(bs1, 0, result, bs.Length, bs1.Length);
+            System.Buffer.BlockCopy(bs, 0, result, 0, bs.Length);
+            System.Buffer.BlockCopy(bs1, 0, result, bs.Length, bs1.Length);
             return result;
         }
 
@@ -29,8 +27,8 @@ namespace JLGames.Infra.Crypto
         {
             first = new byte[firstSize];
             second = new byte[data.Length - first.Length];
-            Buffer.BlockCopy(data, 0, first, 0, firstSize);
-            Buffer.BlockCopy(data, firstSize, second, 0, second.Length);
+            System.Buffer.BlockCopy(data, 0, first, 0, firstSize);
+            System.Buffer.BlockCopy(data, firstSize, second, 0, second.Length);
         }
 
         /// <summary>
@@ -54,17 +52,17 @@ namespace JLGames.Infra.Crypto
 
             var result = new byte[len];
             var index = 0;
-            Buffer.BlockCopy(bs, 0, result, index, bs.Length);
+            System.Buffer.BlockCopy(bs, 0, result, index, bs.Length);
             index += bs.Length;
-            Buffer.BlockCopy(bs1, 0, result, index, bs1.Length);
+            System.Buffer.BlockCopy(bs1, 0, result, index, bs1.Length);
             index += bs1.Length;
-            Buffer.BlockCopy(bs2, 0, result, index, bs2.Length);
+            System.Buffer.BlockCopy(bs2, 0, result, index, bs2.Length);
             index += bs2.Length;
             if (others.Length > 0)
             {
                 for (var i = 0; i < others.Length; i++)
                 {
-                    Buffer.BlockCopy(others[i], 0, result, index, others[i].Length);
+                    System.Buffer.BlockCopy(others[i], 0, result, index, others[i].Length);
                     index += others[i].Length;
                 }
             }

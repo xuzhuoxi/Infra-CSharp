@@ -51,7 +51,7 @@ namespace JLGames.Infra.Crypto.Asymmetric
         {
             var len = Math.Min(m_GroupSize, m_Buff.Length - m_Position);
             var next = new byte[len];
-            Buffer.BlockCopy(m_Buff, m_Position, next, 0, len);
+            System.Buffer.BlockCopy(m_Buff, m_Position, next, 0, len);
             m_Position += len;
             return next;
         }

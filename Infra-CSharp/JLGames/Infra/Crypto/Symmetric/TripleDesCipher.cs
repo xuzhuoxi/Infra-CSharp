@@ -15,14 +15,14 @@ namespace JLGames.Infra.Crypto.Symmetric
             {
                 case DesDefines.KeySize:
                     m_Key = new byte[24];
-                    Buffer.BlockCopy(key, 0, m_Key, 0, 8);
-                    Buffer.BlockCopy(key, 0, m_Key, 8, 8);
-                    Buffer.BlockCopy(key, 0, m_Key, 16, 8);
+                    System.Buffer.BlockCopy(key, 0, m_Key, 0, 8);
+                    System.Buffer.BlockCopy(key, 0, m_Key, 8, 8);
+                    System.Buffer.BlockCopy(key, 0, m_Key, 16, 8);
                     break;
                 case DesDefines.KeySize * 2:
                     m_Key = new byte[24];
-                    Buffer.BlockCopy(key, 0, m_Key, 0, 16);
-                    Buffer.BlockCopy(key, 0, m_Key, 16, 8);
+                    System.Buffer.BlockCopy(key, 0, m_Key, 0, 16);
+                    System.Buffer.BlockCopy(key, 0, m_Key, 16, 8);
                     break;
                 case DesDefines.TripleKeySize:
                     m_Key = key;
