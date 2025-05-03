@@ -38,11 +38,11 @@ namespace JLGames.Infra.Crypto.ASN1
         public TLVBlock ReadBlock()
         {
             var tag = ReadTag();
-            var length = ReadLength();
-            var value = ReadValue(length);
+            var length = ReadLength(out var lengthValue);
+            var value = ReadValue(lengthValue);
             return new TLVBlock
             {
-                Tag = tag, Length = length, Value = value
+                Tag = tag, Length = length, Value = value, LengthValue = lengthValue
             };
         }
 
@@ -55,18 +55,18 @@ namespace JLGames.Infra.Crypto.ASN1
         public TLVBlock ReadBlock(byte expectedTag)
         {
             var tag = ReadTag(expectedTag);
-            var length = ReadLength();
-            if (length == 0)
+            var length = ReadLength(out var lengthValue);
+            if (lengthValue == 0)
             {
                 return new TLVBlock
                 {
-                    Tag = tag, Length = length
+                    Tag = tag, Length = length, LengthValue = lengthValue
                 };
             }
 
             return new TLVBlock
             {
-                Tag = tag, Length = length, Value = ReadValue(length)
+                Tag = tag, Length = length, Value = ReadValue(lengthValue), LengthValue = lengthValue
             };
         }
 
@@ -78,10 +78,10 @@ namespace JLGames.Infra.Crypto.ASN1
         public TLVBlock ReadBlockNoValue()
         {
             var tag = ReadTag();
-            var length = ReadLength();
+            var length = ReadLength(out var lengthValue);
             return new TLVBlock
             {
-                Tag = tag, Length = length
+                Tag = tag, Length = length, LengthValue = lengthValue
             };
         }
 
@@ -93,10 +93,10 @@ namespace JLGames.Infra.Crypto.ASN1
         public TLVBlock ReadBlockNoValue(byte expectedTag)
         {
             var tag = ReadTag(expectedTag);
-            var length = ReadLength();
+            var length = ReadLength(out var lengthValue);
             return new TLVBlock
             {
-                Tag = tag, Length = length
+                Tag = tag, Length = length, LengthValue = lengthValue
             };
         }
 
@@ -127,38 +127,52 @@ namespace JLGames.Infra.Crypto.ASN1
         /// <summary>
         /// 读取 ASN.1 数据长度（Length）
         /// 短格式: 第一个1字节记录长度(小于128时，即小于0x80)
-        /// 长格式: 第一个1字节记录长度数据字节数量n, 余下n个字节记录数量，强制大端 
+        /// 长格式: 第一个1字节记录长度数据字节数量n, 余下n个字节记录数量，强制大端
+        /// origBytes: 原始字节数组
         /// </summary>
         /// <returns>数据块字节数量</returns>
-        public int ReadLength()
+        public byte[] ReadLength(out int lengthValue)
         {
             var len = m_Reader.ReadByte();
 
             // 短格式
             if ((len & 0x80) == 0)
             {
-                return len;
+                lengthValue = len;
+                return new[] { len };
             }
 
             // 长格式
             var lengthBytes = len & 0x7F;
-            var length = 0;
+            lengthValue = 0;
+            var length = new byte[lengthBytes + 1];
+            length[0] = len;
             for (var i = 0; i < lengthBytes; i++)
-                length = (length << 8) | m_Reader.ReadByte();
+            {
+                length[i + 1] = m_Reader.ReadByte();
+                lengthValue = (lengthValue << 8) | length[i + 1];
+            }
+
             return length;
         }
 
         /// <summary>
         /// 读取 ASN.1 数据（Value）
-        /// 如果有前导零，去除前导0
         /// </summary>
         /// <param name="length"></param>
         /// <returns></returns>
         public byte[] ReadValue(int length)
         {
-            var value = m_Reader.ReadBytes(length);
-            if (!HasLeadingZero(value)) return value;
-            return RemoveLeadingZero(value);
+            return m_Reader.ReadBytes(length);
+        }
+
+        /// <summary>
+        /// 读取一个字节
+        /// </summary>
+        /// <returns></returns>
+        public byte ReadByte()
+        {
+            return m_Reader.ReadByte();
         }
 
         /// <summary>
@@ -168,18 +182,6 @@ namespace JLGames.Infra.Crypto.ASN1
         public bool HasData()
         {
             return m_Reader.BaseStream.Position < m_Reader.BaseStream.Length;
-        }
-
-        private bool HasLeadingZero(byte[] data)
-        {
-            return data.Length > 1 && data[0] == 0x00;
-        }
-
-        private byte[] RemoveLeadingZero(byte[] data)
-        {
-            var newData = new byte[data.Length - 1];
-            System.Buffer.BlockCopy(data, 1, newData, 0, newData.Length);
-            return newData;
         }
     }
 }

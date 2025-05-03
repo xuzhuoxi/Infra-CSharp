@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 using JLGames.Infra.Crypto.ASN1;
 
@@ -20,51 +18,38 @@ namespace JLGames.Infra.Crypto.Asymmetric
         ///     parameters             ANY DEFINED BY algorithm OPTIONAL
         /// }
         /// </summary>
-        /// <param name="deBytes"></param>
+        /// <param name="derBytes"></param>
         /// <returns></returns>
-        public static RSAParameters DecodeX509RsaPublic(byte[] deBytes)
+        public static RSAParameters DecodeX509Params(byte[] derBytes)
         {
-            using (var reader = new TLVAdvancedReader(deBytes))
+            using (var reader = new TLVAdvancedReader(derBytes))
             {
                 reader.ReadSequence(false); // SEQUENCE
 
                 // algorithm              AlgorithmIdentifier
-                var identifier = reader.ReadAlgorithmIdentifier(true); // AlgorithmIdentifier
-                if (!CryptoUtils.AssertIsRsaOid(identifier.Value)) // 验证算法为RSA
+                var oid = reader.ReadRsaOid(); // AlgorithmIdentifier
+                if (!CryptoUtils.AssertIsRsaOid(oid.Value)) // 验证算法为RSA
                 {
+                    Console.WriteLine($"Oid:{oid}");
                     throw new Exception("Invalid algorithm identifier for RSA.");
                 }
 
                 // subjectPublicKey       BIT STRING
-                var subjectPublicKey = reader.ReadBitString(true); // BIT STRING
-                ParseRsaModuleExponentFromX509(subjectPublicKey.Value, out var modules, out var exponent);
-                return new RSAParameters
+                var subjectPublicKey = reader.ReadBitString(); // BIT STRING
+                using (var subReader = new TLVAdvancedReader(subjectPublicKey.Value))
                 {
-                    Modulus = modules,
-                    Exponent = exponent,
-                };
-            }
-        }
+                    subReader.ReadSequence(false);
+                    var modulus = subReader.ReadInteger();
+                    var exponent = subReader.ReadInteger();
 
-        private static void ParseRsaModuleExponentFromX509(IReadOnlyList<byte> subjectPublicKeyValue, out byte[] modules, out byte[] exponent)
-        {
-            var leadingBits = subjectPublicKeyValue[0]; // 获取前导比特数
-            var actualData = subjectPublicKeyValue.Skip(1).ToArray();
-            if (leadingBits > 0) // 前导比特数 >0 
-            {
-                actualData[0] >>= leadingBits; // 移除无效的前导比特
+                    // Console.WriteLine($"X509: Modulus:[{string.Join(" ", modulus)}], Exponent:[{string.Join(" ", exponent)}],");
+                    return new RSAParameters
+                    {
+                        Modulus = modulus,
+                        Exponent = exponent,
+                    };
+                }
             }
-
-            var modulusLength = actualData.Length - 3;
-            //  末尾三位是0x010001，Exponent的长度则为4
-            if (actualData.Length >= 4 && actualData[modulusLength] == 0x01
-                                       && actualData[modulusLength + 1] == 0x00
-                                       && actualData[modulusLength + 2] == 0x01)
-            {
-                modulusLength = actualData.Length - 4; // 如果 Exponent 是 4 字节，则调整 Modulus 长度
-            }
-
-            CryptoUtils.Extract(actualData, modulusLength, out modules, out exponent); // 拆分 Modules 和 Exponent
         }
 
 
@@ -114,12 +99,14 @@ namespace JLGames.Infra.Crypto.Asymmetric
         /// </summary>
         /// <param name="deBytes"></param>
         /// <returns></returns>
-        public static RSAParameters DecodePkcs8Private(byte[] deBytes)
+        public static RSAParameters DecodePkcs8Params(byte[] deBytes)
         {
+            // Console.WriteLine($"Der:[{string.Join(" ", Array.ConvertAll(deBytes, b => $"0x{b:X2}"))}]");
             using (var reader = new TLVAdvancedReader(deBytes))
             {
                 reader.ReadSequence(false);
-                reader.ReadAlgorithmIdentifier(true);
+                reader.ReadInteger();
+                reader.ReadRsaOid();
 
                 reader.ReadOctetString(false);
                 reader.ReadSequence(false);
@@ -160,9 +147,10 @@ namespace JLGames.Infra.Crypto.Asymmetric
         {
             using (var reader = new TLVAdvancedReader(derBytes))
             {
-                reader.ReadBlockNoValue(DerTags.SEQUENCE);
+                reader.ReadSequence(false);
                 var modulus = reader.ReadInteger();
                 var publicExponent = reader.ReadInteger();
+                // Console.WriteLine($"Pkcs1: Modulus:[{string.Join(" ", modulus)}], Exponent:[{string.Join(" ", publicExponent)}],");
                 return new RSAParameters
                 {
                     Modulus = modulus,
