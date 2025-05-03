@@ -23,6 +23,15 @@ namespace JLGames.Infra.Crypto.ASN1
         }
 
         /// <summary>
+        /// 路过指定长度
+        /// </summary>
+        /// <param name="length"></param>
+        public void SkipLength(int length)
+        {
+            m_Reader.BaseStream.Seek(length, SeekOrigin.Current);
+        }
+
+        /// <summary>
         /// 读取 ASN.1 数据块
         /// </summary>
         /// <returns></returns>
@@ -91,34 +100,6 @@ namespace JLGames.Infra.Crypto.ASN1
             };
         }
 
-        /// <summary>
-        /// 验证标记后读取一个整数数据块
-        /// </summary>
-        /// <returns></returns>
-        public byte[] ReadInteger()
-        {
-            return ReadBlock(DerTags.INTEGER).Value;
-        }
-
-        /// <summary>
-        /// 验证标记后读取一个布尔数据块
-        /// </summary>
-        /// <returns></returns>
-        public byte[] ReadBoolean()
-        {
-            return ReadBlock(DerTags.BOOLEAN).Value;
-        }
-
-        /// <summary>
-        /// 验证标记后读取一个整数数据块
-        /// </summary>
-        /// <param name="expectedTag"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
-        public byte[] ReadInteger(byte expectedTag)
-        {
-            return ReadBlock(expectedTag).Value;
-        }
 
         /// <summary>
         /// 读取 ASN.1 标记（Tag）
@@ -139,7 +120,7 @@ namespace JLGames.Infra.Crypto.ASN1
         {
             if (!HasData()) throw new EndOfStreamException("Unexpected end of ASN.1 data.");
             var tag = m_Reader.ReadByte();
-            if (tag != expectedTag) throw new ArgumentException($"ASN.1 format error: Expected {expectedTag:X2}, but got {tag:X2}");
+            if (tag != expectedTag) throw new ArgumentException($"ASN.1 format error: Expected tag {expectedTag:X2}, but got {tag:X2}");
             return tag;
         }
 

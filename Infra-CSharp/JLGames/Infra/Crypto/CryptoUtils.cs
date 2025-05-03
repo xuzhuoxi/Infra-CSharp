@@ -1,7 +1,56 @@
-﻿namespace JLGames.Infra.Crypto
+﻿using System;
+using System.Linq;
+
+namespace JLGames.Infra.Crypto
 {
     public static class CryptoUtils
     {
+        /// <summary>
+        /// Rsa算法标识(OID)
+        /// </summary>
+        private static readonly byte[] m_RsaOid = { 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x01 };
+
+        /// <summary>
+        /// Dsa算法标识(OID)
+        /// </summary>
+        private static readonly byte[] m_DsaOid = { 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01 };
+
+        /// <summary>
+        /// Ecdsa算法标识(OID)
+        /// </summary>
+        private static readonly byte[] m_EcdsaOid = { 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01 };
+
+
+        /// <summary>
+        /// 判断是否为 Rsa算法标识(OID)
+        /// </summary>
+        /// <param name="rsaOid"></param>
+        /// <exception cref="Exception"></exception>
+        public static bool AssertIsRsaOid(byte[] rsaOid)
+        {
+            return rsaOid.Length == m_RsaOid.Length && rsaOid.SequenceEqual(m_RsaOid);
+        }
+
+        /// <summary>
+        /// 判断是否为 Dsa算法标识(OID)
+        /// </summary>
+        /// <param name="dsaOid"></param>
+        /// <exception cref="Exception"></exception>
+        public static bool AssertIsDsaOid(byte[] dsaOid)
+        {
+            return dsaOid.Length == m_DsaOid.Length && dsaOid.SequenceEqual(m_DsaOid);
+        }
+
+        /// <summary>
+        /// 判断是否为 Ecdsa算法标识(OID)
+        /// </summary>
+        /// <param name="ecdsaOid"></param>
+        /// <exception cref="Exception"></exception>
+        public static bool AssertIsEcdsaOid(byte[] ecdsaOid)
+        {
+            return ecdsaOid.Length == m_EcdsaOid.Length && ecdsaOid.SequenceEqual(m_EcdsaOid);
+        }
+
         /// <summary>
         /// 合并两个字节数组
         /// </summary>
