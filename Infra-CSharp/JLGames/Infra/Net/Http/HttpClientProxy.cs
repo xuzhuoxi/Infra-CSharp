@@ -178,15 +178,15 @@ namespace JLGames.Infra.Net
             }
             catch (UriFormatException e)
             {
-                Console.WriteLine($"Get Exception: {e.Message}");
+                Console.WriteLine($"Get UriFormatException: {e.Message}");
             }
-            catch (TimeoutException)
+            catch (TaskCanceledException)
             {
                 onResponse?.Invoke(true, HttpStatusCode.RequestTimeout, null);
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Get Exception: {e.Message}");
+                Console.WriteLine($"Get Exception({e.GetType()}): {e.Message}");
             }
         }
 
@@ -210,15 +210,15 @@ namespace JLGames.Infra.Net
             }
             catch (UriFormatException e)
             {
-                Console.WriteLine($"Get Exception: {e.Message}");
+                Console.WriteLine($"Get UriFormatException: {e.Message}");
             }
-            catch (TimeoutException)
+            catch (TaskCanceledException)
             {
                 onResponse?.Invoke(true, HttpStatusCode.RequestTimeout, null);
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Get Exception: {e.Message}");
+                Console.WriteLine($"Get Exception({e.GetType()}): {e.Message}");
             }
         }
 
@@ -244,15 +244,15 @@ namespace JLGames.Infra.Net
             }
             catch (UriFormatException e)
             {
-                Console.WriteLine($"Get Exception: {e.Message}");
+                Console.WriteLine($"Get UriFormatException: {e.Message}");
             }
-            catch (TimeoutException)
+            catch (TaskCanceledException)
             {
                 onResponse?.Invoke(true, HttpStatusCode.RequestTimeout, null);
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Get Exception: {e.Message}");
+                Console.WriteLine($"Get Exception({e.GetType()}): {e.Message}");
             }
         }
 
@@ -278,15 +278,15 @@ namespace JLGames.Infra.Net
             }
             catch (UriFormatException e)
             {
-                Console.WriteLine($"Get Exception: {e.Message}");
+                Console.WriteLine($"Get UriFormatException: {e.Message}");
             }
-            catch (TimeoutException)
+            catch (TaskCanceledException)
             {
                 onResponse?.Invoke(true, HttpStatusCode.RequestTimeout, null);
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Get Exception: {e.Message}");
+                Console.WriteLine($"Get Exception({e.GetType()}): {e.Message}");
             }
         }
 
@@ -428,15 +428,15 @@ namespace JLGames.Infra.Net
             }
             catch (UriFormatException e)
             {
-                Console.WriteLine($"Post Exception: {e.Message}");
+                Console.WriteLine($"Post UriFormatException: {e.Message}");
             }
-            catch (TimeoutException)
+            catch (TaskCanceledException)
             {
                 onResponse?.Invoke(true, HttpStatusCode.RequestTimeout, null);
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Post Exception: {e.Message}");
+                Console.WriteLine($"Post Exception({e.GetType()}): {e.Message}");
             }
         }
 
@@ -463,15 +463,15 @@ namespace JLGames.Infra.Net
             }
             catch (UriFormatException e)
             {
-                Console.WriteLine($"Post Exception: {e.Message}");
+                Console.WriteLine($"Post UriFormatException: {e.Message}");
             }
-            catch (TimeoutException)
+            catch (TaskCanceledException)
             {
                 onResponse?.Invoke(true, HttpStatusCode.RequestTimeout, null);
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Post Exception: {e.Message}");
+                Console.WriteLine($"Post Exception({e.GetType()}): {e.Message}");
             }
         }
 
@@ -500,15 +500,15 @@ namespace JLGames.Infra.Net
             }
             catch (UriFormatException e)
             {
-                Console.WriteLine($"Post Exception: {e.Message}");
+                Console.WriteLine($"Post UriFormatException: {e.Message}");
             }
-            catch (TimeoutException)
+            catch (TaskCanceledException)
             {
                 onResponse?.Invoke(true, HttpStatusCode.RequestTimeout, null);
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Post Exception: {e.Message}");
+                Console.WriteLine($"Post Exception({e.GetType()}): {e.Message}");
             }
         }
 
@@ -537,15 +537,15 @@ namespace JLGames.Infra.Net
             }
             catch (UriFormatException e)
             {
-                Console.WriteLine($"Post Exception: {e.Message}");
+                Console.WriteLine($"Post UriFormatException: {e.Message}");
             }
-            catch (TimeoutException)
+            catch (TaskCanceledException)
             {
                 onResponse?.Invoke(true, HttpStatusCode.RequestTimeout, null);
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Post Exception: {e.Message}");
+                Console.WriteLine($"Post Exception({e.GetType()}): {e.Message}}}");
             }
         }
 
