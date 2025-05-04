@@ -1,50 +1,70 @@
 namespace JLGames.Infra.Net
 {
     public static class NetResponseCode
-    {   
+    {
         /// <summary>
         /// 成功
         /// </summary>
         public const int Suc = 0;
+
+        /// <summary>
+        /// 扩展错误-扩展不存在
+        /// </summary>
+        public const int ExtensionNotExist = 1;
+
         /// <summary>
         /// 协议错误-协议不存在
         /// </summary>
-        public const int ProtoFail = 1;
+        public const int ProtoNotExist = 2;
+
+        /// <summary>
+        /// 扩展禁用
+        /// </summary>
+        public const int ExtensionDisable = 3;
+
         /// <summary>
         /// 参数错误
         /// </summary>
-        public const int Args = 2;
+        public const int Args = 4;
+
         /// <summary>
         /// 服务器内部错误
         /// </summary>
-        public const int Internal = 3;
+        public const int Internal = 5;
+
         /// <summary>
         /// 数据库执行错误
         /// </summary>
-        public const int DbQuery = 4;
+        public const int DbQuery = 6;
+
         /// <summary>
         /// 请求超时
         /// </summary>
-        public const int Timeout = 5;
+        public const int Timeout = 7;
+
         /// <summary>
         /// 权限不足
         /// </summary>
-        public const int Right = 6;
+        public const int Right = 8;
+
         /// <summary>
         /// 状态不匹配
         /// </summary>
-        public const int Status = 7;
+        public const int Status = 9;
+
         /// <summary>
         /// 请求重复
         /// </summary>
-        public const int Repeat = 8;
+        public const int Repeat = 10;
+
         /// <summary>
         /// 请求过于频繁
         /// </summary>
-        public const int Frequent = 9;
+        public const int Frequent = 11;
+
         /// <summary>
         /// 其它错误
         /// </summary>
-        public const int Other = 10;
+        public const int Other = 12;
     }
 }
