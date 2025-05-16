@@ -2,9 +2,9 @@
 
 namespace JLGames.Infra.Net
 {
-    public class MessageWriter : DataBuffer, IMessageWriter
+    public class NetMessageWriter : DataBuffer, INetMessageWriter
     {
-        public MessageWriter(bool littleEndian) : base(littleEndian)
+        public NetMessageWriter(bool littleEndian) : base(littleEndian)
         {
         }
 

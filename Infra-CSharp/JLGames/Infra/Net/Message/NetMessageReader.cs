@@ -2,9 +2,9 @@
 
 namespace JLGames.Infra.Net
 {
-    public class MessageReader : DataBuffer, IMessageReader
+    public class NetMessageReader : DataBuffer, INetMessageReader
     {
-        public MessageReader(bool littleEndian) : base(littleEndian)
+        public NetMessageReader(bool littleEndian) : base(littleEndian)
         {
         }
 
@@ -64,9 +64,14 @@ namespace JLGames.Infra.Net
             }
         }
 
-        public void WriteMessageBytes(byte[] data)
+        public void WriteMessageBytes(byte[] src)
         {
-            m_Buff.Write(data);
+            m_Buff.Write(src);
+        }
+
+        public void WriteMessageBytes(byte[] src, int srcIndex, int size)
+        {
+            m_Buff.Write(src, srcIndex, size);
         }
     }
 }

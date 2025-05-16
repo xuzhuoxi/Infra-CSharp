@@ -1,25 +1,28 @@
-﻿using System;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
+using System.Threading;
 using JLGames.Infra.Event;
-using JLGames.Infra.Buffer;
 
 namespace JLGames.Infra.Net
 {
-    public class SockClient : EventDispatcher, ISockClient
+    public class SocketClient : EventDispatcher, ISocketClient
     {
-        private readonly bool m_LittleEndian;
         private string m_Name;
+        private SynchronizationContext m_SyncContext;
+        private readonly bool m_LittleEndian;
+        private readonly bool m_ApmMode;
+        private SocketParams m_Params;
 
-        private ISockSender m_Sender;
-        private ISockReceiver m_Receiver;
-        private Socket m_Client;
+        private IConnectAdapter m_ConnectAdapter;
+        private ISocketSender m_Sender;
+        private ISocketReceiver m_Receiver;
 
         public string Name => m_Name;
 
-        public SockClient(string name, bool littleEndian)
+        public SocketClient(string name, bool littleEndian, bool apmMode)
         {
             m_Name = name;
             m_LittleEndian = littleEndian;
+            m_ApmMode = apmMode;
         }
 
         public void SetName(string name)
@@ -47,7 +50,7 @@ namespace JLGames.Infra.Net
             m_Sender?.SendMessage(message, messages);
         }
 
-        public void SetMessageHandler(SockDelegate.FuncMessageHandler handler)
+        public void SetMessageHandler(SocketDelegates.OnBinaryMessageHandler handler)
         {
             m_Receiver?.SetMessageHandler(handler);
         }
@@ -55,206 +58,116 @@ namespace JLGames.Infra.Net
         public void StartReceiving()
         {
             if (null == m_Receiver) return;
-            m_Receiver.AddEventListener(SockEvents.EventOnReceivingStopped, OnReceiving);
+            m_Receiver.AddEventListener(SocketEvents.EventOnMessageReceived, OnReceived);
+            m_Receiver.AddEventListener(SocketEvents.EventOnMessageReceivedEnd, OnReceivedEnd);
             m_Receiver.StartReceiving();
         }
 
         public void StopReceiving()
         {
             if (null == m_Receiver) return;
-            m_Receiver.RemoveEventListener(SockEvents.EventOnReceivingStopped, OnReceiving);
+            m_Receiver.RemoveEventListener(SocketEvents.EventOnMessageReceivedEnd, OnReceivedEnd);
+            m_Receiver.RemoveEventListener(SocketEvents.EventOnMessageReceived, OnReceived);
             m_Receiver.StopReceiving();
         }
 
         public bool IsReceiving => m_Receiver.IsReceiving;
 
-        public bool Connected => m_Client != null && m_Client.Connected;
+        public bool Connected => m_ConnectAdapter.Connected;
 
-        public void OpenClient(SockParams @params)
+        public void SetContext(SynchronizationContext context)
         {
-            if (null != m_Client && m_Client.Connected)
+            m_SyncContext = context;
+        }
+
+        public void OpenClient(SocketParams @params)
+        {
+            if (null != m_ConnectAdapter)
             {
-                DispatchEvent(SockEvents.EventOnConnectOpen, null);
+                DispatchEvent(SocketEvents.EventOnConnectionOpen, new SocketEvents.SocketConnEventInfo { Suc = false });
                 return;
             }
 
-            m_Client = @params.GenSocket();
-            OpenClientUseConnectAsync(@params);
-//            OpenClientUseBeginConnect(@params);
+            m_Params = @params;
+            if (m_ApmMode)
+                m_ConnectAdapter = new BeginConnectAdapter(@params);
+            else
+                m_ConnectAdapter = new ConnectAsyncAdapter(@params);
+
+            m_ConnectAdapter.Connect(onConnect: OnConnected);
+        }
+
+        private void OnConnected(AdapterDelegates.ConnectResultInfo info)
+        {
+            if (null == m_SyncContext)
+                HandleConnectResult(info);
+            else
+                m_SyncContext.Post(_ => { HandleConnectResult(info); }, null);
+        }
+
+        private void HandleConnectResult(AdapterDelegates.ConnectResultInfo info)
+        {
+            // 连接成功
+            if (info.Suc && info.Error == SocketError.Success)
+            {
+                CreateSendReceiver();
+                DispatchEvent(SocketEvents.EventOnConnectionOpen, new SocketEvents.SocketConnEventInfo { Suc = true });
+                return;
+            }
+
+            // 连接失败
+            DispatchEvent(SocketEvents.EventOnConnectionOpen,
+                new SocketEvents.SocketConnEventInfo { Suc = false, Error = info.Error, Exception = info.Exception });
         }
 
         public void CloseClient()
         {
-            if (null == m_Client || !m_Client.Connected)
+            if (null == m_ConnectAdapter)
             {
-                DispatchEvent(SockEvents.EventOnConnectClose, null);
+                DispatchEvent(SocketEvents.EventOnConnectionClose, new SocketEvents.SocketConnEventInfo { Suc = false });
                 return;
             }
 
-            m_Client.Shutdown(SocketShutdown.Both);
-            CloseClientUseDisconnectAsync();
-//            CloseClientUseBeginDisconnect();
+            m_Receiver.StopReceiving();
+            m_ConnectAdapter.Close(OnDisconnect, true);
         }
 
-        #region ConnectAsync
-
-        private void OpenClientUseConnectAsync(SockParams @params)
+        private void OnDisconnect(AdapterDelegates.ConnectResultInfo info)
         {
-            try
-            {
-                var args = new SocketAsyncEventArgs {RemoteEndPoint = @params.RemoteEndPoint()};
-                args.Completed += OnConnectCompleted;
-                var pending = m_Client.ConnectAsync(args);
-                if (!pending)
-                {
-                    OnConnectCompleted(m_Client, args);
-                }
-            }
-            catch (Exception e)
-            {
-                DispatchEvent(SockEvents.EventOnConnectOpen, e);
-            }
+            if (null == m_SyncContext)
+                HandleDisconnectResult(info);
+            else
+                m_SyncContext.Post(_ => { HandleDisconnectResult(info); }, null);
         }
 
-        private void OnConnectCompleted(object sender, SocketAsyncEventArgs e)
+        private void HandleDisconnectResult(AdapterDelegates.ConnectResultInfo info)
         {
-            e.Completed -= OnConnectCompleted;
-            // 检查是否发生错误
-            if (e.SocketError != SocketError.Success)
+            // 断开成功
+            if (info.Suc && info.Error == SocketError.Success)
             {
-                DispatchEvent(SockEvents.EventOnConnectOpen, e.SocketError);
+                DispatchEvent(SocketEvents.EventOnConnectionClose, new SocketEvents.SocketConnEventInfo { Suc = true });
                 return;
             }
 
-            CreateScenderReceiver();
-            DispatchEvent(SockEvents.EventOnConnectOpen, null);
+            // 断开失败
+            DispatchEvent(SocketEvents.EventOnConnectionClose,
+                new SocketEvents.SocketConnEventInfo { Suc = false, Error = info.Error, Exception = info.Exception });
         }
 
-        #endregion
-
-        #region DisconnectAsync
-
-        private void CloseClientUseDisconnectAsync()
+        private void CreateSendReceiver()
         {
-            try
-            {
-                var args = new SocketAsyncEventArgs
-                {
-                    DisconnectReuseSocket = false
-                };
-                args.Completed += OnDisconnectAsyncCompleted;
-                var pending = m_Client.DisconnectAsync(args);
-                if (!pending)
-                {
-                    OnDisconnectAsyncCompleted(m_Client, args);
-                }
-            }
-            catch (Exception e)
-            {
-                DispatchEvent(SockEvents.EventOnConnectClose, e);
-            }
+            m_Sender = new SocketSender(m_Name, m_ConnectAdapter.Socket, new NetMessageWriter(m_LittleEndian));
+            m_Receiver = new SocketReceiver(m_Name, m_ConnectAdapter.Socket, new NetMessageReader(m_LittleEndian), m_ApmMode);
         }
 
-        private void OnDisconnectAsyncCompleted(object sender, SocketAsyncEventArgs e)
+        private void OnReceived(EventData evd)
         {
-            e.Completed -= OnDisconnectAsyncCompleted;
-            m_Client.Dispose();
-            m_Receiver = null;
-            m_Sender = null;
-            m_Client = null;
-            // 检查是否发生错误
-            if (e.SocketError != SocketError.Success && e.SocketError != SocketError.OperationAborted)
-            {
-                DispatchEvent(SockEvents.EventOnConnectClose, e.SocketError);
-                return;
-            }
-
-            DispatchEvent(SockEvents.EventOnConnectClose, null);
+            DispatchEvent(evd.Type, evd.Data);
         }
 
-        #endregion
-
-        #region BeginConnect
-
-        private void OpenClientUseBeginConnect(SockParams @params)
+        private void OnReceivedEnd(EventData evd)
         {
-            try
-            {
-                m_Client.BeginConnect(@params.RemoteEndPoint(), InnerOnConnected, m_Client);
-            }
-            catch (Exception e)
-            {
-                DispatchEvent(SockEvents.EventOnConnectOpen, e);
-            }
-        }
-
-        private void InnerOnConnected(IAsyncResult iar)
-        {
-            var client = (Socket) iar.AsyncState;
-            try
-            {
-                client.EndConnect(iar);
-            }
-            catch (Exception e)
-            {
-                DispatchEvent(SockEvents.EventOnConnectOpen, e);
-                return;
-            }
-
-            CreateScenderReceiver();
-            DispatchEvent(SockEvents.EventOnConnectOpen, null);
-        }
-
-        #endregion
-
-        #region BeginDisconnect
-
-        public void CloseClientUseBeginDisconnect()
-        {
-            try
-            {
-                m_Client.BeginDisconnect(false, InnerOnDisconnected, m_Client);
-            }
-            catch (Exception e)
-            {
-                DispatchEvent(SockEvents.EventOnConnectClose, e);
-            }
-        }
-
-        private void InnerOnDisconnected(IAsyncResult iar)
-        {
-            var client = (Socket) iar.AsyncState;
-            try
-            {
-                client.EndDisconnect(iar);
-                client.Dispose();
-            }
-            catch (Exception e)
-            {
-                m_Receiver = null;
-                m_Sender = null;
-                m_Client = null;
-                DispatchEvent(SockEvents.EventOnConnectClose, e);
-                return;
-            }
-
-            m_Receiver = null;
-            m_Sender = null;
-            m_Client = null;
-            DispatchEvent(SockEvents.EventOnConnectClose, null);
-        }
-
-        #endregion
-
-        private void CreateScenderReceiver()
-        {
-            m_Sender = new SockSender(m_Client, new MessageWriter(m_LittleEndian));
-            var msgReader = new MessageReader(m_LittleEndian);
-            m_Receiver = new SockReceiver(m_Client, msgReader, msgReader);
-        }
-
-        private void OnReceiving(EventData evd)
-        {
+            StopReceiving();
             DispatchEvent(evd.Type, evd.Data);
         }
     }

@@ -6,7 +6,7 @@ namespace JLGames.Infra.Net
     /// Message unpacker with buffer
     /// 带缓存的消息解包器
     /// </summary>
-    public interface IMessageReader : IDataBufferReader, IDataBufferCopier, IByteBufferReader, IByteBufferCopier
+    public interface INetMessageReader : IDataBufferReader, IDataBufferCopier, IByteBufferReader, IByteBufferCopier
     {
         /// <summary>
         /// Check message exist
@@ -65,7 +65,16 @@ namespace JLGames.Infra.Net
         /// Write bytes data.
         /// 写入字节数据
         /// </summary>
-        /// <param name="data"></param>
-        void WriteMessageBytes(byte[] data);
+        /// <param name="src">要写入的数据源</param>
+        void WriteMessageBytes(byte[] src);
+
+        /// <summary>
+        /// Write bytes data.
+        /// 写入字节数据
+        /// </summary>
+        /// <param name="src">要写入的数据源</param>
+        /// <param name="srcIndex">数据源的索引</param>
+        /// <param name="size">数据写入长度</param>
+        void WriteMessageBytes(byte[] src, int srcIndex, int size);
     }
 }

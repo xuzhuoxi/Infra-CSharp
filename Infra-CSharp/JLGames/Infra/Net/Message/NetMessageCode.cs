@@ -1,6 +1,6 @@
 namespace JLGames.Infra.Net
 {
-    public static class NetResponseCode
+    public static class NetMessageCode
     {
         /// <summary>
         /// 成功

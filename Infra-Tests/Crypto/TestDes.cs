@@ -91,7 +91,7 @@ namespace JLGames.InfraTests.Crypto
                     TestIvCase(@case, blockMode);
                 }
 
-                Console.WriteLine("---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------");
+                TestContext.Progress.WriteLine("---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------");
             }
         }
 
@@ -105,7 +105,7 @@ namespace JLGames.InfraTests.Crypto
                     TestIvCase3(@case, blockMode);
                 }
 
-                Console.WriteLine("---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------");
+                TestContext.Progress.WriteLine("---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ---------- ----------");
             }
         }
 
@@ -116,8 +116,8 @@ namespace JLGames.InfraTests.Crypto
             var plaintext2 = cipher.DecryptMode(ciphertext, value.Iv, mode);
             value.Ciphertext = ciphertext;
             value.Plaintext2 = plaintext2;
-            Console.WriteLine($"{mode}:");
-            Console.WriteLine(value);
+            TestContext.Progress.WriteLine($"{mode}:");
+            TestContext.Progress.WriteLine(value);
             Assert.IsTrue(value.Plaintext.SequenceEqual(plaintext2),
                 $"Mode {mode}, Expected {ArrayToString(value.Plaintext)} \nbut got {ArrayToString(plaintext2)}");
         }
@@ -129,8 +129,8 @@ namespace JLGames.InfraTests.Crypto
             var plaintext2 = cipher.DecryptMode(ciphertext, value.Iv, mode);
             value.Ciphertext = ciphertext;
             value.Plaintext2 = plaintext2;
-            Console.WriteLine($"{mode}:");
-            Console.WriteLine(value);
+            TestContext.Progress.WriteLine($"{mode}:");
+            TestContext.Progress.WriteLine(value);
             Assert.IsTrue(value.Plaintext.SequenceEqual(plaintext2),
                 $"Mode {mode}, Expected {ArrayToString(value.Plaintext)} \nbut got {ArrayToString(plaintext2)}");
         }

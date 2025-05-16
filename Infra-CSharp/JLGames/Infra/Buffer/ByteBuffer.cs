@@ -5,8 +5,8 @@ namespace JLGames.Infra.Buffer
     public class ByteBuffer : IByteBuffer
     {
         private const int DefaultBufferSize = 256;
-        private const int DefaultBufferAdd = 128;
-        private static readonly int[] m_BufferSize = {16, 32, 64, 128, 256, 512, 1024};
+        private const int DefaultBufferAdd = 512;
+        private static readonly int[] m_BufferSize = { 16, 32, 64, 128, 256, 512, 1024, 2048 };
 
         private byte[] m_Buff; //buffer
         private int m_RPos; //read index

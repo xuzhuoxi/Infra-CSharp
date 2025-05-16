@@ -6,7 +6,7 @@ namespace JLGames.Infra.Net
     /// Message packer with buffer
     /// 带缓存的消息封包器
     /// </summary>
-    public interface IMessageWriter : IDataBufferWriter, IByteBufferWriter
+    public interface INetMessageWriter : IDataBufferWriter, IByteBufferWriter
     {
         /// <summary>
         /// Pack message into self buffer, Contains byte length information

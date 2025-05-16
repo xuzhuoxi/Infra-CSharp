@@ -146,10 +146,10 @@ namespace JLGames.InfraTests.Crypto
             var plaintext2 = cipher.DecryptGcm(ciphertext, value.Iv);
             value.Ciphertext = ciphertext;
             value.Plaintext2 = plaintext2;
-            Console.WriteLine(value);
+            TestContext.Progress.WriteLine(value);
             Assert.IsTrue(value.Plaintext.SequenceEqual(plaintext2),
                 $"Mode GCM, Expected {ArrayToString(value.Plaintext)} \nbut got {ArrayToString(plaintext2)}");
-            Console.WriteLine("---------- ---------- ---------- ---------- ----------");
+            TestContext.Progress.WriteLine("---------- ---------- ---------- ---------- ----------");
         }
 
         private void TestIvCase(AesCase value, BlockMode mode)
@@ -159,11 +159,11 @@ namespace JLGames.InfraTests.Crypto
             var plaintext2 = cipher.DecryptMode(ciphertext, value.Iv, mode);
             value.Ciphertext = ciphertext;
             value.Plaintext2 = plaintext2;
-            Console.WriteLine($"{mode}:");
-            Console.WriteLine(value);
+            TestContext.Progress.WriteLine($"{mode}:");
+            TestContext.Progress.WriteLine(value);
             Assert.IsTrue(value.Plaintext.SequenceEqual(plaintext2),
                 $"Mode {mode}, Expected {ArrayToString(value.Plaintext)} \nbut got {ArrayToString(plaintext2)}");
-            Console.WriteLine("---------- ---------- ---------- ---------- ----------");
+            TestContext.Progress.WriteLine("---------- ---------- ---------- ---------- ----------");
         }
 
         private void TestAesCase(AesCase value, BlockMode mode)
@@ -173,8 +173,8 @@ namespace JLGames.InfraTests.Crypto
             var plaintext2 = cipher.DecryptMode(ciphertext, mode);
             value.Ciphertext = ciphertext;
             value.Plaintext2 = plaintext2;
-            Console.WriteLine($"{mode}:");
-            Console.WriteLine(value);
+            TestContext.Progress.WriteLine($"{mode}:");
+            TestContext.Progress.WriteLine(value);
             Assert.IsTrue(value.Plaintext.SequenceEqual(plaintext2),
                 $"Mode {mode}, Expected {ArrayToString(value.Plaintext)} \nbut got {ArrayToString(plaintext2)}");
         }
