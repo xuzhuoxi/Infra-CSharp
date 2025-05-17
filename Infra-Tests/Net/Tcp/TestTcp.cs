@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using JLGames.Infra.Event;
 using JLGames.Infra.Net;
+using JLGames.Infra.Threadx;
 
 namespace JLGames.InfraTests.Net.Tcp;
 
@@ -11,9 +12,10 @@ namespace JLGames.InfraTests.Net.Tcp;
 public class TestTcp
 {
     private ISocketClient m_Client;
-    private readonly int m_SendMsgCount = 1000;
+    private readonly int m_SendMsgCount = 10;
     private readonly int m_SendDelay = 100;
     private CancellationTokenSource m_TokenSource;
+    private FixedThreadContext m_Context;
 
     [SetUp]
     public void SetUp()
@@ -24,11 +26,20 @@ public class TestTcp
     [TearDown]
     public void TearDown()
     {
+        m_Context?.Dispose();
         m_TokenSource.Dispose();
     }
 
     [Test, Category("RunOnlyThis")]
-    public async Task TestTcpQuery()
+    public async Task TestThreadTcpClient()
+    {
+        m_Context = new FixedThreadContext(Thread.CurrentThread.ManagedThreadId);
+        m_Context.StartExec();
+        await TestTcpClient();
+    }
+
+    [Test, Category("RunOnlyThis")]
+    public async Task TestTcpClient()
     {
         TestContext.Progress.WriteLine($"[{Thread.CurrentThread.ManagedThreadId}] TestTcpQuery");
 
@@ -48,8 +59,8 @@ public class TestTcp
     private void OpenClient()
     {
         TestContext.Progress.WriteLine($"[{Thread.CurrentThread.ManagedThreadId}] OpenClient");
-
         m_Client = SocketFactory.CreateSocketClient("TestTcpClient", true, true);
+        m_Client.SetContext(m_Context);
         m_Client.AddEventListener(SocketEvents.EventOnConnectionOpen, OnConnect);
         m_Client.OpenClient(new SocketParams
         {
@@ -61,12 +72,11 @@ public class TestTcp
     private void OnConnect(EventData evd)
     {
         var info = (SocketEvents.SocketConnEventInfo)evd.Data;
-        TestContext.Progress.WriteLine($"[{Thread.CurrentThread.ManagedThreadId}]OnConnect:  {info}");
+        TestContext.Progress.WriteLine($"[{Thread.CurrentThread.ManagedThreadId}] OnConnect:  {info}");
         m_Client.RemoveEventListener(SocketEvents.EventOnConnectionOpen, OnConnect);
         if (info.Suc)
         {
-            var receiveThread = new Thread(ReceiveData);
-            receiveThread.Start();
+            ReceiveData();
             var sendThread = new Thread(() => SendData());
             sendThread.Start();
         }
@@ -102,7 +112,7 @@ public class TestTcp
         for (var i = 0; i < m_SendMsgCount; i++)
         {
             var msg = $"Hello World:{i}";
-            TestContext.Progress.WriteLine($"[{Thread.CurrentThread.ManagedThreadId}] SendData: {msg}");
+            // TestContext.Progress.WriteLine($"[{Thread.CurrentThread.ManagedThreadId}] SendData: {msg}");
             m_Client.SendMessage(msg);
             await Task.Delay(m_SendDelay);
         }

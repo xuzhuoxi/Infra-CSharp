@@ -162,13 +162,26 @@ namespace JLGames.Infra.Net
 
         private void OnReceived(EventData evd)
         {
-            DispatchEvent(evd.Type, evd.Data);
+            RedispatchEvent(evd);
         }
 
         private void OnReceivedEnd(EventData evd)
         {
             StopReceiving();
-            DispatchEvent(evd.Type, evd.Data);
+            RedispatchEvent(evd);
+        }
+
+        /// <summary>
+        /// 使用设置好的线程上下文重新发布事件
+        /// 如果线程上下文为空，则直接发布事件
+        /// </summary>
+        /// <param name="evd"></param>
+        private void RedispatchEvent(EventData evd)
+        {
+            if (null == m_SyncContext)
+                DispatchEvent(evd.Type, evd.Data);
+            else
+                m_SyncContext.Post(_ => { DispatchEvent(evd.Type, evd.Data); }, null);
         }
     }
 }
