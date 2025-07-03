@@ -56,17 +56,45 @@ namespace JLGames.Infra.Net
             /// <summary>
             /// 是否成功
             /// </summary>
-            public bool Suc { get; set; }
+            public bool Suc { get; private set; }
 
             /// <summary>
             /// 错误信息
             /// </summary>
-            public SocketError Error { get; set; }
+            public SocketError Error { get; private set; }
 
             /// <summary>
             /// 错误信息
             /// </summary>
-            public Exception Exception { get; set; }
+            public Exception Exception { get; private set; }
+
+            public SocketConnEventInfo(bool suc)
+            {
+                Suc = suc;
+                Error = SocketError.TypeNotFound;
+                Exception = null;
+            }
+
+            public SocketConnEventInfo(bool suc, SocketError error)
+            {
+                Suc = suc;
+                Error = error;
+                Exception = null;
+            }
+
+            public SocketConnEventInfo(bool suc, Exception exception)
+            {
+                Suc = suc;
+                Error = SocketError.TypeNotFound;
+                Exception = exception;
+            }
+
+            public SocketConnEventInfo(bool suc, SocketError error, Exception exception)
+            {
+                Suc = suc;
+                Error = error;
+                Exception = exception;
+            }
 
             public override string ToString()
             {
@@ -79,17 +107,45 @@ namespace JLGames.Infra.Net
             /// <summary>
             /// 连接已断开
             /// </summary>
-            public bool Disconnect { get; set; }
+            public bool Disconnect { get; private set; }
 
             /// <summary>
             /// 接收时得到的错误信息
             /// </summary>
-            public SocketError Error { get; set; }
+            public SocketError Error { get; private set; }
 
             /// <summary>
             /// 接收数据异常
             /// </summary>
-            public Exception Exception { get; set; }
+            public Exception Exception { get; private set; }
+
+            public SocketReceivedEndInfo(bool disconnect)
+            {
+                Disconnect = disconnect;
+                Error = SocketError.TypeNotFound;
+                Exception = null;
+            }
+
+            public SocketReceivedEndInfo(bool disconnect, SocketError error)
+            {
+                Disconnect = disconnect;
+                Error = error;
+                Exception = null;
+            }
+
+            public SocketReceivedEndInfo(bool disconnect, Exception exception)
+            {
+                Disconnect = disconnect;
+                Error = SocketError.TypeNotFound;
+                Exception = exception;
+            }
+
+            public SocketReceivedEndInfo(bool disconnect, SocketError error, Exception exception)
+            {
+                Disconnect = disconnect;
+                Error = error;
+                Exception = exception;
+            }
         }
 
         /// <summary>
@@ -131,6 +187,6 @@ namespace JLGames.Infra.Net
         /// 通常是接收到到的数据为空时作为依据
         /// Event data(事件数据)：SocketReceivedEndInfo
         /// </summary>
-        public const string EventOnMessageReceivedEnd = "SockEvents.EventOnReceivedEnd";
+        public const string EventOnMessageReceivedEnd = "SockEvents.EventOnMessageReceivedEnd";
     }
 }

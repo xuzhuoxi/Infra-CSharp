@@ -80,11 +80,11 @@ namespace JLGames.Infra.Net
             m_SyncContext = context;
         }
 
-        public void OpenClient(SocketParams @params)
+        public void ConnectServer(SocketParams @params)
         {
             if (null != m_ConnectAdapter)
             {
-                DispatchEvent(SocketEvents.EventOnConnectionOpen, new SocketEvents.SocketConnEventInfo { Suc = false });
+                DispatchEvent(SocketEvents.EventOnConnectionOpen, new SocketEvents.SocketConnEventInfo(false));
                 return;
             }
 
@@ -111,20 +111,20 @@ namespace JLGames.Infra.Net
             if (info.Suc && info.Error == SocketError.Success)
             {
                 CreateSendReceiver();
-                DispatchEvent(SocketEvents.EventOnConnectionOpen, new SocketEvents.SocketConnEventInfo { Suc = true });
+                DispatchEvent(SocketEvents.EventOnConnectionOpen, new SocketEvents.SocketConnEventInfo(true));
                 return;
             }
 
             // 连接失败
             DispatchEvent(SocketEvents.EventOnConnectionOpen,
-                new SocketEvents.SocketConnEventInfo { Suc = false, Error = info.Error, Exception = info.Exception });
+                new SocketEvents.SocketConnEventInfo(false, info.Error, info.Exception));
         }
 
-        public void CloseClient()
+        public void DisconnectServer()
         {
             if (null == m_ConnectAdapter)
             {
-                DispatchEvent(SocketEvents.EventOnConnectionClose, new SocketEvents.SocketConnEventInfo { Suc = false });
+                DispatchEvent(SocketEvents.EventOnConnectionClose, new SocketEvents.SocketConnEventInfo(false));
                 return;
             }
 
@@ -145,13 +145,13 @@ namespace JLGames.Infra.Net
             // 断开成功
             if (info.Suc && info.Error == SocketError.Success)
             {
-                DispatchEvent(SocketEvents.EventOnConnectionClose, new SocketEvents.SocketConnEventInfo { Suc = true });
+                DispatchEvent(SocketEvents.EventOnConnectionClose, new SocketEvents.SocketConnEventInfo(true));
                 return;
             }
 
             // 断开失败
             DispatchEvent(SocketEvents.EventOnConnectionClose,
-                new SocketEvents.SocketConnEventInfo { Suc = false, Error = info.Error, Exception = info.Exception });
+                new SocketEvents.SocketConnEventInfo(false, info.Error, info.Exception));
         }
 
         private void CreateSendReceiver()

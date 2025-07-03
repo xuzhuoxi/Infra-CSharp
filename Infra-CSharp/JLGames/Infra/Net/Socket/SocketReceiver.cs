@@ -61,7 +61,7 @@ namespace JLGames.Infra.Net
             if (info.BytesRead <= 0)
             {
                 m_Socket.Close();
-                DispatchEvent(SocketEvents.EventOnMessageReceivedEnd, new SocketEvents.SocketReceivedEndInfo { Disconnect = true });
+                DispatchEvent(SocketEvents.EventOnMessageReceivedEnd, new SocketEvents.SocketReceivedEndInfo(true));
                 return;
             }
 
@@ -78,7 +78,7 @@ namespace JLGames.Infra.Net
             if (CatchSocketError(info.Error) || CatchException(info.Exception))
             {
                 DispatchEvent(SocketEvents.EventOnMessageReceivedEnd,
-                    new SocketEvents.SocketReceivedEndInfo { Error = info.Error, Exception = info.Exception });
+                    new SocketEvents.SocketReceivedEndInfo(false, info.Error, info.Exception));
                 return;
             }
 

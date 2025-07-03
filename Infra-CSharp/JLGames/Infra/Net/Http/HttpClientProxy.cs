@@ -104,18 +104,7 @@ namespace JLGames.Infra.Net
                 m_Client.DefaultRequestHeaders.Connection.Remove(KeepAlive);
         }
 
-        /// <summary>
-        /// 异步Get请求，建议调用时使用await关键字<br/>
-        /// 使用默认的BaseUri<br/>
-        /// Pattern会与BaseUri拼接成完整的Url, 拼接逻辑请查看Uri类<br/>
-        /// 使用默认的超时设置<br/>
-        /// </summary>
-        /// <param name="pattern">URL 模式匹配</param>
-        /// <param name="onResponse">以字节数组为内容的响应函数</param>
-        public async Task Get(string pattern, HttpDelegate.OnByteArrayResponse onResponse)
-        {
-            await Get(m_BaseUri, pattern, onResponse);
-        }
+        //  Get ----------
 
         /// <summary>
         /// 异步Get请求，建议调用时使用await关键字<br/>
@@ -124,10 +113,9 @@ namespace JLGames.Infra.Net
         /// 使用默认的超时设置<br/>
         /// </summary>
         /// <param name="pattern">URL 模式匹配</param>
-        /// <param name="onResponse">以UTF-8字符串为内容的响应函数</param>
-        public async Task Get(string pattern, HttpDelegate.OnStringResponse onResponse)
+        public async Task<HttpResult<byte[]>> GetBytesAsync(string pattern)
         {
-            await Get(m_BaseUri, pattern, onResponse);
+            return await GetBytesAsync(m_BaseUri, pattern);
         }
 
         /// <summary>
@@ -137,25 +125,10 @@ namespace JLGames.Infra.Net
         /// 使用指定超时设置<br/>
         /// </summary>
         /// <param name="pattern">URL 模式匹配</param>
-        /// <param name="onResponse">以字节数组为内容的响应函数</param>
         /// <param name="timeout">超时时间</param>
-        public async Task Get(string pattern, HttpDelegate.OnByteArrayResponse onResponse, TimeSpan timeout)
+        public async Task<HttpResult<byte[]>> GetBytesAsync(string pattern, TimeSpan timeout)
         {
-            await Get(m_BaseUri, pattern, onResponse, timeout);
-        }
-
-        /// <summary>
-        /// 异步Get请求，建议调用时使用await关键字<br/>
-        /// 使用默认的BaseUri<br/>
-        /// Pattern会与BaseUri拼接成完整的Url, 拼接逻辑请查看Uri类<br/>
-        /// 使用指定超时设置<br/>
-        /// </summary>
-        /// <param name="pattern">URL 模式匹配</param>
-        /// <param name="onResponse">以字符串为内容的响应函数</param>
-        /// <param name="timeout">超时时间</param>
-        public async Task Get(string pattern, HttpDelegate.OnStringResponse onResponse, TimeSpan timeout)
-        {
-            await Get(m_BaseUri, pattern, onResponse, timeout);
+            return await GetBytesAsync(m_BaseUri, pattern, timeout);
         }
 
         /// <summary>
@@ -166,59 +139,26 @@ namespace JLGames.Infra.Net
         /// </summary>
         /// <param name="baseUri">使用指定的BaseUri，忽略默认</param>
         /// <param name="pattern">URL 模式匹配</param>
-        /// <param name="onResponse">以字节数组为内容的响应函数</param>
-        public async Task Get(Uri baseUri, string pattern, HttpDelegate.OnByteArrayResponse onResponse)
+        public async Task<HttpResult<byte[]>> GetBytesAsync(Uri baseUri, string pattern)
         {
             try
             {
                 var fullUrl = null == baseUri ? new Uri(pattern) : new Uri(baseUri, pattern);
                 var msg = await m_Client.GetAsync(fullUrl);
                 var result = await msg.Content.ReadAsByteArrayAsync();
-                onResponse?.Invoke(false, msg.StatusCode, result);
+                return new HttpResult<byte[]> { StatusCode = msg.StatusCode, Content = result };
             }
             catch (UriFormatException e)
             {
-                Console.WriteLine($"Get UriFormatException: {e.Message}");
+                return new HttpResult<byte[]> { StatusCode = HttpStatusCode.NotFound, Exception = e };
             }
-            catch (TaskCanceledException)
+            catch (TaskCanceledException e1)
             {
-                onResponse?.Invoke(true, HttpStatusCode.RequestTimeout, null);
+                return new HttpResult<byte[]> { Timeout = true, StatusCode = HttpStatusCode.RequestTimeout, Exception = e1 };
             }
-            catch (Exception e)
+            catch (Exception e2)
             {
-                Console.WriteLine($"Get Exception({e.GetType()}): {e.Message}");
-            }
-        }
-
-        /// <summary>
-        /// 异步Get请求，建议调用时使用await关键字<br/>
-        /// 使用指定的BaseUri, 忽略默认的BaseUri<br/>
-        /// Pattern会与BaseUri拼接成完整的Url, 拼接逻辑请查看Uri类<br/>
-        /// 使用默认超时设置<br/>
-        /// </summary>
-        /// <param name="baseUri">使用指定的BaseUri，忽略默认</param>
-        /// <param name="pattern">URL 模式匹配</param>
-        /// <param name="onResponse">以字符串为内容的响应函数</param>
-        public async Task Get(Uri baseUri, string pattern, HttpDelegate.OnStringResponse onResponse)
-        {
-            try
-            {
-                var fullUrl = null == baseUri ? new Uri(pattern) : new Uri(baseUri, pattern);
-                var msg = await m_Client.GetAsync(fullUrl);
-                var result = await msg.Content.ReadAsStringAsync();
-                onResponse?.Invoke(false, msg.StatusCode, result);
-            }
-            catch (UriFormatException e)
-            {
-                Console.WriteLine($"Get UriFormatException: {e.Message}");
-            }
-            catch (TaskCanceledException)
-            {
-                onResponse?.Invoke(true, HttpStatusCode.RequestTimeout, null);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Get Exception({e.GetType()}): {e.Message}");
+                return new HttpResult<byte[]> { StatusCode = HttpStatusCode.NotFound, Exception = e2 };
             }
         }
 
@@ -230,9 +170,8 @@ namespace JLGames.Infra.Net
         /// </summary>
         /// <param name="baseUri">使用指定的BaseUri，忽略默认</param>
         /// <param name="pattern">URL 模式匹配</param>
-        /// <param name="onResponse">以字节数组为内容的响应函数</param>
         /// <param name="timeout">超时时间</param>
-        public async Task Get(Uri baseUri, string pattern, HttpDelegate.OnByteArrayResponse onResponse, TimeSpan timeout)
+        public async Task<HttpResult<byte[]>> GetBytesAsync(Uri baseUri, string pattern, TimeSpan timeout)
         {
             var cts = new CancellationTokenSource(timeout);
             try
@@ -240,19 +179,75 @@ namespace JLGames.Infra.Net
                 var fullUrl = null == baseUri ? new Uri(pattern) : new Uri(baseUri, pattern);
                 var msg = await m_Client.GetAsync(fullUrl, cts.Token);
                 var result = await msg.Content.ReadAsByteArrayAsync();
-                onResponse?.Invoke(false, msg.StatusCode, result);
+                return new HttpResult<byte[]> { StatusCode = msg.StatusCode, Content = result };
             }
             catch (UriFormatException e)
             {
-                Console.WriteLine($"Get UriFormatException: {e.Message}");
+                return new HttpResult<byte[]> { StatusCode = HttpStatusCode.NotFound, Exception = e };
             }
-            catch (TaskCanceledException)
+            catch (TaskCanceledException e1)
             {
-                onResponse?.Invoke(true, HttpStatusCode.RequestTimeout, null);
+                return new HttpResult<byte[]> { Timeout = true, StatusCode = HttpStatusCode.RequestTimeout, Exception = e1 };
             }
-            catch (Exception e)
+            catch (Exception e2)
             {
-                Console.WriteLine($"Get Exception({e.GetType()}): {e.Message}");
+                return new HttpResult<byte[]> { StatusCode = HttpStatusCode.NotFound, Exception = e2 };
+            }
+        }
+
+        /// <summary>
+        /// 异步Get请求，建议调用时使用await关键字<br/>
+        /// 使用默认的BaseUri<br/>
+        /// Pattern会与BaseUri拼接成完整的Url, 拼接逻辑请查看Uri类<br/>
+        /// 使用默认的超时设置<br/>
+        /// </summary>
+        /// <param name="pattern">URL 模式匹配</param>
+        public async Task<HttpResult<string>> GetStringAsync(string pattern)
+        {
+            return await GetStringAsync(m_BaseUri, pattern);
+        }
+
+        /// <summary>
+        /// 异步Get请求，建议调用时使用await关键字<br/>
+        /// 使用默认的BaseUri<br/>
+        /// Pattern会与BaseUri拼接成完整的Url, 拼接逻辑请查看Uri类<br/>
+        /// 使用指定超时设置<br/>
+        /// </summary>
+        /// <param name="pattern">URL 模式匹配</param>
+        /// <param name="timeout">超时时间</param>
+        public async Task<HttpResult<string>> GetStringAsync(string pattern, TimeSpan timeout)
+        {
+            return await GetStringAsync(m_BaseUri, pattern, timeout);
+        }
+
+        /// <summary>
+        /// 异步Get请求，建议调用时使用await关键字<br/>
+        /// 使用指定的BaseUri, 忽略默认的BaseUri<br/>
+        /// Pattern会与BaseUri拼接成完整的Url, 拼接逻辑请查看Uri类<br/>
+        /// 使用默认超时设置<br/>
+        /// </summary>
+        /// <param name="baseUri">使用指定的BaseUri，忽略默认</param>
+        /// <param name="pattern">URL 模式匹配</param>
+        public async Task<HttpResult<string>> GetStringAsync(Uri baseUri, string pattern)
+        {
+            try
+            {
+                var fullUrl = null == baseUri ? new Uri(pattern) : new Uri(baseUri, pattern);
+                var msg = await m_Client.GetAsync(fullUrl);
+                var result = await msg.Content.ReadAsStringAsync();
+                return new HttpResult<string> { StatusCode = msg.StatusCode, Content = result };
+            }
+            catch (UriFormatException e)
+            {
+                return new HttpResult<string> { StatusCode = HttpStatusCode.NotFound, Exception = e };
+            }
+            catch (TaskCanceledException e1)
+            {
+                return new HttpResult<string> { Timeout = true, StatusCode = HttpStatusCode.RequestTimeout, Exception = e1 };
+            }
+            catch (Exception e2)
+            {
+                return new HttpResult<string> { StatusCode = HttpStatusCode.NotFound, Exception = e2 };
             }
         }
 
@@ -264,9 +259,8 @@ namespace JLGames.Infra.Net
         /// </summary>
         /// <param name="baseUri">使用指定的BaseUri，忽略默认</param>
         /// <param name="pattern">URL 模式匹配</param>
-        /// <param name="onResponse">以字符串为内容的响应函数</param>
         /// <param name="timeout">超时时间</param>
-        public async Task Get(Uri baseUri, string pattern, HttpDelegate.OnStringResponse onResponse, TimeSpan timeout)
+        public async Task<HttpResult<string>> GetStringAsync(Uri baseUri, string pattern, TimeSpan timeout)
         {
             var cts = new CancellationTokenSource(timeout);
             try
@@ -274,49 +268,23 @@ namespace JLGames.Infra.Net
                 var fullUrl = null == baseUri ? new Uri(pattern) : new Uri(baseUri, pattern);
                 var msg = await m_Client.GetAsync(fullUrl, cts.Token);
                 var result = await msg.Content.ReadAsStringAsync();
-                onResponse?.Invoke(false, msg.StatusCode, result);
+                return new HttpResult<string> { StatusCode = msg.StatusCode, Content = result };
             }
             catch (UriFormatException e)
             {
-                Console.WriteLine($"Get UriFormatException: {e.Message}");
+                return new HttpResult<string> { StatusCode = HttpStatusCode.NotFound, Exception = e };
             }
-            catch (TaskCanceledException)
+            catch (TaskCanceledException e1)
             {
-                onResponse?.Invoke(true, HttpStatusCode.RequestTimeout, null);
+                return new HttpResult<string> { Timeout = true, StatusCode = HttpStatusCode.RequestTimeout, Exception = e1 };
             }
-            catch (Exception e)
+            catch (Exception e2)
             {
-                Console.WriteLine($"Get Exception({e.GetType()}): {e.Message}");
+                return new HttpResult<string> { StatusCode = HttpStatusCode.NotFound, Exception = e2 };
             }
         }
 
-        /// <summary>
-        /// 异步Post请求，建议调用时使用await关键字<br/>
-        /// 使用默认的BaseUri<br/>
-        /// Pattern会与BaseUri拼接成完整的Url, 拼接逻辑请查看Uri类<br/>
-        /// 不带参数<br/>
-        /// 使用默认的超时设置<br/>
-        /// </summary>
-        /// <param name="pattern">URL 模式匹配</param>
-        /// <param name="onResponse">以字节数组为内容的响应函数</param>
-        public async Task Post(string pattern, HttpDelegate.OnByteArrayResponse onResponse)
-        {
-            await Post(m_BaseUri, pattern, null, onResponse);
-        }
-
-        /// <summary>
-        /// 异步Post请求，建议调用时使用await关键字<br/>
-        /// 使用默认的BaseUri<br/>
-        /// 不带参数<br/>
-        /// Pattern会与BaseUri拼接成完整的Url, 拼接逻辑请查看Uri类<br/>
-        /// 使用默认的超时设置<br/>
-        /// </summary>
-        /// <param name="pattern">URL 模式匹配</param>
-        /// <param name="onResponse">以UTF-8字符串为内容的响应函数</param>
-        public async Task Post(string pattern, HttpDelegate.OnStringResponse onResponse)
-        {
-            await Post(m_BaseUri, pattern, null, onResponse);
-        }
+        //  Post ----------
 
         /// <summary>
         /// 异步Post请求，建议调用时使用await关键字<br/>
@@ -326,54 +294,9 @@ namespace JLGames.Infra.Net
         /// </summary>
         /// <param name="pattern">URL 模式匹配</param>
         /// <param name="value">参数集</param>
-        /// <param name="onResponse">以字节数组为内容的响应函数</param>
-        public async Task Post(string pattern, Dictionary<string, string> value, HttpDelegate.OnByteArrayResponse onResponse)
+        public async Task<HttpResult<byte[]>> PostBytesAsync(string pattern, Dictionary<string, string> value)
         {
-            await Post(m_BaseUri, pattern, value, onResponse);
-        }
-
-        /// <summary>
-        /// 异步Post请求，建议调用时使用await关键字<br/>
-        /// 使用默认的BaseUri<br/>
-        /// Pattern会与BaseUri拼接成完整的Url, 拼接逻辑请查看Uri类<br/>
-        /// 使用默认的超时设置<br/>
-        /// </summary>
-        /// <param name="pattern">URL 模式匹配</param>
-        /// <param name="value">参数集</param>
-        /// <param name="onResponse">以UTF-8字符串为内容的响应函数</param>
-        public async Task Post(string pattern, Dictionary<string, string> value, HttpDelegate.OnStringResponse onResponse)
-        {
-            await Post(m_BaseUri, pattern, value, onResponse);
-        }
-
-        /// <summary>
-        /// 异步Post请求，建议调用时使用await关键字<br/>
-        /// 使用默认的BaseUri<br/>
-        /// Pattern会与BaseUri拼接成完整的Url, 拼接逻辑请查看Uri类<br/>
-        /// 不带参数<br/>
-        /// 使用指定超时设置<br/>
-        /// </summary>
-        /// <param name="pattern">URL 模式匹配</param>
-        /// <param name="onResponse">以字节数组为内容的响应函数</param>
-        /// <param name="timeout">超时时间</param>
-        public async Task Post(string pattern, HttpDelegate.OnByteArrayResponse onResponse, TimeSpan timeout)
-        {
-            await Post(m_BaseUri, pattern, null, onResponse, timeout);
-        }
-
-        /// <summary>
-        /// 异步Post请求，建议调用时使用await关键字<br/>
-        /// 使用默认的BaseUri<br/>
-        /// Pattern会与BaseUri拼接成完整的Url, 拼接逻辑请查看Uri类<br/>
-        /// 不带参数<br/>
-        /// 使用指定超时设置<br/>
-        /// </summary>
-        /// <param name="pattern">URL 模式匹配</param>
-        /// <param name="onResponse">以字符串为内容的响应函数</param>
-        /// <param name="timeout">超时时间</param>
-        public async Task Post(string pattern, HttpDelegate.OnStringResponse onResponse, TimeSpan timeout)
-        {
-            await Post(m_BaseUri, pattern, null, onResponse, timeout);
+            return await PostBytesAsync(m_BaseUri, pattern, value);
         }
 
         /// <summary>
@@ -384,26 +307,10 @@ namespace JLGames.Infra.Net
         /// </summary>
         /// <param name="pattern">URL 模式匹配</param>
         /// <param name="value">参数集</param>
-        /// <param name="onResponse">以字节数组为内容的响应函数</param>
         /// <param name="timeout">超时时间</param>
-        public async Task Post(string pattern, Dictionary<string, string> value, HttpDelegate.OnByteArrayResponse onResponse, TimeSpan timeout)
+        public async Task<HttpResult<byte[]>> PostBytesAsync(string pattern, Dictionary<string, string> value, TimeSpan timeout)
         {
-            await Post(m_BaseUri, pattern, value, onResponse, timeout);
-        }
-
-        /// <summary>
-        /// 异步Post请求，建议调用时使用await关键字<br/>
-        /// 使用默认的BaseUri<br/>
-        /// Pattern会与BaseUri拼接成完整的Url, 拼接逻辑请查看Uri类<br/>
-        /// 使用指定超时设置<br/>
-        /// </summary>
-        /// <param name="pattern">URL 模式匹配</param>
-        /// <param name="value">参数集</param>
-        /// <param name="onResponse">以字符串为内容的响应函数</param>
-        /// <param name="timeout">超时时间</param>
-        public async Task Post(string pattern, Dictionary<string, string> value, HttpDelegate.OnStringResponse onResponse, TimeSpan timeout)
-        {
-            await Post(m_BaseUri, pattern, value, onResponse, timeout);
+            return await PostBytesAsync(m_BaseUri, pattern, value, timeout);
         }
 
         /// <summary>
@@ -415,8 +322,7 @@ namespace JLGames.Infra.Net
         /// <param name="baseUri">使用指定的BaseUri，忽略默认</param>
         /// <param name="pattern">URL 模式匹配</param>
         /// <param name="value">参数集</param>
-        /// <param name="onResponse">以字节数组为内容的响应函数</param>
-        public async Task Post(Uri baseUri, string pattern, Dictionary<string, string> value, HttpDelegate.OnByteArrayResponse onResponse)
+        public async Task<HttpResult<byte[]>> PostBytesAsync(Uri baseUri, string pattern, Dictionary<string, string> value)
         {
             var content = null == value ? null : new FormUrlEncodedContent(value);
             try
@@ -424,54 +330,19 @@ namespace JLGames.Infra.Net
                 var fullUrl = null == baseUri ? new Uri(pattern) : new Uri(baseUri, pattern);
                 var msg = await m_Client.PostAsync(fullUrl, content);
                 var result = await msg.Content.ReadAsByteArrayAsync();
-                onResponse?.Invoke(false, msg.StatusCode, result);
+                return new HttpResult<byte[]> { StatusCode = msg.StatusCode, Content = result };
             }
             catch (UriFormatException e)
             {
-                Console.WriteLine($"Post UriFormatException: {e.Message}");
+                return new HttpResult<byte[]> { StatusCode = HttpStatusCode.NotFound, Exception = e };
             }
-            catch (TaskCanceledException)
+            catch (TaskCanceledException e1)
             {
-                onResponse?.Invoke(true, HttpStatusCode.RequestTimeout, null);
+                return new HttpResult<byte[]> { Timeout = true, StatusCode = HttpStatusCode.RequestTimeout, Exception = e1 };
             }
-            catch (Exception e)
+            catch (Exception e2)
             {
-                Console.WriteLine($"Post Exception({e.GetType()}): {e.Message}");
-            }
-        }
-
-
-        /// <summary>
-        /// 异步Post请求，建议调用时使用await关键字<br/>
-        /// 使用指定的BaseUri, 忽略默认的BaseUri<br/>
-        /// Pattern会与BaseUri拼接成完整的Url, 拼接逻辑请查看Uri类<br/>
-        /// 使用默认超时设置<br/>
-        /// </summary>
-        /// <param name="baseUri">使用指定的BaseUri，忽略默认</param>
-        /// <param name="pattern">URL 模式匹配</param>
-        /// <param name="value">参数集</param>
-        /// <param name="onResponse">以字符串为内容的响应函数</param>
-        public async Task Post(Uri baseUri, string pattern, Dictionary<string, string> value, HttpDelegate.OnStringResponse onResponse)
-        {
-            var content = null == value ? null : new FormUrlEncodedContent(value);
-            try
-            {
-                var fullUrl = null == baseUri ? new Uri(pattern) : new Uri(baseUri, pattern);
-                var msg = await m_Client.PostAsync(fullUrl, content);
-                var result = await msg.Content.ReadAsStringAsync();
-                onResponse?.Invoke(false, msg.StatusCode, result);
-            }
-            catch (UriFormatException e)
-            {
-                Console.WriteLine($"Post UriFormatException: {e.Message}");
-            }
-            catch (TaskCanceledException)
-            {
-                onResponse?.Invoke(true, HttpStatusCode.RequestTimeout, null);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Post Exception({e.GetType()}): {e.Message}");
+                return new HttpResult<byte[]> { StatusCode = HttpStatusCode.NotFound, Exception = e2 };
             }
         }
 
@@ -484,10 +355,8 @@ namespace JLGames.Infra.Net
         /// <param name="baseUri">使用指定的BaseUri，忽略默认</param>
         /// <param name="pattern">URL 模式匹配</param>
         /// <param name="value">参数集</param>
-        /// <param name="onResponse">以字节数组为内容的响应函数</param>
         /// <param name="timeout">超时时间</param>
-        public async Task Post(Uri baseUri, string pattern, Dictionary<string, string> value, HttpDelegate.OnByteArrayResponse onResponse,
-            TimeSpan timeout)
+        public async Task<HttpResult<byte[]>> PostBytesAsync(Uri baseUri, string pattern, Dictionary<string, string> value, TimeSpan timeout)
         {
             var content = null == value ? null : new FormUrlEncodedContent(value);
             var cts = new CancellationTokenSource(timeout);
@@ -496,19 +365,79 @@ namespace JLGames.Infra.Net
                 var fullUrl = null == baseUri ? new Uri(pattern) : new Uri(baseUri, pattern);
                 var msg = await m_Client.PostAsync(fullUrl, content, cts.Token);
                 var result = await msg.Content.ReadAsByteArrayAsync();
-                onResponse?.Invoke(false, msg.StatusCode, result);
+                return new HttpResult<byte[]> { StatusCode = msg.StatusCode, Content = result };
             }
             catch (UriFormatException e)
             {
-                Console.WriteLine($"Post UriFormatException: {e.Message}");
+                return new HttpResult<byte[]> { StatusCode = HttpStatusCode.NotFound, Exception = e };
             }
-            catch (TaskCanceledException)
+            catch (TaskCanceledException e1)
             {
-                onResponse?.Invoke(true, HttpStatusCode.RequestTimeout, null);
+                return new HttpResult<byte[]> { Timeout = true, StatusCode = HttpStatusCode.RequestTimeout, Exception = e1 };
             }
-            catch (Exception e)
+            catch (Exception e2)
             {
-                Console.WriteLine($"Post Exception({e.GetType()}): {e.Message}");
+                return new HttpResult<byte[]> { StatusCode = HttpStatusCode.NotFound, Exception = e2 };
+            }
+        }
+
+        /// <summary>
+        /// 异步Post请求，建议调用时使用await关键字<br/>
+        /// 使用默认的BaseUri<br/>
+        /// Pattern会与BaseUri拼接成完整的Url, 拼接逻辑请查看Uri类<br/>
+        /// 使用默认的超时设置<br/>
+        /// </summary>
+        /// <param name="pattern">URL 模式匹配</param>
+        /// <param name="value">参数集</param>
+        public async Task<HttpResult<string>> PostStringAsync(string pattern, Dictionary<string, string> value)
+        {
+            return await PostStringAsync(m_BaseUri, pattern, value);
+        }
+
+        /// <summary>
+        /// 异步Post请求，建议调用时使用await关键字<br/>
+        /// 使用默认的BaseUri<br/>
+        /// Pattern会与BaseUri拼接成完整的Url, 拼接逻辑请查看Uri类<br/>
+        /// 使用指定超时设置<br/>
+        /// </summary>
+        /// <param name="pattern">URL 模式匹配</param>
+        /// <param name="value">参数集</param>
+        /// <param name="timeout">超时时间</param>
+        public async Task<HttpResult<string>> PostStringAsync(string pattern, Dictionary<string, string> value, TimeSpan timeout)
+        {
+            return await PostStringAsync(m_BaseUri, pattern, value, timeout);
+        }
+
+        /// <summary>
+        /// 异步Post请求，建议调用时使用await关键字<br/>
+        /// 使用指定的BaseUri, 忽略默认的BaseUri<br/>
+        /// Pattern会与BaseUri拼接成完整的Url, 拼接逻辑请查看Uri类<br/>
+        /// 使用默认超时设置<br/>
+        /// </summary>
+        /// <param name="baseUri">使用指定的BaseUri，忽略默认</param>
+        /// <param name="pattern">URL 模式匹配</param>
+        /// <param name="values">参数集</param>
+        public async Task<HttpResult<string>> PostStringAsync(Uri baseUri, string pattern, Dictionary<string, string> values)
+        {
+            var content = null == values ? null : new FormUrlEncodedContent(values);
+            try
+            {
+                var fullUrl = null == baseUri ? new Uri(pattern) : new Uri(baseUri, pattern);
+                var msg = await m_Client.PostAsync(fullUrl, content);
+                var result = await msg.Content.ReadAsStringAsync();
+                return new HttpResult<string> { StatusCode = msg.StatusCode, Content = result };
+            }
+            catch (UriFormatException e)
+            {
+                return new HttpResult<string> { StatusCode = HttpStatusCode.NotFound, Exception = e };
+            }
+            catch (TaskCanceledException e1)
+            {
+                return new HttpResult<string> { Timeout = true, StatusCode = HttpStatusCode.RequestTimeout, Exception = e1 };
+            }
+            catch (Exception e2)
+            {
+                return new HttpResult<string> { StatusCode = HttpStatusCode.NotFound, Exception = e2 };
             }
         }
 
@@ -520,85 +449,32 @@ namespace JLGames.Infra.Net
         /// </summary>
         /// <param name="baseUri">使用指定的BaseUri，忽略默认</param>
         /// <param name="pattern">URL 模式匹配</param>
-        /// <param name="value">参数集</param>
-        /// <param name="onResponse">以字符串为内容的响应函数</param>
+        /// <param name="values">参数集</param>
         /// <param name="timeout">超时时间</param>
-        public async Task Post(Uri baseUri, string pattern, Dictionary<string, string> value, HttpDelegate.OnStringResponse onResponse,
-            TimeSpan timeout)
+        public async Task<HttpResult<string>> PostStringAsync(Uri baseUri, string pattern, Dictionary<string, string> values, TimeSpan timeout)
         {
-            var content = null == value ? null : new FormUrlEncodedContent(value);
+            var content = null == values ? null : new FormUrlEncodedContent(values);
             var cts = new CancellationTokenSource(timeout);
             try
             {
                 var fullUrl = null == baseUri ? new Uri(pattern) : new Uri(baseUri, pattern);
                 var msg = await m_Client.PostAsync(fullUrl, content, cts.Token);
                 var result = await msg.Content.ReadAsStringAsync();
-                onResponse?.Invoke(false, msg.StatusCode, result);
+                return new HttpResult<string> { StatusCode = msg.StatusCode, Content = result };
             }
             catch (UriFormatException e)
             {
-                Console.WriteLine($"Post UriFormatException: {e.Message}");
+                return new HttpResult<string> { StatusCode = HttpStatusCode.NotFound, Exception = e };
             }
-            catch (TaskCanceledException)
+            catch (TaskCanceledException e1)
             {
-                onResponse?.Invoke(true, HttpStatusCode.RequestTimeout, null);
+                return new HttpResult<string> { Timeout = true, StatusCode = HttpStatusCode.RequestTimeout, Exception = e1 };
             }
-            catch (Exception e)
+            catch (Exception e2)
             {
-                Console.WriteLine($"Post Exception({e.GetType()}): {e.Message}}}");
+                return new HttpResult<string> { StatusCode = HttpStatusCode.NotFound, Exception = e2 };
             }
         }
-
-        // /// <summary>
-        // /// Send a get request.
-        // /// 发送Get请求
-        // /// </summary>
-        // /// <param name="url"></param>
-        // /// <param name="call"></param>
-        // public void GetAsync(string url, Callback call)
-        // {
-        //     InnerHttpGetAsync(m_Client, url, call);
-        // }
-        //
-        // /// <summary>
-        // /// Send a post request.
-        // /// 发送Post请求
-        // /// </summary>
-        // /// <param name="url"></param>
-        // /// <param name="jsonData"></param>
-        // /// <param name="call"></param>
-        // public void PostAsync(string url, string jsonData, Callback call)
-        // {
-        //     InnerHttpPostAsync(m_Client, url, jsonData, call);
-        // }
-        //
-        // private async void InnerHttpGetAsync(HttpClient client, string url, Callback call)
-        // {
-        //     var msg = await client.GetAsync(url);
-        //     if (!msg.IsSuccessStatusCode)
-        //     {
-        //         call?.Apply(msg.StatusCode);
-        //         return;
-        //     }
-        //
-        //     var result = msg.Content.ReadAsStringAsync().Result;
-        //     call?.Apply(msg.StatusCode, result);
-        // }
-        //
-        // private async void InnerHttpPostAsync(HttpClient client, string url, string jsonData, Callback call)
-        // {
-        //     var content = new StringContent(jsonData);
-        //     content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-        //     var msg = await client.PostAsync(url, content);
-        //     if (!msg.IsSuccessStatusCode)
-        //     {
-        //         call.Apply(msg.StatusCode);
-        //         return;
-        //     }
-        //
-        //     var result = msg.Content.ReadAsStringAsync().Result;
-        //     call.Apply(msg.StatusCode, result);
-        // }
 
         private void Preheat()
         {

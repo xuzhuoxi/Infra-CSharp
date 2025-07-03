@@ -22,26 +22,20 @@ namespace JLGames.InfraTests.Http
         {
             using (var proxy = new HttpClientProxy())
             {
-                await proxy.Get(TestHttpValues.FullUrl,
-                    (bool timeout, HttpStatusCode code, byte[] bytes) =>
-                    {
-                        TestContext.Progress.WriteLine($"Get 1: ---------- ----------");
-                        TestContext.Progress.WriteLine($"Timeout: {timeout}");
-                        TestContext.Progress.WriteLine($"Code: {code}");
-                        TestContext.Progress.WriteLine($"Content: {Encoding.UTF8.GetString(bytes)}");
-                    });
+                var result = await proxy.GetBytesAsync(TestHttpValues.FullUrl);
+                TestContext.Progress.WriteLine($"Get 1: ---------- ----------");
+                TestContext.Progress.WriteLine($"Timeout: {result.Timeout}");
+                TestContext.Progress.WriteLine($"Code: {result.StatusCode}");
+                TestContext.Progress.WriteLine($"Content: {Encoding.UTF8.GetString(result.Content)}");
             }
 
             using (var proxy = new HttpClientProxy(TestHttpValues.Url))
             {
-                await proxy.Get(TestHttpValues.Pattern
-                    , (bool timeout, HttpStatusCode code, string content) =>
-                    {
-                        TestContext.Progress.WriteLine($"Get 2: ---------- ----------");
-                        TestContext.Progress.WriteLine($"Timeout: {timeout}");
-                        TestContext.Progress.WriteLine($"Code: {code}");
-                        TestContext.Progress.WriteLine($"Content: {content}");
-                    });
+                var result = await proxy.GetStringAsync(TestHttpValues.Pattern);
+                TestContext.Progress.WriteLine($"Get 2: ---------- ----------");
+                TestContext.Progress.WriteLine($"Timeout: {result.Timeout}");
+                TestContext.Progress.WriteLine($"Code: {result.StatusCode}");
+                TestContext.Progress.WriteLine($"Content: {result.Content}");
             }
         }
 
@@ -50,26 +44,20 @@ namespace JLGames.InfraTests.Http
         {
             using (var proxy = new HttpClientProxy())
             {
-                await proxy.Post(TestHttpValues.FullUrl, new Dictionary<string, string>()
-                    , ((bool timeout, HttpStatusCode code, byte[] bytes) =>
-                    {
-                        TestContext.Progress.WriteLine($"Post 2: ---------- ----------");
-                        TestContext.Progress.WriteLine($"Timeout: {timeout}");
-                        TestContext.Progress.WriteLine($"Code: {code}");
-                        TestContext.Progress.WriteLine($"Content: {Encoding.UTF8.GetString(bytes)}");
-                    }));
+                var result = await proxy.PostBytesAsync(TestHttpValues.FullUrl, null);
+                TestContext.Progress.WriteLine($"Post 2: ---------- ----------");
+                TestContext.Progress.WriteLine($"Timeout: {result.Timeout}");
+                TestContext.Progress.WriteLine($"Code: {result.StatusCode}");
+                TestContext.Progress.WriteLine($"Content: {Encoding.UTF8.GetString(result.Content)}");
             }
 
             using (var proxy = new HttpClientProxy(TestHttpValues.Url))
             {
-                await proxy.Post(TestHttpValues.Pattern, new Dictionary<string, string>()
-                    , ((bool timeout, HttpStatusCode code, string content) =>
-                    {
-                        TestContext.Progress.WriteLine($"Post 1: ---------- ----------");
-                        TestContext.Progress.WriteLine($"Timeout: {timeout}");
-                        TestContext.Progress.WriteLine($"Code: {code}");
-                        TestContext.Progress.WriteLine($"Content: {content}");
-                    }));
+                var result = await proxy.PostStringAsync(TestHttpValues.Pattern, null);
+                TestContext.Progress.WriteLine($"Post 1: ---------- ----------");
+                TestContext.Progress.WriteLine($"Timeout: {result.Timeout}");
+                TestContext.Progress.WriteLine($"Code: {result.StatusCode}");
+                TestContext.Progress.WriteLine($"Content: {result.Content}");
             }
         }
 
@@ -95,14 +83,11 @@ namespace JLGames.InfraTests.Http
         {
             using (var proxy = new HttpClientProxy(TestHttpValues.Url))
             {
-                await proxy.Get(TestHttpValues.Pattern
-                    , (bool timeout, HttpStatusCode code, string content) =>
-                    {
-                        TestContext.Progress.WriteLine($"Get 2: ---------- ----------");
-                        TestContext.Progress.WriteLine($"Timeout: {timeout}");
-                        TestContext.Progress.WriteLine($"Code: {code}");
-                        TestContext.Progress.WriteLine($"Content: {content}");
-                    }, TimeSpan.FromSeconds(2));
+                var result = await proxy.GetStringAsync(TestHttpValues.Pattern, TimeSpan.FromSeconds(2));
+                TestContext.Progress.WriteLine($"Get 2: ---------- ----------");
+                TestContext.Progress.WriteLine($"Timeout: {result.Timeout}");
+                TestContext.Progress.WriteLine($"Code: {result.StatusCode}");
+                TestContext.Progress.WriteLine($"Content: {result.Content}");
             }
         }
     }

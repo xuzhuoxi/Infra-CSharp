@@ -10,18 +10,18 @@ namespace JLGames.Infra.Net
         /// </summary>
         /// <param name="context"></param>
         void SetContext(SynchronizationContext context);
-        
-        /// <summary>
-        /// Open client
-        /// 打开连接
-        /// </summary>
-        /// <param name="params"></param>
-        void OpenClient(SocketParams @params);
 
         /// <summary>
-        /// Close client
-        /// 关闭客户端
+        /// Connect to server
+        /// 连接到服务器
         /// </summary>
-        void CloseClient();
+        /// <param name="params"></param>
+        void ConnectServer(SocketParams @params);
+
+        /// <summary>
+        /// Disconnect from server
+        /// 关闭与服务器的连接
+        /// </summary>
+        void DisconnectServer();
     }
 }

@@ -62,7 +62,7 @@ public class TestTcp
         m_Client = SocketFactory.CreateSocketClient("TestTcpClient", true, true);
         m_Client.SetContext(m_Context);
         m_Client.AddEventListener(SocketEvents.EventOnConnectionOpen, OnConnect);
-        m_Client.OpenClient(new SocketParams
+        m_Client.ConnectServer(new SocketParams
         {
             Network = SocketNetworks.Network.Tcp,
             RemoteAddress = "127.0.0.1:9999",
