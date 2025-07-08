@@ -113,9 +113,9 @@ namespace JLGames.Infra.Net
         /// 使用默认的超时设置<br/>
         /// </summary>
         /// <param name="pattern">URL 模式匹配</param>
-        public async Task<HttpResult<byte[]>> GetBytesAsync(string pattern)
+        public Task<HttpResult<byte[]>> GetBytesAsync(string pattern)
         {
-            return await GetBytesAsync(m_BaseUri, pattern);
+            return GetBytesAsync(m_BaseUri, pattern);
         }
 
         /// <summary>
@@ -126,9 +126,9 @@ namespace JLGames.Infra.Net
         /// </summary>
         /// <param name="pattern">URL 模式匹配</param>
         /// <param name="timeout">超时时间</param>
-        public async Task<HttpResult<byte[]>> GetBytesAsync(string pattern, TimeSpan timeout)
+        public Task<HttpResult<byte[]>> GetBytesAsync(string pattern, TimeSpan timeout)
         {
-            return await GetBytesAsync(m_BaseUri, pattern, timeout);
+            return GetBytesAsync(m_BaseUri, pattern, timeout);
         }
 
         /// <summary>
@@ -202,9 +202,9 @@ namespace JLGames.Infra.Net
         /// 使用默认的超时设置<br/>
         /// </summary>
         /// <param name="pattern">URL 模式匹配</param>
-        public async Task<HttpResult<string>> GetStringAsync(string pattern)
+        public Task<HttpResult<string>> GetStringAsync(string pattern)
         {
-            return await GetStringAsync(m_BaseUri, pattern);
+            return GetStringAsync(m_BaseUri, pattern);
         }
 
         /// <summary>
@@ -215,9 +215,9 @@ namespace JLGames.Infra.Net
         /// </summary>
         /// <param name="pattern">URL 模式匹配</param>
         /// <param name="timeout">超时时间</param>
-        public async Task<HttpResult<string>> GetStringAsync(string pattern, TimeSpan timeout)
+        public Task<HttpResult<string>> GetStringAsync(string pattern, TimeSpan timeout)
         {
-            return await GetStringAsync(m_BaseUri, pattern, timeout);
+            return GetStringAsync(m_BaseUri, pattern, timeout);
         }
 
         /// <summary>
@@ -294,9 +294,9 @@ namespace JLGames.Infra.Net
         /// </summary>
         /// <param name="pattern">URL 模式匹配</param>
         /// <param name="value">参数集</param>
-        public async Task<HttpResult<byte[]>> PostBytesAsync(string pattern, Dictionary<string, string> value)
+        public Task<HttpResult<byte[]>> PostBytesAsync(string pattern, Dictionary<string, string> value)
         {
-            return await PostBytesAsync(m_BaseUri, pattern, value);
+            return PostBytesAsync(m_BaseUri, pattern, value);
         }
 
         /// <summary>
@@ -308,9 +308,9 @@ namespace JLGames.Infra.Net
         /// <param name="pattern">URL 模式匹配</param>
         /// <param name="value">参数集</param>
         /// <param name="timeout">超时时间</param>
-        public async Task<HttpResult<byte[]>> PostBytesAsync(string pattern, Dictionary<string, string> value, TimeSpan timeout)
+        public Task<HttpResult<byte[]>> PostBytesAsync(string pattern, Dictionary<string, string> value, TimeSpan timeout)
         {
-            return await PostBytesAsync(m_BaseUri, pattern, value, timeout);
+            return PostBytesAsync(m_BaseUri, pattern, value, timeout);
         }
 
         /// <summary>
@@ -389,9 +389,9 @@ namespace JLGames.Infra.Net
         /// </summary>
         /// <param name="pattern">URL 模式匹配</param>
         /// <param name="value">参数集</param>
-        public async Task<HttpResult<string>> PostStringAsync(string pattern, Dictionary<string, string> value)
+        public Task<HttpResult<string>> PostStringAsync(string pattern, Dictionary<string, string> value)
         {
-            return await PostStringAsync(m_BaseUri, pattern, value);
+            return PostStringAsync(m_BaseUri, pattern, value);
         }
 
         /// <summary>
@@ -403,9 +403,9 @@ namespace JLGames.Infra.Net
         /// <param name="pattern">URL 模式匹配</param>
         /// <param name="value">参数集</param>
         /// <param name="timeout">超时时间</param>
-        public async Task<HttpResult<string>> PostStringAsync(string pattern, Dictionary<string, string> value, TimeSpan timeout)
+        public Task<HttpResult<string>> PostStringAsync(string pattern, Dictionary<string, string> value, TimeSpan timeout)
         {
-            return await PostStringAsync(m_BaseUri, pattern, value, timeout);
+            return PostStringAsync(m_BaseUri, pattern, value, timeout);
         }
 
         /// <summary>

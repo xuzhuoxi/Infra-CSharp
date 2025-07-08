@@ -71,7 +71,7 @@ namespace JLGames.Infra.Net
             public SocketConnEventInfo(bool suc)
             {
                 Suc = suc;
-                Error = SocketError.TypeNotFound;
+                Error = suc ? SocketError.Success : SocketError.TypeNotFound;
                 Exception = null;
             }
 
@@ -85,7 +85,7 @@ namespace JLGames.Infra.Net
             public SocketConnEventInfo(bool suc, Exception exception)
             {
                 Suc = suc;
-                Error = SocketError.TypeNotFound;
+                Error = suc ? SocketError.Success : SocketError.TypeNotFound;
                 Exception = exception;
             }
 
@@ -151,20 +151,20 @@ namespace JLGames.Infra.Net
         /// <summary>
         /// Enable connection result event
         /// 开启连接结果事件
-        /// Event data(事件数据)：SocketEventInfo
+        /// Event data(事件数据)：SocketConnEventInfo
         /// </summary>
         public const string EventOnConnectionOpen = "SockEvents.EventOnConnectOpen";
 
         /// <summary>
         /// 连接超时事件
-        /// Event data(事件数据)：SocketEventInfo
+        /// Event data(事件数据)：SocketConnEventInfo
         /// </summary>
         public const string EventOnConnectionTimeout = "SockEvents.EventOnConnectionTimeout";
 
         /// <summary>
         /// Enable connection result event
         /// 连接取消
-        /// Event data(事件数据)：SocketEventInfo
+        /// Event data(事件数据)：SocketConnEventInfo
         /// </summary>
         public const string EventOnConnectionCancel = "SockEvents.EventOnConnectionCancel";
 

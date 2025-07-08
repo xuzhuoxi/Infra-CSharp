@@ -77,7 +77,7 @@ public class TestTcp
         if (info.Suc)
         {
             ReceiveData();
-            var sendThread = new Thread(() => SendData());
+            var sendThread = new Thread( () => SendData());
             sendThread.Start();
         }
         else
