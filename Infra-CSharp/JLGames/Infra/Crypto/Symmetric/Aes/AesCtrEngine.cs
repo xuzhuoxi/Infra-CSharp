@@ -11,6 +11,13 @@ namespace JLGames.Infra.Crypto.Symmetric
 
         private const int c_BlockSize = 16;
 
+        /// <summary>
+        /// 加密 或 解密
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="key">长度有三种，可以是16(AES-128),24(AES-192)或32(AES-256)</param>
+        /// <param name="nonce">长度不固定，推荐长度为12字节(96位)</param>
+        /// <returns></returns>
         public byte[] Process(byte[] data, byte[] key, byte[] nonce)
         {
             byte[] output = new byte[data.Length];
@@ -24,9 +31,10 @@ namespace JLGames.Infra.Crypto.Symmetric
                 {
                     // 初始化计数器块（nonce + counter）
                     byte[] counterBlock = new byte[c_BlockSize];
-                    System.Buffer.BlockCopy(nonce, 0, counterBlock, 0, nonce.Length); // nonce 占前12字节
+                    // nonce 推荐情况下占前12字节
+                    System.Buffer.BlockCopy(nonce, 0, counterBlock, 0, nonce.Length);
                     // 最后4字节作为计数器，初始为 1
-                    System.Buffer.BlockCopy(s_Counter, 0, counterBlock, nonce.Length, s_Counter.Length);
+                    System.Buffer.BlockCopy(s_Counter, 0, counterBlock, s_Counter.Length - 4, s_Counter.Length);
 
                     for (int i = 0; i < data.Length; i += c_BlockSize)
                     {

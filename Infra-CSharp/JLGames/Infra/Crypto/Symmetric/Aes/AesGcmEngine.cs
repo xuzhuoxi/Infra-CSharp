@@ -24,6 +24,14 @@ namespace JLGames.Infra.Crypto.Symmetric
             m_AuthenticationTagSize = authenticationTagSize;
         }
 
+        /// <summary>
+        /// 加密
+        /// </summary>
+        /// <param name="plaintext"></param>
+        /// <param name="key">长度有三种，可以是16(AES-128),24(AES-192)或32(AES-256)</param>
+        /// <param name="nonce">长度不固定，推荐长度为12字节(96位)</param>
+        /// <param name="ciphertext"></param>
+        /// <param name="tag">允许范围[12,16], 这里只支持16</param>
         public void Encrypt(byte[] plaintext, byte[] key, byte[] nonce, out byte[] ciphertext, out byte[] tag)
         {
             ciphertext = new byte[plaintext.Length];
@@ -69,7 +77,15 @@ namespace JLGames.Infra.Crypto.Symmetric
             }
         }
 
-
+        /// <summary>
+        /// 解密
+        /// </summary>
+        /// <param name="ciphertext"></param>
+        /// <param name="key">长度有三种，可以是16(AES-128),24(AES-192)或32(AES-256)</param>
+        /// <param name="nonce">长度不固定，推荐长度为12字节(96位)</param>
+        /// <param name="tag">允许范围[12,16], 这里只支持16</param>
+        /// <param name="plaintext"></param>
+        /// <returns></returns>
         public bool Decrypt(byte[] ciphertext, byte[] key, byte[] nonce, byte[] tag, out byte[] plaintext)
         {
             plaintext = new byte[ciphertext.Length];
