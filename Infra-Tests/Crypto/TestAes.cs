@@ -29,7 +29,6 @@ namespace JLGames.InfraTests.Crypto
             }
         }
 
-
         private static class AesIvTests
         {
             // iv长度为16
