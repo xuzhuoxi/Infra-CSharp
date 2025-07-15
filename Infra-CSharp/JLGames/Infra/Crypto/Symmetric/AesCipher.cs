@@ -7,7 +7,7 @@ namespace JLGames.Infra.Crypto.Symmetric
 {
     public class AesCipher : IAesCipher
     {
-        private const int c_GcmNonceSize = 12;
+        private const int m_GcmNonceSize = 12;
         private readonly byte[] m_Key;
         private PaddingMode m_PaddingMode;
 
@@ -158,18 +158,18 @@ namespace JLGames.Infra.Crypto.Symmetric
 
         public byte[] EncryptCtr(byte[] plaintext, byte[] iv)
         {
-            Console.WriteLine("EncryptCtr ---0");
-            Console.WriteLine($"Plaintext: [{string.Join(" ", plaintext)}], iv: [{string.Join(" ", iv)}]");
-            Console.WriteLine($"Ciphertext[BouncyCastle]: [{string.Join(" ", BouncyCastleAesCtrEngine.Default.EncryptCtr(plaintext, m_Key, iv))}]");
-            Console.WriteLine($"Ciphertext[AesCtrEngine]: [{string.Join(" ", AesCtrEngine.Default.Process(plaintext, m_Key, iv))}]");
-            Console.WriteLine("EncryptCtr ---1");
-            Console.WriteLine();
-            Console.Out.Flush();
+            // Console.WriteLine("EncryptCtr ---0");
+            // Console.WriteLine($"Plaintext: [{string.Join(" ", plaintext)}], iv: [{string.Join(" ", iv)}]");
+            // Console.WriteLine($"Ciphertext[BouncyCastle]: [{string.Join(" ", BouncyCastleAesCtrEngine.Default.EncryptCtr(plaintext, m_Key, iv))}]");
+            // Console.WriteLine($"Ciphertext[AesCtrEngine]: [{string.Join(" ", AesCtrEngine.Default.ProcessWithIv(plaintext, m_Key, iv))}]");
+            // Console.WriteLine("EncryptCtr ---1");
+            // Console.WriteLine();
+            // Console.Out.Flush();
 
             // Org.BouncyCastle.Crypto
             return BouncyCastleAesCtrEngine.Default.EncryptCtr(plaintext, m_Key, iv);
 
-            // return AesCtrEngine.Default.Process(plaintext, m_Key, iv);
+            // return AesCtrEngine.Default.ProcessWithIv(plaintext, m_Key, iv);
         }
 
         public byte[] DecryptCtr(byte[] ciphertext)
@@ -180,24 +180,25 @@ namespace JLGames.Infra.Crypto.Symmetric
 
         public byte[] DecryptCtr(byte[] ciphertext, byte[] iv)
         {
-            Console.WriteLine("DecryptCtr ---0");
-            Console.WriteLine($"Ciphertext: [{string.Join(" ", ciphertext)}], iv: [{string.Join(" ", iv)}]");
-            Console.WriteLine($"Plaintext[BouncyCastle]: [{string.Join(" ", BouncyCastleAesCtrEngine.Default.DecryptCtr(ciphertext, m_Key, iv))}]");
-            Console.WriteLine($"Plaintext[AesCtrEngine]: [{string.Join(" ", AesCtrEngine.Default.Process(ciphertext, m_Key, iv))}]");
-            Console.WriteLine("DecryptCtr ---1");
-            Console.WriteLine();
-            Console.Out.Flush();
+            // Console.WriteLine("DecryptCtr ---0");
+            // Console.WriteLine($"Ciphertext: [{string.Join(" ", ciphertext)}], iv: [{string.Join(" ", iv)}]");
+            // Console.WriteLine($"Plaintext[BouncyCastle]: [{string.Join(" ", BouncyCastleAesCtrEngine.Default.DecryptCtr(ciphertext, m_Key, iv))}]");
+            // Console.WriteLine($"Plaintext[AesCtrEngine]: [{string.Join(" ", AesCtrEngine.Default.ProcessWithIv(ciphertext, m_Key, iv))}]");
+            // Console.WriteLine("DecryptCtr ---1");
+            // Console.WriteLine();
+            // Console.Out.Flush();
+            
             // Org.BouncyCastle.Crypto
             return BouncyCastleAesCtrEngine.Default.DecryptCtr(ciphertext, m_Key, iv);
 
-            // return AesCtrEngine.Default.Process(ciphertext, m_Key, iv);
+            // return AesCtrEngine.Default.ProcessWithIv(ciphertext, m_Key, iv);
         }
 
         // GCM ---------- ---------- ---------- ---------- ----------
 
         public byte[] EncryptGcm(byte[] plaintext)
         {
-            var nonce = new byte[c_GcmNonceSize]; // GCM nonce size is 12 bytes
+            var nonce = new byte[m_GcmNonceSize]; // GCM nonce size is 12 bytes
             new Random().NextBytes(nonce);
             var output = EncryptGcm(plaintext, nonce);
             return CryptoUtils.Combine(nonce, output);
@@ -228,7 +229,7 @@ namespace JLGames.Infra.Crypto.Symmetric
         /// <returns></returns>
         public byte[] DecryptGcm(byte[] ciphertext)
         {
-            CryptoUtils.Extract(ciphertext, c_GcmNonceSize, out var nonce, out var data); // GCM nonce size is 12 bytes
+            CryptoUtils.Extract(ciphertext, m_GcmNonceSize, out var nonce, out var data); // GCM nonce size is 12 bytes
             return DecryptGcm(data, nonce);
         }
 

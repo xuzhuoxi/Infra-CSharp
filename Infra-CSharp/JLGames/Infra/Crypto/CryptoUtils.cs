@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace JLGames.Infra.Crypto
 {
@@ -8,17 +9,17 @@ namespace JLGames.Infra.Crypto
         /// <summary>
         /// Rsa算法标识(OID)
         /// </summary>
-        private static readonly byte[] m_RsaOid = { 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x01 };
+        private static readonly byte[] s_RsaOid = { 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x01 };
 
         /// <summary>
         /// Dsa算法标识(OID)
         /// </summary>
-        private static readonly byte[] m_DsaOid = { 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01 };
+        private static readonly byte[] s_DsaOid = { 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01 };
 
         /// <summary>
         /// Ecdsa算法标识(OID)
         /// </summary>
-        private static readonly byte[] m_EcdsaOid = { 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01 };
+        private static readonly byte[] s_EcdsaOid = { 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01 };
 
 
         /// <summary>
@@ -26,9 +27,10 @@ namespace JLGames.Infra.Crypto
         /// </summary>
         /// <param name="rsaOid"></param>
         /// <exception cref="Exception"></exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool AssertIsRsaOid(byte[] rsaOid)
         {
-            return rsaOid.Length == m_RsaOid.Length && rsaOid.SequenceEqual(m_RsaOid);
+            return rsaOid.Length == s_RsaOid.Length && rsaOid.SequenceEqual(s_RsaOid);
         }
 
         /// <summary>
@@ -36,9 +38,10 @@ namespace JLGames.Infra.Crypto
         /// </summary>
         /// <param name="dsaOid"></param>
         /// <exception cref="Exception"></exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool AssertIsDsaOid(byte[] dsaOid)
         {
-            return dsaOid.Length == m_DsaOid.Length && dsaOid.SequenceEqual(m_DsaOid);
+            return dsaOid.Length == s_DsaOid.Length && dsaOid.SequenceEqual(s_DsaOid);
         }
 
         /// <summary>
@@ -46,9 +49,10 @@ namespace JLGames.Infra.Crypto
         /// </summary>
         /// <param name="ecdsaOid"></param>
         /// <exception cref="Exception"></exception>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool AssertIsEcdsaOid(byte[] ecdsaOid)
         {
-            return ecdsaOid.Length == m_EcdsaOid.Length && ecdsaOid.SequenceEqual(m_EcdsaOid);
+            return ecdsaOid.Length == s_EcdsaOid.Length && ecdsaOid.SequenceEqual(s_EcdsaOid);
         }
 
         /// <summary>
@@ -57,6 +61,7 @@ namespace JLGames.Infra.Crypto
         /// <param name="bs"></param>
         /// <param name="bs1"></param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] Combine(byte[] bs, byte[] bs1)
         {
             var result = new byte[bs.Length + bs1.Length];
@@ -72,6 +77,7 @@ namespace JLGames.Infra.Crypto
         /// <param name="firstSize"></param>
         /// <param name="first"></param>
         /// <param name="second"></param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Extract(byte[] data, int firstSize, out byte[] first, out byte[] second)
         {
             first = new byte[firstSize];
@@ -88,6 +94,7 @@ namespace JLGames.Infra.Crypto
         /// <param name="bs2"></param>
         /// <param name="others"></param>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] CombineMulti(byte[] bs, byte[] bs1, byte[] bs2, params byte[][] others)
         {
             var len = bs.Length + bs1.Length + bs2.Length;

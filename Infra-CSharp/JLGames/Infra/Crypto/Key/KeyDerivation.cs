@@ -5,9 +5,9 @@ namespace JLGames.Infra.Crypto.Key
 {
     public static class KeyDerivation
     {
-        private static readonly byte[] m_Salt = Encoding.UTF8.GetBytes("JLGames.Infra.Crypto.Key");
-        private static readonly int m_Iterations = 100000;
-        private static readonly int m_KeyLen = 32; // 32 bytes for AES-256 or HMAC
+        private static readonly byte[] s_Salt = Encoding.UTF8.GetBytes("JLGames.Infra.Crypto.Key");
+        private static readonly int s_Iterations = 100000;
+        private static readonly int s_KeyLen = 32; // 32 bytes for AES-256 or HMAC
 
         /// <summary>
         /// SharedKeySha256Str - Converts a passphrase string to a 32-byte key using SHA256
@@ -42,7 +42,7 @@ namespace JLGames.Infra.Crypto.Key
         /// <returns></returns>
         public static byte[] DeriveKeyPbkdf2StrDefault(string passphrase)
         {
-            return DeriveKeyPbkdf2Str(passphrase, m_Salt, m_Iterations, m_KeyLen);
+            return DeriveKeyPbkdf2Str(passphrase, s_Salt, s_Iterations, s_KeyLen);
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace JLGames.Infra.Crypto.Key
         /// <returns></returns>
         public static byte[] DeriveKeyPbkdf2Default(byte[] passphrase)
         {
-            return DeriveKeyPbkdf2(passphrase, m_Salt, m_Iterations, m_KeyLen);
+            return DeriveKeyPbkdf2(passphrase, s_Salt, s_Iterations, s_KeyLen);
         }
 
         /// <summary>
