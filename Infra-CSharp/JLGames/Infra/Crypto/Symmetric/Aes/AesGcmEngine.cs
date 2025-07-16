@@ -8,7 +8,7 @@ namespace JLGames.Infra.Crypto.Symmetric
     {
         public static AesGcmEngine Default { get; private set; } = new AesGcmEngine();
 
-        private const int c_BlockSize = 16;
+        private const int m_BlockSize = 16;
         private readonly int m_AuthenticationTagSize;
         public int TagSize => m_AuthenticationTagSize;
 
@@ -43,8 +43,8 @@ namespace JLGames.Infra.Crypto.Symmetric
                 aes.Padding = PaddingMode.None;
                 using (ICryptoTransform encryptor = aes.CreateEncryptor())
                 {
-                    byte[] zeroBlock = new byte[c_BlockSize];
-                    byte[] h = encryptor.TransformFinalBlock(zeroBlock, 0, c_BlockSize);
+                    byte[] zeroBlock = new byte[m_BlockSize];
+                    byte[] h = encryptor.TransformFinalBlock(zeroBlock, 0, m_BlockSize);
 
                     byte[] j0 = BuildJ0(nonce);
 
@@ -53,11 +53,11 @@ namespace JLGames.Infra.Crypto.Symmetric
 
                     using (ICryptoTransform ctrEncryptor = aes.CreateEncryptor())
                     {
-                        byte[] counterBlock = new byte[c_BlockSize];
-                        for (int i = 0; i < plaintext.Length; i += c_BlockSize)
+                        byte[] counterBlock = new byte[m_BlockSize];
+                        for (int i = 0; i < plaintext.Length; i += m_BlockSize)
                         {
-                            int remainBlockSize = Math.Min(c_BlockSize, plaintext.Length - i);
-                            counterBlock = ctrEncryptor.TransformFinalBlock(ctr, 0, c_BlockSize);
+                            int remainBlockSize = Math.Min(m_BlockSize, plaintext.Length - i);
+                            counterBlock = ctrEncryptor.TransformFinalBlock(ctr, 0, m_BlockSize);
                             for (int j = 0; j < remainBlockSize; j++)
                                 ciphertext[i + j] = (byte)(plaintext[i + j] ^ counterBlock[j]);
                             IncrementCounter(ctr);
@@ -68,7 +68,7 @@ namespace JLGames.Infra.Crypto.Symmetric
                     byte[] ghashInput = BuildGHashInput(ciphertext);
                     byte[] tagInput = GHash(h, ghashInput);
 
-                    byte[] tagMask = encryptor.TransformFinalBlock(j0, 0, c_BlockSize);
+                    byte[] tagMask = encryptor.TransformFinalBlock(j0, 0, m_BlockSize);
 
                     tag = new byte[16];
                     for (int i = 0; i < 16; i++)
@@ -98,14 +98,14 @@ namespace JLGames.Infra.Crypto.Symmetric
                 aes.Padding = PaddingMode.None;
                 using (ICryptoTransform encryptor = aes.CreateEncryptor())
                 {
-                    byte[] zeroBlock = new byte[c_BlockSize];
-                    byte[] h = encryptor.TransformFinalBlock(zeroBlock, 0, c_BlockSize);
+                    byte[] zeroBlock = new byte[m_BlockSize];
+                    byte[] h = encryptor.TransformFinalBlock(zeroBlock, 0, m_BlockSize);
 
                     // Step 2: Build J₀
                     byte[] j0 = BuildJ0(nonce);
 
                     // Step 3: Encrypt J₀ to create tag mask
-                    byte[] tagMask = encryptor.TransformFinalBlock(j0, 0, c_BlockSize);
+                    byte[] tagMask = encryptor.TransformFinalBlock(j0, 0, m_BlockSize);
 
                     // Step 4: GHASH over ciphertext + length block
                     byte[] ghashInput = BuildGHashInput(ciphertext);
@@ -125,11 +125,11 @@ namespace JLGames.Infra.Crypto.Symmetric
                     IncrementCounter(ctr); // move to J₁
                     using (ICryptoTransform ctrEncryptor = aes.CreateEncryptor())
                     {
-                        byte[] counterBlock = new byte[c_BlockSize];
-                        for (int i = 0; i < ciphertext.Length; i += c_BlockSize)
+                        byte[] counterBlock = new byte[m_BlockSize];
+                        for (int i = 0; i < ciphertext.Length; i += m_BlockSize)
                         {
                             int blockSize = Math.Min(16, ciphertext.Length - i);
-                            counterBlock = ctrEncryptor.TransformFinalBlock(ctr, 0, c_BlockSize);
+                            counterBlock = ctrEncryptor.TransformFinalBlock(ctr, 0, m_BlockSize);
                             for (int j = 0; j < blockSize; j++)
                                 plaintext[i + j] = (byte)(ciphertext[i + j] ^ counterBlock[j]);
                             IncrementCounter(ctr);
@@ -157,9 +157,10 @@ namespace JLGames.Infra.Crypto.Symmetric
         private byte[] BuildGHashInput(byte[] ciphertext)
         {
             // 手动补齐密文到 16 字节块（AES-GCM 不自动 padding）
-            int padding = 16 - (ciphertext.Length % 16);
-            int paddedLength = ciphertext.Length + padding;
-            int gHashInputLen = paddedLength + c_BlockSize;
+            int paddedLength = ciphertext.Length;
+            if (ciphertext.Length % 16 != 0)
+                paddedLength += (16 - (ciphertext.Length % 16));
+            int gHashInputLen = paddedLength + 16;
 
             byte[] gHashInput = new byte[gHashInputLen];
             System.Buffer.BlockCopy(ciphertext, 0, gHashInput, 0, ciphertext.Length);
