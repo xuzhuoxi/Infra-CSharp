@@ -8,52 +8,24 @@ namespace JLGames.Infra.Event
     /// </summary>
     public static class EventManager
     {
-        /// <summary>
-        /// Default
-        /// 默认
-        /// </summary>
-        public const string DefaultName = "Default";
+        private const string m_DefaultName = "Default";
+        private static readonly EventDispatcherPool s_DispatcherPool = new EventDispatcherPool();
 
-        private static readonly Dictionary<string, IEventDispatcher> m_MgrPool = new Dictionary<string, IEventDispatcher>();
+        public static IEventDispatcher DefaultDispatcher => s_DispatcherPool.GetInstance(m_DefaultName, true);
 
-        public static IEventDispatcher Default => GetInstance(DefaultName);
-
-        /// <summary>
-        /// Get event dispatcher instance.
-        /// 取事件调度实例
-        /// </summary>
-        /// <param name="instanceName"></param>
-        /// <returns></returns>
         public static IEventDispatcher GetInstance(string instanceName)
         {
-            if (m_MgrPool.ContainsKey(instanceName))
-            {
-                return m_MgrPool[instanceName];
-            }
-            else
-            {
-                IEventDispatcher rs = new EventDispatcher();
-                m_MgrPool[instanceName] = rs;
-                return rs;
-            }
+            return s_DispatcherPool.GetInstance(instanceName, true);
         }
 
         /// <summary>
-        /// Remove event dispatcher instance.
-        /// 移除事件调度实例
+        /// Remove instance listeners and instance.
         /// </summary>
         /// <param name="instanceName"></param>
         /// <returns></returns>
         public static IEventDispatcher RemoveInstance(string instanceName)
         {
-            if (!m_MgrPool.ContainsKey(instanceName))
-            {
-                return null;
-            }
-
-            var rs = m_MgrPool[instanceName];
-            m_MgrPool.Remove(instanceName);
-            return rs;
+            return s_DispatcherPool.Clear(instanceName, true);
         }
 
         /// <summary>
@@ -63,18 +35,18 @@ namespace JLGames.Infra.Event
         /// <param name="instanceName"></param>
         public static void RemoveListeners(string instanceName)
         {
-            if (!m_MgrPool.ContainsKey(instanceName)) return;
-            m_MgrPool[instanceName].RemoveEventListener();
+            var instance = s_DispatcherPool.GetInstance(instanceName, false);
+            if (instance == null) return;
+            instance.RemoveEventListener();
         }
 
         /// <summary>
-        /// Remove event listeners.
+        /// Remove all instances event listeners .
         /// 移除事件监听
         /// </summary>
         public static void RemoveListeners()
         {
-            if (m_MgrPool.Count == 0) return;
-            foreach (var pair in m_MgrPool)
+            foreach (var pair in s_DispatcherPool.m_Pool)
             {
                 pair.Value.RemoveEventListener();
             }

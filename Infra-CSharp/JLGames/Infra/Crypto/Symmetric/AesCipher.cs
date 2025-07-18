@@ -29,13 +29,11 @@ namespace JLGames.Infra.Crypto.Symmetric
         public byte[] Encrypt(byte[] plaintext)
         {
             return EncryptGcm(plaintext); // 默认使用 GCM 加密
-            // return EncryptCtr(plaintext); // 默认使用 GCM 加密
         }
 
         public byte[] Decrypt(byte[] ciphertext)
         {
             return DecryptGcm(ciphertext); // 默认使用 GCM 解密
-            // return DecryptCtr(ciphertext); // 默认使用 GCM 解密
         }
 
         public byte[] EncryptMode(byte[] plaintext, BlockMode blockMode)
@@ -158,14 +156,6 @@ namespace JLGames.Infra.Crypto.Symmetric
 
         public byte[] EncryptCtr(byte[] plaintext, byte[] iv)
         {
-            // Console.WriteLine("EncryptCtr ---0");
-            // Console.WriteLine($"Plaintext: [{string.Join(" ", plaintext)}], iv: [{string.Join(" ", iv)}]");
-            // Console.WriteLine($"Ciphertext[BouncyCastle]: [{string.Join(" ", BouncyCastleAesCtrEngine.Default.EncryptCtr(plaintext, m_Key, iv))}]");
-            // Console.WriteLine($"Ciphertext[AesCtrEngine]: [{string.Join(" ", AesCtrEngine.Default.ProcessWithIv(plaintext, m_Key, iv))}]");
-            // Console.WriteLine("EncryptCtr ---1");
-            // Console.WriteLine();
-            // Console.Out.Flush();
-
             // Org.BouncyCastle.Crypto
             // return BouncyCastleAesCtrEngine.Default.EncryptCtr(plaintext, m_Key, iv);
 
@@ -180,14 +170,6 @@ namespace JLGames.Infra.Crypto.Symmetric
 
         public byte[] DecryptCtr(byte[] ciphertext, byte[] iv)
         {
-            // Console.WriteLine("DecryptCtr ---0");
-            // Console.WriteLine($"Ciphertext: [{string.Join(" ", ciphertext)}], iv: [{string.Join(" ", iv)}]");
-            // Console.WriteLine($"Plaintext[BouncyCastle]: [{string.Join(" ", BouncyCastleAesCtrEngine.Default.DecryptCtr(ciphertext, m_Key, iv))}]");
-            // Console.WriteLine($"Plaintext[AesCtrEngine]: [{string.Join(" ", AesCtrEngine.Default.ProcessWithIv(ciphertext, m_Key, iv))}]");
-            // Console.WriteLine("DecryptCtr ---1");
-            // Console.WriteLine();
-            // Console.Out.Flush();
-            
             // Org.BouncyCastle.Crypto
             // return BouncyCastleAesCtrEngine.Default.DecryptCtr(ciphertext, m_Key, iv);
 
@@ -209,15 +191,6 @@ namespace JLGames.Infra.Crypto.Symmetric
             AesGcmEngine.Default.Encrypt(plaintext, m_Key, nonce, out var ciphertext, out var tag);
             return CryptoUtils.Combine(ciphertext, tag);
 
-            // Console.WriteLine("EncryptGcm ---0");
-            // Console.WriteLine($"Plaintext: [{string.Join(" ", plaintext)}], nonce: [{string.Join(" ", nonce)}]");
-            // Console.WriteLine(
-            //     $"Ciphertext[BouncyCastle]: [{string.Join(" ", BouncyCastleAesGcmEngine.Default.EncryptGcm(plaintext, m_Key, nonce))}]");
-            // Console.WriteLine($"Ciphertext[AesGcmEngine]: [{string.Join(" ", CryptoUtils.Combine(ciphertext, tag))}]");
-            // Console.WriteLine("EncryptGcm ---1");
-            // Console.WriteLine();
-            // Console.Out.Flush();
-
             // Org.BouncyCastle.Crypto
             // return BouncyCastleAesGcmEngine.Default.EncryptGcm(plaintext, m_Key, nonce);
         }
@@ -235,6 +208,7 @@ namespace JLGames.Infra.Crypto.Symmetric
 
         public byte[] DecryptGcm(byte[] ciphertext, byte[] nonce)
         {
+            // Console.WriteLine($"DecryptGcm：{ciphertext?.Length}");
             var size = ciphertext.Length - AesGcmEngine.Default.TagSize;
             CryptoUtils.Extract(ciphertext, size, out var ciphertext2, out var tag);
             bool valid = AesGcmEngine.Default.Decrypt(ciphertext2, m_Key, nonce, tag, out var plaintext);
@@ -246,16 +220,6 @@ namespace JLGames.Infra.Crypto.Symmetric
             {
                 throw new Exception("Tag verification failed. Decryption aborted.");
             }
-
-            // Console.WriteLine("DecryptGcm ---0");
-            // Console.WriteLine($"Ciphertext: [{string.Join(" ", ciphertext)}], nonce: [{string.Join(" ", nonce)}]");
-            // var bcp = BouncyCastleAesGcmEngine.Default.DecryptGcm(ciphertext, m_Key, nonce);
-            // var bcpStr = Encoding.UTF8.GetString(bcp);
-            // Console.WriteLine($"Plaintext[BouncyCastle]: [{string.Join(" ", bcp)}], {bcpStr}");
-            // Console.WriteLine($"Plaintext[AesGcmEngine]: [{string.Join(" ", plaintext)}]");
-            // Console.WriteLine("DecryptGcm ---1");
-            // Console.WriteLine();
-            // Console.Out.Flush();
 
             // Org.BouncyCastle.Crypto
             // return BouncyCastleAesGcmEngine.Default.DecryptGcm(ciphertext, m_Key, nonce);
