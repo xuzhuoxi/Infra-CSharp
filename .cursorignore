@@ -1,6 +1,8 @@
 # 忽略C#项目编译与运行产物
 Infra-CSharp/bin/
 Infra-CSharp/obj/
+Infra-CSharp-Tests/bin/
+Infra-CSharp-Tests/obj/
 .vs/
 .vscode/
 .idea/
