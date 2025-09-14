@@ -2,7 +2,7 @@
 
 namespace JLGames.Infra.AStar
 {
-    internal struct QueueResult
+    public struct QueueResult
     {
         public Position Position;
         public bool Ok;
@@ -15,7 +15,7 @@ namespace JLGames.Infra.AStar
         public static readonly QueueResult Error = new QueueResult {Position = Position.Empty, Ok = false};
     }
 
-    internal class PositionQueue : Queue<Position>
+    public class PositionQueue : Queue<Position>
     {
         public void Push(Position pos)
         {
@@ -33,7 +33,7 @@ namespace JLGames.Infra.AStar
         }
     }
 
-    internal struct PriorityPositionQueueResult
+    public struct PriorityPositionQueueResult
     {
         public PriorityPosition Position;
         public bool Ok;
@@ -48,7 +48,7 @@ namespace JLGames.Infra.AStar
     }
 
 
-    internal class PriorityPositionQueue : List<PriorityPosition>
+    public class PriorityPositionQueue : List<PriorityPosition>
     {
         public PriorityPosition[] GetAll()
         {
