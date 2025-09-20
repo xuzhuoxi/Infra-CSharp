@@ -16,9 +16,9 @@ namespace JLGames.Infra.Net
     ///   - "http://127.0.0.1:9000/api/sub"  + "/test" = "http://127.0.0.1:9000/test"
     ///   - "http://127.0.0.1:9000/api/sub/" + "/test" = "http://127.0.0.1:9000/test"
     /// </summary>
-    public sealed class HttpClientProxy : IDisposable
+    public sealed class HttpClientProxy : IHttpClientProxy
     {
-        private const string KeepAlive = "keep-alive";
+        private const string c_KeepAlive = "keep-alive";
 
         // 默认超时时间100秒，实际上.net不设置timeout时，超时限制也是100秒
         private readonly TimeSpan m_Timeout = TimeSpan.FromSeconds(100);
@@ -49,7 +49,7 @@ namespace JLGames.Infra.Net
             m_BaseAddress = baseUrl;
             m_BaseUri = new Uri(baseUrl);
             m_Client = new HttpClient { BaseAddress = new Uri(baseUrl), Timeout = m_Timeout };
-            m_Client.DefaultRequestHeaders.Connection.Add(KeepAlive);
+            m_Client.DefaultRequestHeaders.Connection.Add(c_KeepAlive);
             Preheat();
         }
 
@@ -67,7 +67,7 @@ namespace JLGames.Infra.Net
             m_BaseUri = new Uri(baseUrl);
             m_Timeout = timeout;
             m_Client = new HttpClient { BaseAddress = new Uri(baseUrl), Timeout = timeout };
-            m_Client.DefaultRequestHeaders.Connection.Add(KeepAlive);
+            m_Client.DefaultRequestHeaders.Connection.Add(c_KeepAlive);
             Preheat();
         }
 
@@ -96,12 +96,12 @@ namespace JLGames.Infra.Net
         /// <param name="enable"></param>
         public void SetKeepAlive(bool enable)
         {
-            var contains = m_Client.DefaultRequestHeaders.Connection.Contains(KeepAlive);
+            var contains = m_Client.DefaultRequestHeaders.Connection.Contains(c_KeepAlive);
             if (contains == enable) return;
             if (enable)
-                m_Client.DefaultRequestHeaders.Connection.Add(KeepAlive);
+                m_Client.DefaultRequestHeaders.Connection.Add(c_KeepAlive);
             else
-                m_Client.DefaultRequestHeaders.Connection.Remove(KeepAlive);
+                m_Client.DefaultRequestHeaders.Connection.Remove(c_KeepAlive);
         }
 
         //  Get ----------

@@ -6,23 +6,23 @@ namespace JLGames.Infra.Net
     public struct HttpResult<T>
     {
         /// <summary>
-        /// 是否超时
-        /// </summary>
-        public bool Timeout { get; internal set; }
-        
-        /// <summary>
         /// 状态码
         /// </summary>
-        public HttpStatusCode StatusCode { get; internal set; }
-        
+        public HttpStatusCode StatusCode { get; set; }
+
+        /// <summary>
+        /// 是否超时
+        /// </summary>
+        public bool Timeout { get; set; }
+
         /// <summary>
         /// 结果数据
         /// </summary>
-        public T Content { get; internal set; }
-        
+        public T Content { get; set; }
+
         /// <summary>
         /// 异常
         /// </summary>
-        public Exception Exception { get; internal set; }
+        public Exception Exception { get; set; }
     }
 }
