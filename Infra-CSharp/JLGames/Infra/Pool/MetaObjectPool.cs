@@ -186,6 +186,19 @@ namespace JLGames.Infra.Pool
         }
 
         /// <summary>
+        /// get the first element
+        /// 取第一个元素
+        /// </summary>
+        public T First => m_ObjectPool.Count == 0 ? null : m_ObjectPool[0];
+
+        /// <summary>
+        /// get the last element
+        /// 取最后一个元素
+        /// </summary>
+        public T Last => m_ObjectPool.Count == 0 ? null : m_ObjectPool[m_ObjectPool.Count - 1];
+
+        
+        /// <summary>
         /// find the first matched element.
         /// 查找第一个匹配项
         /// </summary>

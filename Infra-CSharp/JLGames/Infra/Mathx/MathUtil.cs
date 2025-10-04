@@ -15,9 +15,9 @@ namespace JLGames.Infra.Mathx
         /// </returns>
         public static float Clamp(float value, float min, float max)
         {
-            if ((double) value < (double) min)
+            if ((double)value < (double)min)
                 value = min;
-            else if ((double) value > (double) max)
+            else if ((double)value > (double)max)
                 value = max;
             return value;
         }
@@ -44,9 +44,7 @@ namespace JLGames.Infra.Mathx
         {
             if (a > b)
             {
-                var c = a;
-                a = b;
-                b = c;
+                (a, b) = (b, a);
             }
 
             return val > a && val < b;
@@ -56,9 +54,7 @@ namespace JLGames.Infra.Mathx
         {
             if (a > b)
             {
-                var c = a;
-                a = b;
-                b = c;
+                (a, b) = (b, a);
             }
 
             return val > a && val < b;
@@ -68,9 +64,7 @@ namespace JLGames.Infra.Mathx
         {
             if (a > b)
             {
-                var c = a;
-                a = b;
-                b = c;
+                (a, b) = (b, a);
             }
 
             return val > a && val < b;
@@ -80,9 +74,7 @@ namespace JLGames.Infra.Mathx
         {
             if (a > b)
             {
-                var c = a;
-                a = b;
-                b = c;
+                (a, b) = (b, a);
             }
 
             return val > a && val < b;
@@ -94,9 +86,9 @@ namespace JLGames.Infra.Mathx
         /// <param name="value"></param>
         public static float Clamp01(float value)
         {
-            if ((double) value < 0.0)
+            if ((double)value < 0.0)
                 return 0.0f;
-            if ((double) value > 1.0)
+            if ((double)value > 1.0)
                 return 1f;
             return value;
         }
@@ -120,7 +112,7 @@ namespace JLGames.Infra.Mathx
         /// <returns></returns>
         public static int FloorToEven(float number)
         {
-            var floorNum = (int) Math.Floor(number);
+            var floorNum = (int)Math.Floor(number);
             return IsOdd(floorNum) ? floorNum - 1 : floorNum;
         }
 
@@ -132,7 +124,7 @@ namespace JLGames.Infra.Mathx
         /// <returns></returns>
         public static int FloorToOdd(float number)
         {
-            var floorNum = (int) Math.Floor(number);
+            var floorNum = (int)Math.Floor(number);
             return IsOdd(floorNum) ? floorNum : floorNum - 1;
         }
 
@@ -144,7 +136,7 @@ namespace JLGames.Infra.Mathx
         /// <returns></returns>
         public static int CeilToEven(float number)
         {
-            var ceilNum = (int) Math.Ceiling(number);
+            var ceilNum = (int)Math.Ceiling(number);
             return IsOdd(ceilNum) ? ceilNum + 1 : ceilNum;
         }
 
@@ -156,7 +148,7 @@ namespace JLGames.Infra.Mathx
         /// <returns></returns>
         public static int CeilToOdd(float number)
         {
-            var ceilNum = (int) Math.Ceiling(number);
+            var ceilNum = (int)Math.Ceiling(number);
             return IsOdd(ceilNum) ? ceilNum : ceilNum + 1;
         }
 
@@ -174,22 +166,22 @@ namespace JLGames.Infra.Mathx
 
         public static int FloorToInt(this float a, float epsilon = float.Epsilon)
         {
-            return (int) Math.Floor(a + Math.Abs(epsilon));
+            return (int)Math.Floor(a + Math.Abs(epsilon));
         }
 
         public static int FloorToInt(this double a, double epsilon = double.Epsilon)
         {
-            return (int) Math.Floor(a + Math.Abs(epsilon));
+            return (int)Math.Floor(a + Math.Abs(epsilon));
         }
 
         public static int CeilToInt(this float a, float epsilon = float.Epsilon)
         {
-            return (int) Math.Ceiling(a - Math.Abs(epsilon));
+            return (int)Math.Ceiling(a - Math.Abs(epsilon));
         }
 
         public static int CeilToInt(this double a, double epsilon = double.Epsilon)
         {
-            return (int) Math.Ceiling(a - Math.Abs(epsilon));
+            return (int)Math.Ceiling(a - Math.Abs(epsilon));
         }
 
         /// <summary>
@@ -215,7 +207,7 @@ namespace JLGames.Infra.Mathx
         /// <returns></returns>
         public static int Mod(this int a, int b)
         {
-            var c = (int) Math.Floor((double) a / b);
+            var c = (int)Math.Floor((double)a / b);
             return a - c * b;
         }
 
@@ -230,7 +222,7 @@ namespace JLGames.Infra.Mathx
         {
             // C#中 %代表求余
             // 并不是全部编程语言中%都是求余的，有部分是求模，例如python
-            return a - (int) (a / b) * b;
+            return a - (int)(a / b) * b;
         }
 
         /// <summary>
@@ -242,7 +234,7 @@ namespace JLGames.Infra.Mathx
         /// <returns></returns>
         public static double Mod(this double a, double b)
         {
-            return a - (int) Math.Floor(a / b) * b;
+            return a - (int)Math.Floor(a / b) * b;
         }
 
         //距离相关
@@ -251,7 +243,7 @@ namespace JLGames.Infra.Mathx
         {
             var num1 = ax - bx;
             var num2 = ay - by;
-            return (float) Math.Sqrt((double) num1 * num1 + (double) num2 * num2);
+            return (float)Math.Sqrt((double)num1 * num1 + (double)num2 * num2);
         }
 
         public static float DistanceSquare(float ax, float ay, float bx, float by)
