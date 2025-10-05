@@ -84,7 +84,12 @@ namespace JLGames.Infra.Net
         {
             if (null != m_ConnectAdapter)
             {
-                DispatchEvent(SocketEvents.EventOnConnectionOpen, new SocketEvents.SocketConnEventInfo(false));
+                if (null == m_SyncContext)
+                    DispatchEvent(SocketEvents.EventOnConnectionOpen, new SocketEvents.SocketConnEventInfo(false));
+                else
+                    m_SyncContext.Send(_ => { DispatchEvent(SocketEvents.EventOnConnectionOpen, new SocketEvents.SocketConnEventInfo(false)); },
+                        null);
+
                 return;
             }
 
@@ -102,7 +107,7 @@ namespace JLGames.Infra.Net
             if (null == m_SyncContext)
                 HandleConnectResult(info);
             else
-                m_SyncContext.Post(_ => { HandleConnectResult(info); }, null);
+                m_SyncContext.Send(_ => { HandleConnectResult(info); }, null);
         }
 
         private void HandleConnectResult(AdapterDelegates.ConnectResultInfo info)
@@ -124,7 +129,11 @@ namespace JLGames.Infra.Net
         {
             if (null == m_ConnectAdapter)
             {
-                DispatchEvent(SocketEvents.EventOnConnectionClose, new SocketEvents.SocketConnEventInfo(false));
+                if (null == m_SyncContext)
+                    DispatchEvent(SocketEvents.EventOnConnectionClose, new SocketEvents.SocketConnEventInfo(false));
+                else
+                    m_SyncContext.Send(_ => {  DispatchEvent(SocketEvents.EventOnConnectionClose, new SocketEvents.SocketConnEventInfo(false)); }, null);
+
                 return;
             }
 
@@ -137,7 +146,7 @@ namespace JLGames.Infra.Net
             if (null == m_SyncContext)
                 HandleDisconnectResult(info);
             else
-                m_SyncContext.Post(_ => { HandleDisconnectResult(info); }, null);
+                m_SyncContext.Send(_ => { HandleDisconnectResult(info); }, null);
         }
 
         private void HandleDisconnectResult(AdapterDelegates.ConnectResultInfo info)
@@ -181,7 +190,7 @@ namespace JLGames.Infra.Net
             if (null == m_SyncContext)
                 DispatchEvent(evd.Type, evd.Data);
             else
-                m_SyncContext.Post(_ => { DispatchEvent(evd.Type, evd.Data); }, null);
+                m_SyncContext.Send(_ => { DispatchEvent(evd.Type, evd.Data); }, null);
         }
     }
 }
