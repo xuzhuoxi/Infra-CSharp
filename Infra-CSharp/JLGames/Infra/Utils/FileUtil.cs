@@ -49,12 +49,13 @@ namespace JLGames.Infra.Utils
         /// Note：Self-assurance path existence
         /// 注意：自行保证路径的存在性
         /// </summary>
-        /// <param name="oldPath"></param>
-        /// <param name="newPath"></param>
-        public static void CopyFile(string oldPath, string newPath)
+        /// <param name="srcPath"></param>
+        /// <param name="destPath"></param>
+        /// <param name="overwrite"></param>
+        public static void CopyFile(string srcPath, string destPath, bool overwrite = false)
         {
-            if (!Exists(oldPath)) return;
-            File.Copy(oldPath, newPath);
+            if (!Exists(srcPath)) return;
+            File.Copy(srcPath, destPath, overwrite);
         }
 
         /// <summary>
