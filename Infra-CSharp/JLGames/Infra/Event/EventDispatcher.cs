@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 
 namespace JLGames.Infra.Event
 {
@@ -6,13 +7,33 @@ namespace JLGames.Infra.Event
     /// Event dispatcher
     /// 事件调度器
     /// </summary>
-    public class EventDispatcher : IEventDispatcher
+    public class EventDispatcher : IThreadEventDispatcher
     {
         /// <summary>
         /// Event group mapping
         /// 事件组映射
         /// </summary>
         protected readonly Dictionary<string, EventGroup> m_Event2Group = new Dictionary<string, EventGroup>();
+
+        /// <summary>
+        /// 注意：
+        /// C#默认的 SynchronizationContext 实现只是一个空壳，提供一个基础的同步上下文接口
+        /// 不维护一个队列，也不具备线程切换或调度能力。
+        /// 这里传入的应该是具备队列调度能力的 SynchronizationContext 派生类
+        /// </summary>
+        protected SynchronizationContext m_ThreadContext;
+
+        // IThreadEventDispatcher
+
+        public void SetSyncContext(SynchronizationContext context)
+        {
+            m_ThreadContext = context;
+        }
+
+        public void ClearSyncContext()
+        {
+            m_ThreadContext = null;
+        }
 
         // IEventListener
 
@@ -104,7 +125,10 @@ namespace JLGames.Infra.Event
         protected virtual void DispatchData(EventData evd)
         {
             var group = m_Event2Group[evd.Type];
-            group.Handle(evd);
+            if (null != m_ThreadContext)
+                m_ThreadContext.Send(state => { group.Handle(evd); }, null);
+            else
+                group.Handle(evd);
         }
     }
 }
