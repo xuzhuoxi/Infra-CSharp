@@ -21,18 +21,20 @@ namespace JLGames.Infra.Event
         /// 不维护一个队列，也不具备线程切换或调度能力。
         /// 这里传入的应该是具备队列调度能力的 SynchronizationContext 派生类
         /// </summary>
-        protected SynchronizationContext m_ThreadContext;
+        protected SynchronizationContext m_ThreadEventContext;
 
         // IThreadEventDispatcher
 
-        public void SetSyncContext(SynchronizationContext context)
+        public bool IsNullContext => m_ThreadEventContext == null;
+
+        public void SetThreadEventContext(SynchronizationContext context)
         {
-            m_ThreadContext = context;
+            m_ThreadEventContext = context;
         }
 
-        public void ClearSyncContext()
+        public void ClearThreadEventContext()
         {
-            m_ThreadContext = null;
+            m_ThreadEventContext = null;
         }
 
         // IEventListener
@@ -125,8 +127,8 @@ namespace JLGames.Infra.Event
         protected virtual void DispatchData(EventData evd)
         {
             var group = m_Event2Group[evd.Type];
-            if (null != m_ThreadContext)
-                m_ThreadContext.Send(state => { group.Handle(evd); }, null);
+            if (null != m_ThreadEventContext)
+                m_ThreadEventContext.Send(state => { group.Handle(evd); }, null);
             else
                 group.Handle(evd);
         }
