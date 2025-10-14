@@ -23,6 +23,25 @@ namespace JLGames.Infra.Event
         /// </summary>
         protected SynchronizationContext m_ThreadEventContext;
 
+        /// <summary>
+        /// 自定义名称
+        /// </summary>
+        protected readonly string m_DispatcherName = "Default";
+
+        /// <summary>
+        /// 自定义名称
+        /// </summary>
+        public string DispatcherName => m_DispatcherName;
+
+        public EventDispatcher()
+        {
+        }
+
+        public EventDispatcher(string name)
+        {
+            m_DispatcherName = name;
+        }
+
         // IThreadEventDispatcher
 
         public bool IsNullContext => m_ThreadEventContext == null;

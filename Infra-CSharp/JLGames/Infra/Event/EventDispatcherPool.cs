@@ -22,7 +22,7 @@ namespace JLGames.Infra.Event
 
             if (createIfNotExist)
             {
-                IEventDispatcher rs = new EventDispatcher();
+                IEventDispatcher rs = new EventDispatcher(instanceName);
                 m_Pool[instanceName] = rs;
                 return rs;
             }
