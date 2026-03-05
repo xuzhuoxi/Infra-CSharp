@@ -74,7 +74,7 @@ namespace JLGames.Infra.Buffer
         /// 设置键值对
         /// </summary>
         /// <param name="key"></param>
-        /// <param name="value"></param>
+        /// <param name="value">Basic data types and their array types\n基础数据类型及他们的数组类型</param>
         public void SetValue(string key, object value)
         {
             m_KeyValue[key] = value;
@@ -132,7 +132,7 @@ namespace JLGames.Infra.Buffer
         /// 获取值
         /// </summary>
         /// <param name="key"></param>
-        /// <returns></returns>
+        /// <returns>Basic data types and their array types\n基础数据类型及他们的数组类型</returns>
         public object GetValue(string key)
         {
             if (m_KeyValue.Count == 0 || !m_KeyValue.ContainsKey(key)) return null;
@@ -144,12 +144,13 @@ namespace JLGames.Infra.Buffer
         /// 获取值
         /// </summary>
         /// <param name="key"></param>
+        /// <typeparam name="T">Basic data types and their array types\n基础数据类型及他们的数组类型</typeparam>
         /// <returns></returns>
         public T GetValue<T>(string key)
         {
             try
             {
-                return (T) GetValue(key);
+                return (T)GetValue(key);
             }
             catch (Exception)
             {
@@ -187,7 +188,7 @@ namespace JLGames.Infra.Buffer
                 {
                     m_Buffer.WriteBaseData(pair.Key);
                     var kind = ValueKindUtil.GetValueKind(pair.Value);
-                    m_Buffer.WriteData((byte) kind);
+                    m_Buffer.WriteData((byte)kind);
                     m_Buffer.WriteBaseData(pair.Value);
                 }
             }
@@ -210,7 +211,7 @@ namespace JLGames.Infra.Buffer
             for (var index = 0; index < len; index++)
             {
                 var key = m_Buffer.ReadString();
-                var kind = (ValueKind) m_Buffer.ReadUInt8();
+                var kind = (ValueKind)m_Buffer.ReadUInt8();
                 if (ValueKindUtil.IsArrayKind(kind))
                 {
                     var len1 = m_Buffer.ReadLen();
