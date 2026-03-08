@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace JLGames.Infra.Crypto.Symmetric
 {
