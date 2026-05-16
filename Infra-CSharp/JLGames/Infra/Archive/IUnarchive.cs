@@ -1,9 +1,13 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Text;
 using JLGames.Infra.Event;
 
 namespace JLGames.Infra.Archive
 {
+    /// <summary>
+    /// Archive extraction contract; supports parameter configuration, single/batch unzip, and progress events.
+    /// 归档解压契约；支持参数配置、单文件/批量解压及进度事件。
+    /// </summary>
     public interface IUnarchive : IEventDispatcher
     {
         /// <summary>

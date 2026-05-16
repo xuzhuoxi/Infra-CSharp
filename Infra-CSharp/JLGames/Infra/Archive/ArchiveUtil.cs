@@ -1,8 +1,12 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Text;
 
 namespace JLGames.Infra.Archive
 {
+    /// <summary>
+    /// Static helpers for ZIP archive extraction without subscribing to events.
+    /// 无需订阅事件的 ZIP 归档解压静态工具。
+    /// </summary>
     public static class ArchiveUtil
     {
         /// <summary>
