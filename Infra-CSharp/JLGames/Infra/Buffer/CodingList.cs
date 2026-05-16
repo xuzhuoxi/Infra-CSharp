@@ -4,6 +4,10 @@ using System.Text;
 
 namespace JLGames.Infra.Buffer
 {
+    /// <summary>
+    /// Key-value list for primitive types with binary serialization (list-backed, keys sorted on insert).
+    /// 基础类型键值列表，支持二进制序列化（列表存储，插入时键排序）
+    /// </summary>
     public sealed class CodingList
     {
         private class Item
@@ -21,6 +25,10 @@ namespace JLGames.Infra.Buffer
         private readonly List<Item> m_List;
         private readonly IDataBuffer m_Buffer;
 
+        /// <summary>
+        /// Format key-value pairs as a readable string.
+        /// 将键值对格式化为可读字符串
+        /// </summary>
         public override string ToString()
         {
             if (null == m_List || m_List.Count == 0)
@@ -39,6 +47,11 @@ namespace JLGames.Infra.Buffer
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Create an empty list with the specified endianness for serialization.
+        /// 创建空列表，序列化时使用指定字节序
+        /// </summary>
+        /// <param name="littleEndian">True for little-endian; true 表示小端</param>
         public CodingList(bool littleEndian)
         {
             m_List = new List<Item>();
@@ -65,7 +78,7 @@ namespace JLGames.Infra.Buffer
         /// 设置键值对
         /// </summary>
         /// <param name="key"></param>
-        /// <param name="value"></param>
+        /// <param name="value">Basic data types and their array types; 基础数据类型及它们的数组类型</param>
         public void SetValue(string key, object value)
         {
             var item = FindItem(key);
@@ -140,7 +153,7 @@ namespace JLGames.Infra.Buffer
         /// 获取值
         /// </summary>
         /// <param name="key"></param>
-        /// <returns></returns>
+        /// <returns>Basic data types and their array types; 基础数据类型及它们的数组类型</returns>
         public object GetValue(string key)
         {
             return FindItem(key)?.Value;
@@ -152,6 +165,7 @@ namespace JLGames.Infra.Buffer
         /// 获取值
         /// </summary>
         /// <param name="key"></param>
+        /// <typeparam name="T">Basic data types and their array types; 基础数据类型及它们的数组类型</typeparam>
         /// <returns></returns>
         public T GetValue<T>(string key)
         {

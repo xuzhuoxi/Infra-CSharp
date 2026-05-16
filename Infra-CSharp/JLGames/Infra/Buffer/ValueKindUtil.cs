@@ -1,42 +1,50 @@
 namespace JLGames.Infra.Buffer
 {
+    /// <summary>
+    /// Utilities for <see cref="ValueKind"/> classification and default value creation.
+    /// <see cref="ValueKind"/> 分类与默认值创建工具
+    /// </summary>
     public static class ValueKindUtil
     {
         /// <summary>
-        /// 判断是否为不可用的类型
+        /// Whether the kind is invalid (none or slice-none).
+        /// 判断是否为不可用类型（KindNone 或 KindSliceNone）
         /// </summary>
-        /// <param name="kind"></param>
-        /// <returns></returns>
+        /// <param name="kind">Type kind; 类型标记</param>
+        /// <returns>True if forbidden; 不可用时返回 true</returns>
         public static bool IsForbidKind(ValueKind kind)
         {
             return kind == ValueKind.KindNone || kind == ValueKind.KindSliceNone;
         }
 
         /// <summary>
-        /// 判断是否为简单类型
+        /// Whether the kind is a scalar primitive.
+        /// 判断是否为简单（标量）类型
         /// </summary>
-        /// <param name="kind"></param>
-        /// <returns></returns>
+        /// <param name="kind">Type kind; 类型标记</param>
+        /// <returns>True if scalar; 标量类型时返回 true</returns>
         public static bool IsSimpleKind(ValueKind kind)
         {
             return kind > ValueKind.KindNone && kind < ValueKind.KindSliceNone;
         }
 
         /// <summary>
+        /// Whether the kind is a primitive array.
         /// 判断是否为简单数组类型
         /// </summary>
-        /// <param name="kind"></param>
-        /// <returns></returns>
+        /// <param name="kind">Type kind; 类型标记</param>
+        /// <returns>True if array kind; 数组类型时返回 true</returns>
         public static bool IsArrayKind(ValueKind kind)
         {
             return kind > ValueKind.KindSliceNone;
         }
 
         /// <summary>
-        /// 取值对应的定义
+        /// Map a runtime value to its <see cref="ValueKind"/>.
+        /// 根据运行时值取得对应的 <see cref="ValueKind"/>
         /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <param name="value">Runtime value; 运行时值</param>
+        /// <returns>Matching kind, or <see cref="ValueKind.KindNone"/>; 匹配的类型标记，不支持时返回 KindNone</returns>
         public static ValueKind GetValueKind(object value)
         {
             if (value is bool)
@@ -92,6 +100,13 @@ namespace JLGames.Infra.Buffer
             return ValueKind.KindNone;
         }
 
+        /// <summary>
+        /// Create a default value or empty array for the given kind.
+        /// 根据类型标记创建默认值或指定长度的空数组
+        /// </summary>
+        /// <param name="kind">Type kind; 类型标记</param>
+        /// <param name="arrayLen">Array length when kind is array; 数组类型时的长度</param>
+        /// <returns>Default instance, or null if unsupported; 默认实例，不支持时返回 null</returns>
         public static object GetKindValue(ValueKind kind, int arrayLen)
         {
             switch (kind)

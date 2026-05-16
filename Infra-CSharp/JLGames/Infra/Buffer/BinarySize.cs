@@ -1,8 +1,13 @@
-﻿namespace JLGames.Infra.Buffer
+namespace JLGames.Infra.Buffer
 {
+    /// <summary>
+    /// Binary size constants for primitive types used in serialization.
+    /// 序列化所用基础类型的二进制字节数常量
+    /// </summary>
     public static class BinarySize
     {
         /// <summary>
+        /// Size of length prefix (ushort).
         /// 长度数据占用字节数
         /// 占用字节: 2; 位数: 16
         /// 说明: 用于表示长度，为 2 字节
@@ -10,6 +15,7 @@
         public const int LenSize = sizeof(ushort);
 
         /// <summary>
+        /// Size of bool (System.Boolean).
         /// C# 类型: bool, System.Boolean
         /// 占用字节: 1; 位数:  8
         /// 说明: 通常表示 true/false，实际大小依赖实现，通常为 1 字节

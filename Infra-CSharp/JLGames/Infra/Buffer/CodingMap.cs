@@ -4,6 +4,10 @@ using System.Text;
 
 namespace JLGames.Infra.Buffer
 {
+    /// <summary>
+    /// Key-value map for primitive types with binary serialization (dictionary-backed, keys sorted on export).
+    /// 基础类型键值映射，支持二进制序列化（字典存储，导出时键排序）
+    /// </summary>
     public sealed class CodingMap
     {
         /// <summary>
@@ -16,6 +20,10 @@ namespace JLGames.Infra.Buffer
         private readonly IDataBuffer m_Buffer;
         private readonly List<string> m_TempKeys;
 
+        /// <summary>
+        /// Format key-value pairs as a readable string (keys sorted).
+        /// 将键值对格式化为可读字符串（键已排序）
+        /// </summary>
         public override string ToString()
         {
             if (null == m_KeyValue || m_KeyValue.Count == 0)
@@ -47,6 +55,11 @@ namespace JLGames.Infra.Buffer
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Create an empty map with the specified endianness for serialization.
+        /// 创建空映射，序列化时使用指定字节序
+        /// </summary>
+        /// <param name="littleEndian">True for little-endian; true 表示小端</param>
         public CodingMap(bool littleEndian)
         {
             m_KeyValue = new Dictionary<string, object>();

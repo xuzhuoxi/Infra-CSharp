@@ -1,5 +1,9 @@
-﻿namespace JLGames.Infra.Buffer
+namespace JLGames.Infra.Buffer
 {
+    /// <summary>
+    /// Typed data buffer reader.
+    /// 数据缓冲区读取器
+    /// </summary>
     public interface IDataBufferReader 
     {
         /// <summary>

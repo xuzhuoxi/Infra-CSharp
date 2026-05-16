@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 
 namespace JLGames.Infra.Buffer
@@ -7,83 +7,97 @@ namespace JLGames.Infra.Buffer
     {
         // IDataBufferReader
 
+        /// <inheritdoc/>
         public int ReadLen()
         {
             return ReadUInt16();
         }
 
+        /// <inheritdoc/>
         public bool ReadBool()
         {
             var res = m_Buff.ReadBytes(BinarySize.BoolSize);
             return m_Coverter.ToBool(res, 0);
         }
 
+        /// <inheritdoc/>
         public char ReadChar()
         {
             var res = m_Buff.ReadBytes(BinarySize.CharSize);
             return m_Coverter.ToChar(res, 0);
         }
 
+        /// <inheritdoc/>
         [MethodImpl((MethodImplOptions)256)]
         public byte ReadUInt8()
         {
             return m_Buff.ReadByte();
         }
 
+        /// <inheritdoc/>
         public ushort ReadUInt16()
         {
             var res = m_Buff.ReadBytes(BinarySize.UShortSize);
             return m_Coverter.ToUInt16(res, 0);
         }
 
+        /// <inheritdoc/>
         public uint ReadUInt32()
         {
             var res = m_Buff.ReadBytes(BinarySize.UIntSize);
             return m_Coverter.ToUInt32(res, 0);
         }
 
+        /// <inheritdoc/>
         public ulong ReadUInt64()
         {
             var res = m_Buff.ReadBytes(BinarySize.ULongSize);
             return m_Coverter.ToUInt64(res, 0);
         }
 
+        /// <inheritdoc/>
         [MethodImpl((MethodImplOptions)256)]
         public sbyte ReadInt8()
         {
             return (sbyte)m_Buff.ReadByte();
         }
 
+        /// <inheritdoc/>
         public short ReadInt16()
         {
             var res = m_Buff.ReadBytes(BinarySize.ShortSize);
             return m_Coverter.ToInt16(res, 0);
         }
 
+        /// <inheritdoc/>
         public int ReadInt32()
         {
             var res = m_Buff.ReadBytes(BinarySize.IntSize);
             return m_Coverter.ToInt32(res, 0);
         }
 
+        /// <inheritdoc/>
         public long ReadInt64()
         {
             var res = m_Buff.ReadBytes(BinarySize.LongSize);
             return m_Coverter.ToInt64(res, 0);
         }
 
+        /// <inheritdoc/>
         public float ReadFloat()
         {
             var res = m_Buff.ReadBytes(BinarySize.FloatSize);
             return m_Coverter.ToFloat(res, 0);
         }
 
+        /// <inheritdoc/>
         public double ReadDouble()
         {
             var res = m_Buff.ReadBytes(BinarySize.DoubleSize);
             return m_Coverter.ToDouble(res, 0);
         }
 
+        /// <inheritdoc/>
         public string ReadString()
         {
             var len = ReadLen();
@@ -98,12 +112,14 @@ namespace JLGames.Infra.Buffer
 
         // Array ------------------
 
+        /// <inheritdoc/>
         public bool[] ReadBoolArray()
         {
             var len = ReadLen();
             return ReadBoolArray(len);
         }
 
+        /// <inheritdoc/>
         public bool[] ReadBoolArray(int num)
         {
             if (num <= 0) return null;
@@ -116,12 +132,14 @@ namespace JLGames.Infra.Buffer
             return rs;
         }
 
+        /// <inheritdoc/>
         public char[] ReadCharArray()
         {
             var len = ReadLen();
             return ReadCharArray(len);
         }
 
+        /// <inheritdoc/>
         public char[] ReadCharArray(int num)
         {
             if (num <= 0) return null;
@@ -134,23 +152,27 @@ namespace JLGames.Infra.Buffer
             return rs;
         }
 
+        /// <inheritdoc/>
         public byte[] ReadUInt8Array()
         {
             var len = ReadLen();
             return ReadUInt8Array(len);
         }
 
+        /// <inheritdoc/>
         public byte[] ReadUInt8Array(int num)
         {
             return num <= 0 ? null : m_Buff.ReadBytes(num);
         }
 
+        /// <inheritdoc/>
         public ushort[] ReadUInt16Array()
         {
             var len = ReadLen();
             return ReadUInt16Array(len);
         }
 
+        /// <inheritdoc/>
         public ushort[] ReadUInt16Array(int num)
         {
             if (num <= 0) return null;
@@ -163,12 +185,14 @@ namespace JLGames.Infra.Buffer
             return rs;
         }
 
+        /// <inheritdoc/>
         public uint[] ReadUInt32Array()
         {
             var len = ReadLen();
             return ReadUInt32Array(len);
         }
 
+        /// <inheritdoc/>
         public uint[] ReadUInt32Array(int num)
         {
             if (num <= 0) return null;
@@ -181,12 +205,14 @@ namespace JLGames.Infra.Buffer
             return rs;
         }
 
+        /// <inheritdoc/>
         public ulong[] ReadUInt64Array()
         {
             var len = ReadLen();
             return ReadUInt64Array(len);
         }
 
+        /// <inheritdoc/>
         public ulong[] ReadUInt64Array(int num)
         {
             if (num <= 0) return null;
@@ -199,12 +225,14 @@ namespace JLGames.Infra.Buffer
             return rs;
         }
 
+        /// <inheritdoc/>
         public sbyte[] ReadInt8Array()
         {
             var len = ReadLen();
             return ReadInt8Array(len);
         }
 
+        /// <inheritdoc/>
         public sbyte[] ReadInt8Array(int num)
         {
             if (num <= 0) return null;
@@ -217,12 +245,14 @@ namespace JLGames.Infra.Buffer
             return rs;
         }
 
+        /// <inheritdoc/>
         public short[] ReadInt16Array()
         {
             var len = ReadLen();
             return ReadInt16Array(len);
         }
 
+        /// <inheritdoc/>
         public short[] ReadInt16Array(int num)
         {
             if (num <= 0) return null;
@@ -235,12 +265,14 @@ namespace JLGames.Infra.Buffer
             return rs;
         }
 
+        /// <inheritdoc/>
         public int[] ReadInt32Array()
         {
             var len = ReadLen();
             return ReadInt32Array(len);
         }
 
+        /// <inheritdoc/>
         public int[] ReadInt32Array(int num)
         {
             if (num <= 0) return null;
@@ -253,12 +285,14 @@ namespace JLGames.Infra.Buffer
             return rs;
         }
 
+        /// <inheritdoc/>
         public long[] ReadInt64Array()
         {
             var len = ReadLen();
             return ReadInt64Array(len);
         }
 
+        /// <inheritdoc/>
         public long[] ReadInt64Array(int num)
         {
             if (num <= 0) return null;
@@ -271,12 +305,14 @@ namespace JLGames.Infra.Buffer
             return rs;
         }
 
+        /// <inheritdoc/>
         public float[] ReadFloatArray()
         {
             var len = ReadLen();
             return ReadFloatArray(len);
         }
 
+        /// <inheritdoc/>
         public float[] ReadFloatArray(int num)
         {
             if (num <= 0) return null;
@@ -289,12 +325,14 @@ namespace JLGames.Infra.Buffer
             return rs;
         }
 
+        /// <inheritdoc/>
         public double[] ReadDoubleArray()
         {
             var len = ReadLen();
             return ReadDoubleArray(len);
         }
 
+        /// <inheritdoc/>
         public double[] ReadDoubleArray(int num)
         {
             if (num <= 0) return null;
@@ -307,12 +345,14 @@ namespace JLGames.Infra.Buffer
             return rs;
         }
 
+        /// <inheritdoc/>
         public string[] ReadStringArray()
         {
             var len = ReadLen();
             return ReadStringArray(len);
         }
 
+        /// <inheritdoc/>
         public string[] ReadStringArray(int num)
         {
             if (num <= 0) return null;
@@ -325,6 +365,7 @@ namespace JLGames.Infra.Buffer
             return rs;
         }
 
+        /// <inheritdoc/>
         public void ReadBaseDataTo(ref object data)
         {
             if (data is bool)

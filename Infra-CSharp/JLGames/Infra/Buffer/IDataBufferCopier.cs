@@ -1,5 +1,9 @@
-﻿namespace JLGames.Infra.Buffer
+namespace JLGames.Infra.Buffer
 {
+    /// <summary>
+    /// Typed data buffer copier; reads without advancing the read index.
+    /// 数据缓冲区复制器；读取时不移动读下标
+    /// </summary>
     public interface IDataBufferCopier 
     {
         /// <summary>

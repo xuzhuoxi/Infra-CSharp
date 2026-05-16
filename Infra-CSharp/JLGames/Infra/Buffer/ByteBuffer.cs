@@ -1,7 +1,11 @@
-﻿using System;
+using System;
 
 namespace JLGames.Infra.Buffer
 {
+    /// <summary>
+    /// Growable byte buffer with separate read/write cursors.
+    /// 可自动扩容的字节缓冲区，读写下标独立
+    /// </summary>
     public class ByteBuffer : IByteBuffer
     {
         private const int DefaultBufferSize = 256;
@@ -12,46 +16,76 @@ namespace JLGames.Infra.Buffer
         private int m_RPos; //read index
         private int m_WPos; //write index
 
+        /// <inheritdoc/>
         public int ReadPosition => m_RPos;
+
+        /// <inheritdoc/>
         public int WritePosition => m_WPos;
+
+        /// <inheritdoc/>
         public int Cap => m_Buff.Length;
+
+        /// <inheritdoc/>
         public int Len => m_WPos - m_RPos;
+
+        /// <summary>
+        /// Underlying byte array backing store.
+        /// 底层字节数组
+        /// </summary>
         public byte[] BuffData => m_Buff;
 
+        /// <summary>
+        /// Create a buffer with default capacity (256 bytes).
+        /// 使用默认容量（256 字节）创建缓冲区
+        /// </summary>
         public ByteBuffer()
         {
             m_Buff = new byte[DefaultBufferSize];
             m_RPos = m_WPos = 0;
         }
 
+        /// <summary>
+        /// Create a buffer with the specified initial capacity.
+        /// 使用指定初始容量创建缓冲区
+        /// </summary>
+        /// <param name="buffSize">Initial capacity; 初始容量</param>
         public ByteBuffer(int buffSize)
         {
             m_Buff = new byte[buffSize];
             m_RPos = m_WPos = 0;
         }
 
+        /// <summary>
+        /// Wrap an existing byte array as the backing store.
+        /// 包装已有字节数组作为底层存储
+        /// </summary>
+        /// <param name="buffer">Backing byte array; 底层字节数组</param>
         public ByteBuffer(byte[] buffer)
         {
             m_Buff = buffer;
             m_RPos = m_WPos = 0;
         }
 
+        /// <inheritdoc/>
         public void SetReadPosition(int pos)
         {
             m_RPos = pos;
         }
 
+        /// <inheritdoc/>
         public void SetWritePosition(int pos)
         {
             m_WPos = pos;
         }
 
+        /// <inheritdoc/>
         public void Clear()
         {
             m_RPos = 0;
             m_WPos = 0;
         }
 
+        /// <inheritdoc/>
         public void WriteZero(int size)
         {
             if (size == 1)
@@ -64,6 +98,7 @@ namespace JLGames.Infra.Buffer
             Write(zero);
         }
 
+        /// <inheritdoc/>
         public void Write(byte b)
         {
             TryExpand(1);
@@ -71,6 +106,7 @@ namespace JLGames.Infra.Buffer
             m_WPos++;
         }
 
+        /// <inheritdoc/>
         public void Write(byte[] bytes, int startIndex, int size)
         {
             if (null == bytes || size == 0 || startIndex >= size || startIndex < 0)
@@ -80,6 +116,7 @@ namespace JLGames.Infra.Buffer
             m_WPos += size;
         }
 
+        /// <inheritdoc/>
         public void Write(byte[] bytes, int startIndex)
         {
             var len = bytes?.Length ?? 0;
@@ -89,11 +126,13 @@ namespace JLGames.Infra.Buffer
             Write(bytes, startIndex, size);
         }
 
+        /// <inheritdoc/>
         public void Write(byte[] bytes)
         {
             Write(bytes, 0);
         }
 
+        /// <inheritdoc/>
         public byte ReadByte()
         {
             if (Len <= 0) return 0;
@@ -102,6 +141,7 @@ namespace JLGames.Infra.Buffer
             return rs;
         }
 
+        /// <inheritdoc/>
         public byte[] ReadBytes()
         {
             var ln = Len;
@@ -116,6 +156,7 @@ namespace JLGames.Infra.Buffer
             return copy;
         }
 
+        /// <inheritdoc/>
         public byte[] ReadBytes(int size)
         {
             if (size > Len)
@@ -134,12 +175,14 @@ namespace JLGames.Infra.Buffer
             return tmpBuffer;
         }
 
+        /// <inheritdoc/>
         public int ReadBytesTo(ref byte[] dst)
         {
             var size = dst?.Length ?? 0;
             return ReadBytesTo(ref dst, size);
         }
 
+        /// <inheritdoc/>
         public int ReadBytesTo(ref byte[] dst, int size)
         {
             if (null == dst || dst.Length == 0) return 0;
@@ -151,16 +194,19 @@ namespace JLGames.Infra.Buffer
             return size;
         }
 
+        /// <inheritdoc/>
         public byte CopyByte()
         {
             return m_Buff[m_RPos];
         }
 
+        /// <inheritdoc/>
         public byte[] CopyBytes(int offset = 0)
         {
             return CopyBytes(Len - offset, offset);
         }
 
+        /// <inheritdoc/>
         public byte[] CopyBytes(int size, int offset)
         {
             var maxLen = Len - offset;
@@ -174,11 +220,13 @@ namespace JLGames.Infra.Buffer
             return copy;
         }
 
+        /// <inheritdoc/>
         public int CopyBytesTo(ref byte[] dst, int offset = 0)
         {
             return CopyBytesTo(ref dst, (dst?.Length ?? 0), offset);
         }
 
+        /// <inheritdoc/>
         public int CopyBytesTo(ref byte[] dst, int size, int offset)
         {
             if (null == dst || dst.Length == 0) return 0;
@@ -203,10 +251,10 @@ namespace JLGames.Infra.Buffer
         }
 
         /// <summary>
-        /// Expand Capactity
-        /// 扩展容量
+        /// Expand capacity when needed.
+        /// 按需扩展容量
         /// </summary>
-        /// <param name="max"></param>
+        /// <param name="max">Minimum required capacity; 所需最小容量</param>
         private void InnerExpandCapacity(int max)
         {
             if (max <= Cap)
@@ -239,10 +287,9 @@ namespace JLGames.Infra.Buffer
             m_RPos = 0;
         }
 
-
-        //format buff
         /// <summary>
-        /// 
+        /// Compact unread data to the front of the buffer.
+        /// 将未读数据紧凑到缓冲区前端
         /// </summary>
         private void InnerFormatBuffer()
         {

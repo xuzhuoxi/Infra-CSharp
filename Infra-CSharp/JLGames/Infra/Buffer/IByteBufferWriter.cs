@@ -1,5 +1,9 @@
-﻿namespace JLGames.Infra.Buffer
+namespace JLGames.Infra.Buffer
 {
+    /// <summary>
+    /// Byte buffer writer.
+    /// 字节缓冲区写入器
+    /// </summary>
     public interface IByteBufferWriter
     {
         /// <summary>

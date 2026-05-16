@@ -1,10 +1,14 @@
-﻿namespace JLGames.Infra.Buffer
+namespace JLGames.Infra.Buffer
 {
+    /// <summary>
+    /// Byte buffer copier; reads without advancing the read index.
+    /// 字节缓冲区复制器；读取时不移动读下标
+    /// </summary>
     public interface IByteBufferCopier
     {
         /// <summary>
-        /// Copy a byte data.
-        /// 复制一个无符号8位整型数据
+        /// Copy a byte without advancing the read index.
+        /// 复制一个字节，不移动读下标
         /// </summary>
         /// <returns></returns>
         byte CopyByte();

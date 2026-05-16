@@ -1,5 +1,9 @@
-﻿namespace JLGames.Infra.Buffer
+namespace JLGames.Infra.Buffer
 {
+    /// <summary>
+    /// Byte buffer with read, write, and peek (copy) capabilities.
+    /// 具备读取、写入与窥视（复制）能力的字节缓冲区
+    /// </summary>
     public interface IByteBuffer : IByteBufferReader, IByteBufferWriter, IByteBufferCopier
     {
         /// <summary>

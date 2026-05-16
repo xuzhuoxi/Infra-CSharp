@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 
 namespace JLGames.Infra.Buffer
@@ -7,72 +7,84 @@ namespace JLGames.Infra.Buffer
     {
         // IDataBufferWriter
 
+        /// <inheritdoc/>
         [MethodImpl((MethodImplOptions)256)]
         public void WriteLen(int len)
         {
             m_Buff.Write(m_Coverter.GetBytes((ushort)len));
         }
 
+        /// <inheritdoc/>
         [MethodImpl((MethodImplOptions)256)]
         public void WriteData(bool data)
         {
             m_Buff.Write(m_Coverter.GetBytes(data));
         }
 
+        /// <inheritdoc/>
         [MethodImpl((MethodImplOptions)256)]
         public void WriteData(char data)
         {
             m_Buff.Write(m_Coverter.GetBytes(data));
         }
 
+        /// <inheritdoc/>
         [MethodImpl((MethodImplOptions)256)]
         public void WriteData(byte data)
         {
             m_Buff.Write(data);
         }
 
+        /// <inheritdoc/>
         [MethodImpl((MethodImplOptions)256)]
         public void WriteData(ushort data)
         {
             m_Buff.Write(m_Coverter.GetBytes(data));
         }
 
+        /// <inheritdoc/>
         [MethodImpl((MethodImplOptions)256)]
         public void WriteData(uint data)
         {
             m_Buff.Write(m_Coverter.GetBytes(data));
         }
 
+        /// <inheritdoc/>
         [MethodImpl((MethodImplOptions)256)]
         public void WriteData(ulong data)
         {
             m_Buff.Write(m_Coverter.GetBytes(data));
         }
 
+        /// <inheritdoc/>
         [MethodImpl((MethodImplOptions)256)]
         public void WriteData(sbyte data)
         {
             m_Buff.Write((byte)data);
         }
 
+        /// <inheritdoc/>
         [MethodImpl((MethodImplOptions)256)]
         public void WriteData(short data)
         {
             m_Buff.Write(m_Coverter.GetBytes(data));
         }
 
+        /// <inheritdoc/>
         [MethodImpl((MethodImplOptions)256)]
         public void WriteData(int data)
         {
             m_Buff.Write(m_Coverter.GetBytes(data));
         }
 
+        /// <inheritdoc/>
         [MethodImpl((MethodImplOptions)256)]
         public void WriteData(long data)
         {
             m_Buff.Write(m_Coverter.GetBytes(data));
         }
 
+        /// <inheritdoc/>
         [MethodImpl((MethodImplOptions)256)]
         public void WriteData(float data)
         {
@@ -80,12 +92,14 @@ namespace JLGames.Infra.Buffer
         }
 
 
+        /// <inheritdoc/>
         [MethodImpl((MethodImplOptions)256)]
         public void WriteData(double data)
         {
             m_Buff.Write(m_Coverter.GetBytes(data));
         }
 
+        /// <inheritdoc/>
         public void WriteData(string data)
         {
             if (string.IsNullOrEmpty(data))
@@ -101,6 +115,7 @@ namespace JLGames.Infra.Buffer
 
         private readonly IByteBuffer m_TempByteBuff = new ByteBuffer();
 
+        /// <inheritdoc/>
         public void WriteData(bool[] data)
         {
             if (data == null || data.Length == 0)
@@ -116,6 +131,7 @@ namespace JLGames.Infra.Buffer
             }
         }
 
+        /// <inheritdoc/>
         public void WriteData(char[] data)
         {
             if (data == null || data.Length == 0)
@@ -131,6 +147,7 @@ namespace JLGames.Infra.Buffer
             }
         }
 
+        /// <inheritdoc/>
         public void WriteData(byte[] data)
         {
             if (data == null || data.Length == 0)
@@ -143,6 +160,7 @@ namespace JLGames.Infra.Buffer
             m_Buff.Write(data);
         }
 
+        /// <inheritdoc/>
         public void WriteData(ushort[] data)
         {
             if (data == null || data.Length == 0)
@@ -158,6 +176,7 @@ namespace JLGames.Infra.Buffer
             }
         }
 
+        /// <inheritdoc/>
         public void WriteData(uint[] data)
         {
             if (data == null || data.Length == 0)
@@ -173,6 +192,7 @@ namespace JLGames.Infra.Buffer
             }
         }
 
+        /// <inheritdoc/>
         public void WriteData(ulong[] data)
         {
             if (data == null || data.Length == 0)
@@ -188,6 +208,7 @@ namespace JLGames.Infra.Buffer
             }
         }
 
+        /// <inheritdoc/>
         public void WriteData(sbyte[] data)
         {
             if (data == null || data.Length == 0)
@@ -203,6 +224,7 @@ namespace JLGames.Infra.Buffer
             }
         }
 
+        /// <inheritdoc/>
         public void WriteData(short[] data)
         {
             if (data == null || data.Length == 0)
@@ -218,6 +240,7 @@ namespace JLGames.Infra.Buffer
             }
         }
 
+        /// <inheritdoc/>
         public void WriteData(int[] data)
         {
             if (data == null || data.Length == 0)
@@ -233,6 +256,7 @@ namespace JLGames.Infra.Buffer
             }
         }
 
+        /// <inheritdoc/>
         public void WriteData(long[] data)
         {
             if (data == null || data.Length == 0)
@@ -248,6 +272,7 @@ namespace JLGames.Infra.Buffer
             }
         }
 
+        /// <inheritdoc/>
         public void WriteData(float[] data)
         {
             if (data == null || data.Length == 0)
@@ -263,6 +288,7 @@ namespace JLGames.Infra.Buffer
             }
         }
 
+        /// <inheritdoc/>
         public void WriteData(double[] data)
         {
             if (data == null || data.Length == 0)
@@ -278,6 +304,7 @@ namespace JLGames.Infra.Buffer
             }
         }
 
+        /// <inheritdoc/>
         public void WriteData(string[] data)
         {
             if (data == null || data.Length == 0)
@@ -293,6 +320,7 @@ namespace JLGames.Infra.Buffer
             }
         }
 
+        /// <inheritdoc/>
         public void WriteBaseData(object data)
         {
             if (data is bool b)
