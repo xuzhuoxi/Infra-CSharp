@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 
 namespace JLGames.Infra.AStar
@@ -75,8 +75,14 @@ namespace JLGames.Infra.AStar
     {
         private int[] m_Directions;
 
+        /// <summary>Allowed direction indices; 允许的方向索引</summary>
         public int[] Directions => m_Directions;
 
+        /// <summary>
+        /// Set allowed directions from 2D enums.
+        /// 以二维方向枚举设置允许方向
+        /// </summary>
+        /// <param name="directions">2D directions; 二维方向数组</param>
         public void SetDirrections(Direction2D[] directions)
         {
             m_Directions = new int[directions.Length];
@@ -86,6 +92,11 @@ namespace JLGames.Infra.AStar
             }
         }
 
+        /// <summary>
+        /// Set allowed directions from 3D enums.
+        /// 以三维方向枚举设置允许方向
+        /// </summary>
+        /// <param name="directions">3D directions; 三维方向数组</param>
         public void SetDirrections(Direction3D[] directions)
         {
             m_Directions = new int[directions.Length];
@@ -102,8 +113,13 @@ namespace JLGames.Infra.AStar
     /// </summary>
     public struct DirectionValue : IEquatable<DirectionValue>
     {
+        /// <summary>Offset on X; X 方向偏移</summary>
         public int OffsetX, OffsetY, OffsetZ;
 
+        /// <summary>
+        /// Normalized unit direction (gcd-reduced when possible).
+        /// 归一化单位方向（尽可能按最大公约数约简）
+        /// </summary>
         public DirectionValue UnitValue
         {
             get
@@ -163,6 +179,12 @@ namespace JLGames.Infra.AStar
             return OffsetX == other.OffsetX && OffsetY == other.OffsetY && OffsetZ == other.OffsetZ;
         }
 
+        /// <summary>
+        /// Compare direction equality, including equivalent unit vectors.
+        /// 比较方向是否相同（含单位向量等价）
+        /// </summary>
+        /// <param name="other">Other offset; 另一偏移</param>
+        /// <returns>True if same direction; 同向时返回 true</returns>
         public bool DirectionEquals(DirectionValue other)
         {
             if (Equals(other))
@@ -173,18 +195,21 @@ namespace JLGames.Infra.AStar
             return UnitValue.Equals(other.UnitValue);
         }
 
+        /// <summary>Inequality operator; 不等比较</summary>
         [MethodImpl((MethodImplOptions) 256)]
         public static bool operator !=(DirectionValue b, DirectionValue c)
         {
             return !b.Equals(c);
         }
 
+        /// <summary>Equality operator; 相等比较</summary>
         [MethodImpl((MethodImplOptions) 256)]
         public static bool operator ==(DirectionValue b, DirectionValue c)
         {
             return b.Equals(c);
         }
 
+        /// <summary>Add offsets; 偏移相加</summary>
         [MethodImpl((MethodImplOptions) 256)]
         public static DirectionValue operator +(DirectionValue b, DirectionValue c)
         {
@@ -196,6 +221,7 @@ namespace JLGames.Infra.AStar
             };
         }
 
+        /// <summary>Subtract offsets; 偏移相减</summary>
         [MethodImpl((MethodImplOptions) 256)]
         public static DirectionValue operator -(DirectionValue b, DirectionValue c)
         {
@@ -207,6 +233,7 @@ namespace JLGames.Infra.AStar
             };
         }
 
+        /// <summary>Scale offset; 缩放偏移</summary>
         [MethodImpl((MethodImplOptions) 256)]
         public static DirectionValue operator *(DirectionValue b, int scale)
         {
@@ -225,17 +252,31 @@ namespace JLGames.Infra.AStar
     /// </summary>
     public struct DirectionVector : IEquatable<DirectionVector>
     {
+        /// <summary>Base direction enum; 基础方向枚举</summary>
         public Direction3D Direction;
+
+        /// <summary>Step length multiplier; 步长倍数</summary>
         public int Len;
+
+        /// <summary>Movement cost for one step in this direction; 该方向单步移动代价</summary>
         public int Vector;
 
+        /// <summary>Unit offset for this direction; 该方向的单位偏移</summary>
         public DirectionValue Value => DirectionsStatic.BasicDirectionValue[(int) Direction];
 
+        /// <summary>Offset scaled by <see cref="Len"/>; 按 Len 缩放后的偏移</summary>
         public DirectionValue RealValue => Value * Len;
 
+        /// <summary>X offset per step; 单步 X 偏移</summary>
         public int OffsetX => Value.OffsetX;
+
+        /// <summary>Y offset per step; 单步 Y 偏移</summary>
         public int OffsetY => Value.OffsetY;
+
+        /// <summary>Z offset per step; 单步 Z 偏移</summary>
         public int OffsetZ => Value.OffsetZ;
+
+        /// <summary>Step cost (alias of <see cref="Vector"/>); 步进代价（同 Vector）</summary>
         public int OffsetV => Vector;
 
         public override string ToString()
@@ -374,8 +415,8 @@ namespace JLGames.Infra.AStar
         /// Find Direction Based on Direction Offset Value
         /// 根据方向偏移值查找方向
         /// </summary>
-        /// <param name="dValue"></param>
-        /// <returns></returns>
+        /// <param name="dValue">Direction offset; 方向偏移</param>
+        /// <returns>Matching direction, or <see cref="Direction3D.None"/>; 匹配方向，无匹配时返回 None</returns>
         public static Direction3D GetDirectionByValue(DirectionValue dValue)
         {
             for (var dir = BasicDirectionValue.Length - 1; dir >= 0; dir--)
@@ -424,8 +465,10 @@ namespace JLGames.Infra.AStar
             new DirectionVector {Direction = Direction3D.X__Y1_Z_, Len = 1, Vector = 5}, // Z减小方向：↖
         };
 
+        /// <summary>Center / no movement; 中心 / 无移动</summary>
         public static DirectionVector VectorCenter => GetVector(Direction3D.X0_Y0_Z0);
 
+        /// <summary>North (+Y); 北（+Y）</summary>
         public static DirectionVector VectorNorth => GetVector(Direction3D.X0_Y1_Z0);
         public static DirectionVector VectorEastNorth => GetVector(Direction3D.X1_Y1_Z0);
         public static DirectionVector VectorEast => GetVector(Direction3D.X1_Y0_Z0);
@@ -444,16 +487,34 @@ namespace JLGames.Infra.AStar
         public static DirectionVector VectorLeft => VectorWest;
         public static DirectionVector VectorLeftUp => VectorWestNorth;
 
+        /// <summary>
+        /// Get weighted direction vector by index.
+        /// 按索引获取带权方向向量
+        /// </summary>
+        /// <param name="direction">Direction index; 方向索引</param>
+        /// <returns>Direction vector; 方向向量</returns>
         public static DirectionVector GetVector(int direction)
         {
             return BasicDirectionVector[direction];
         }
 
+        /// <summary>
+        /// Get weighted direction vector for a 2D direction.
+        /// 获取二维方向的带权向量
+        /// </summary>
+        /// <param name="direction">2D direction; 二维方向</param>
+        /// <returns>Direction vector; 方向向量</returns>
         public static DirectionVector GetVector(Direction2D direction)
         {
             return BasicDirectionVector[(int) direction];
         }
 
+        /// <summary>
+        /// Get weighted direction vector for a 3D direction.
+        /// 获取三维方向的带权向量
+        /// </summary>
+        /// <param name="direction">3D direction; 三维方向</param>
+        /// <returns>Direction vector; 方向向量</returns>
         public static DirectionVector GetVector(Direction3D direction)
         {
             return BasicDirectionVector[(int) direction];

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace JLGames.Infra.AStar
@@ -9,32 +9,46 @@ namespace JLGames.Infra.AStar
     /// </summary>
     internal struct History
     {
-        internal Position StartPos, EndPos;
-        internal Position[] Path;
-        internal bool PathOk;
+        internal Position m_StartPos, m_EndPos;
+        internal Position[] m_Path;
+        internal bool m_PathOk;
 
+        /// <summary>
+        /// Extract a sub-path by index range (inclusive).
+        /// 按索引范围截取子路径（含首尾）
+        /// </summary>
+        /// <param name="sIndex">Start index; 起始索引</param>
+        /// <param name="eIndex">End index; 结束索引</param>
+        /// <returns>Sub-path array, null if no path, or empty if path is empty; 子路径，无路径时为 null，空路径时为空数组</returns>
         public Position[] GetSubPath(int sIndex, int eIndex)
         {
-            if (null == Path)
+            if (null == m_Path)
             {
                 return null;
             }
 
-            if (0 == Path.Length)
+            if (0 == m_Path.Length)
             {
-                return new Position[0];
+                return Array.Empty<Position>();
             }
 
             var ln = eIndex - sIndex + 1;
 
             var rs = new Position[ln];
-            Array.Copy(Path, sIndex, rs, 0, ln);
+            Array.Copy(m_Path, sIndex, rs, 0, ln);
             return rs;
         }
 
+        /// <summary>
+        /// Check whether start and end both lie on the cached path and start precedes end.
+        /// 检查起终点是否均在缓存路径上，且起点索引不大于终点索引
+        /// </summary>
+        /// <param name="startPos">Start position; 起点</param>
+        /// <param name="endPos">End position; 终点</param>
+        /// <returns>True if a valid sub-path exists; 存在有效子路径时返回 true</returns>
         public bool CheckSubPath(Position startPos, Position endPos)
         {
-            if (!PathOk)
+            if (!m_PathOk)
             {
                 return false;
             }
@@ -54,11 +68,17 @@ namespace JLGames.Infra.AStar
             return true;
         }
 
+        /// <summary>
+        /// Get the last index of the given position in the cached path.
+        /// 获取指定坐标在缓存路径中最后一次出现的索引
+        /// </summary>
+        /// <param name="pos">Position to find; 待查找坐标</param>
+        /// <returns>Index, or -1 if not found; 索引，未找到返回 -1</returns>
         public int GetLastPositionIndex(Position pos)
         {
-            for (var i = Path.Length - 1; i >= 0; i--)
+            for (var i = m_Path.Length - 1; i >= 0; i--)
             {
-                if (Path[i].Equals(pos))
+                if (m_Path[i].Equals(pos))
                 {
                     return i;
                 }
@@ -67,11 +87,17 @@ namespace JLGames.Infra.AStar
             return -1;
         }
 
+        /// <summary>
+        /// Get the first index of the given position in the cached path.
+        /// 获取指定坐标在缓存路径中第一次出现的索引
+        /// </summary>
+        /// <param name="pos">Position to find; 待查找坐标</param>
+        /// <returns>Index, or -1 if not found; 索引，未找到返回 -1</returns>
         public int GetFirstPositionIndex(Position pos)
         {
-            for (var i = 0; i < Path.Length; i++)
+            for (var i = 0; i < m_Path.Length; i++)
             {
-                if (Path[i].Equals(pos))
+                if (m_Path[i].Equals(pos))
                 {
                     return i;
                 }
@@ -81,6 +107,10 @@ namespace JLGames.Infra.AStar
         }
     }
 
+    /// <summary>
+    /// A* pathfinding algorithm implementation.
+    /// A* 寻路算法实现
+    /// </summary>
     public class AStarAlg : IAStarAlg
     {
         private Size m_Size; // 地图的大小
@@ -96,11 +126,24 @@ namespace JLGames.Infra.AStar
         private History m_History;
         private readonly PriorityPositionQueue m_OpenQueue = new PriorityPositionQueue();
 
+        /// <summary>
+        /// Initialize map size.
+        /// 初始化地图尺寸
+        /// </summary>
+        /// <param name="width">Map width; 地图宽度</param>
+        /// <param name="height">Map height; 地图高度</param>
+        /// <param name="depth">Map depth; 地图深度</param>
         public void InitMapSize(int width, int height, int depth)
         {
             m_Size = new Size {Width = width, Height = height, Depth = depth};
         }
 
+        /// <summary>
+        /// Initialize map size (2D, depth defaults to 1).
+        /// 初始化地图尺寸（二维，深度默认为 1）
+        /// </summary>
+        /// <param name="width">Map width; 地图宽度</param>
+        /// <param name="height">Map height; 地图高度</param>
         public void InitMapSize(int width, int height)
         {
             m_Size = new Size {Width = width, Height = height, Depth = 1};
@@ -108,6 +151,12 @@ namespace JLGames.Infra.AStar
 
         //----------------------------------------
 
+        /// <summary>
+        /// Set map data from a flat array.
+        /// 以一维数组设置地图数据
+        /// </summary>
+        /// <param name="data">Length must equal width * height * depth; 长度须等于 width * height * depth</param>
+        /// <returns>Copied map data [depth][height][width], or null if invalid; 复制后的地图数据，无效时返回 null</returns>
         public int[][][] SetData(int[] data)
         {
             if (null == data || data.Length != m_Size.Area)
@@ -120,6 +169,12 @@ namespace JLGames.Infra.AStar
             return m_SourceMap;
         }
 
+        /// <summary>
+        /// Set map data from a 2D array (depth = 1).
+        /// 以二维数组设置地图数据（depth = 1）
+        /// </summary>
+        /// <param name="data">Length must equal width * height; 长度须等于 width * height</param>
+        /// <returns>Copied map data [depth][height][width], or null if invalid; 复制后的地图数据，无效时返回 null</returns>
         public int[][][] SetData(int[][] data)
         {
             if (null == data || data.Length == 0 || null == data[0] || data[0].Length == 0 ||
@@ -133,6 +188,12 @@ namespace JLGames.Infra.AStar
             return m_SourceMap;
         }
 
+        /// <summary>
+        /// Set map data from a 3D array.
+        /// 以三维数组设置地图数据
+        /// </summary>
+        /// <param name="data">Layout [depth][height][width], dimensions must match initialization; 布局为 [depth][height][width]，尺寸须与初始化一致</param>
+        /// <returns>Copied map data, or null if invalid; 复制后的地图数据，无效时返回 null</returns>
         public int[][][] SetData(int[][][] data)
         {
             if (null == data || data.Length == 0 ||
@@ -148,19 +209,38 @@ namespace JLGames.Infra.AStar
             return m_SourceMap;
         }
 
+        /// <summary>
+        /// Directions allowed for path expansion.
+        /// 允许检索/扩展的方向集合
+        /// </summary>
         public int[] AllowdDirections => m_NextDirs;
 
+        /// <summary>
+        /// Set the allowed directions for path expansion (e.g. for special maps).
+        /// 设置允许检索的方向（可用于特殊地图）
+        /// </summary>
+        /// <param name="direction">Direction indices; 方向索引数组</param>
         public void SetAllowedDirections(int[] direction)
         {
             m_NextDirs = new int[direction.Length];
             Array.Copy(direction, m_NextDirs, direction.Length);
         }
 
+        /// <summary>
+        /// Set custom heuristic function (distance estimate from node to goal).
+        /// 设置自定义启发函数（节点到终点的距离估值）
+        /// </summary>
+        /// <param name="hn">Heuristic delegate; 启发函数委托</param>
         public void SetCustomFuncHn(AStarDelegates.FuncHn hn)
         {
             m_CustomFuncHn = hn;
         }
 
+        /// <summary>
+        /// Set custom step-cost function (cost from current node along a direction).
+        /// 设置自定义步进代价函数（沿某方向从当前节点移动的代价）
+        /// </summary>
+        /// <param name="dn">Step-cost delegate; 步进代价委托</param>
         public void SetCustomFuncDn(AStarDelegates.FuncDn dn)
         {
             m_CustomFuncDn = dn;
@@ -168,16 +248,43 @@ namespace JLGames.Infra.AStar
 
         //----------------------------------------
 
+        /// <summary>
+        /// 2D pathfinding.
+        /// 二维寻路
+        /// </summary>
+        /// <param name="sx">Start point X; 起点 X</param>
+        /// <param name="sy">Start point Y; 起点 Y</param>
+        /// <param name="ex">End point X; 终点 X</param>
+        /// <param name="ey">End point Y; 终点 Y</param>
+        /// <returns>Path from start to end, or null if no path; 起点到终点的路径，无解时返回 null</returns>
         public Position[] Search(int sx, int sy, int ex, int ey)
         {
             return SearchPosition(Positions.NewPosition(sx, sy), Positions.NewPosition(ex, ey));
         }
 
+        /// <summary>
+        /// 3D pathfinding.
+        /// 三维寻路
+        /// </summary>
+        /// <param name="sx">Start point X; 起点 X</param>
+        /// <param name="sy">Start point Y; 起点 Y</param>
+        /// <param name="sz">Start point Z; 起点 Z</param>
+        /// <param name="ex">End point X; 终点 X</param>
+        /// <param name="ey">End point Y; 终点 Y</param>
+        /// <param name="ez">End point Z; 终点 Z</param>
+        /// <returns>Path from start to end, or null if no path; 起点到终点的路径，无解时返回 null</returns>
         public Position[] Search(int sx, int sy, int sz, int ex, int ey, int ez)
         {
             return SearchPosition(Positions.NewPosition(sx, sy, sz), Positions.NewPosition(ex, ey, ez));
         }
 
+        /// <summary>
+        /// Pathfinding between two positions. Reuses a cached sub-path when the request lies on the last successful path.
+        /// 在两点之间寻路；若起终点均落在上次成功路径上，则直接返回对应子路径
+        /// </summary>
+        /// <param name="startPos">Start point; 起点</param>
+        /// <param name="endPos">End point; 终点</param>
+        /// <returns>Path from start to end, or null if no path; 起点到终点的路径，无解时返回 null</returns>
         public Position[] SearchPosition(Position startPos, Position endPos)
         {
             if (m_History.CheckSubPath(startPos, endPos))
@@ -197,10 +304,10 @@ namespace JLGames.Infra.AStar
             }
 
             var path = InnerGenPath();
-            m_History.StartPos = startPos;
-            m_History.EndPos = endPos;
-            m_History.Path = path;
-            m_History.PathOk = true;
+            m_History.m_StartPos = startPos;
+            m_History.m_EndPos = endPos;
+            m_History.m_Path = path;
+            m_History.m_PathOk = true;
             return path;
         }
 

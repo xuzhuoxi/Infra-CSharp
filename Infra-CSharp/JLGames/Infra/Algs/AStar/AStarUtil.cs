@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace JLGames.Infra.AStar
@@ -9,9 +9,9 @@ namespace JLGames.Infra.AStar
         /// Judging the direction, the premise is that the two points are the line direction
         /// 判断方向,前提是两点为线向
         /// </summary>
-        /// <param name="startPos"></param>
-        /// <param name="endPos"></param>
-        /// <returns></returns>
+        /// <param name="startPos">Start position; 起点</param>
+        /// <param name="endPos">End position; 终点</param>
+        /// <returns>3D direction enum; 三维方向枚举</returns>
         public static Direction3D GetDirection3D(Position startPos, Position endPos)
         {
             if (startPos == endPos)
@@ -34,9 +34,9 @@ namespace JLGames.Infra.AStar
         /// Use the Cartesian coordinate system
         /// 采用笛卡尔坐标系
         /// </summary>
-        /// <param name="sourcePos"></param>
-        /// <param name="targetPos"></param>
-        /// <returns></returns>
+        /// <param name="sourcePos">Source position; 源点</param>
+        /// <param name="targetPos">Target position; 目标点</param>
+        /// <returns>2D direction enum; 二维方向枚举</returns>
         public static Direction2D GetDirection2D(Position sourcePos, Position targetPos)
         {
             if (sourcePos.Equals(targetPos))
@@ -102,9 +102,9 @@ namespace JLGames.Infra.AStar
         /// Clear redundant points, keep inflection points
         /// 清除冗余点，保留拐点
         /// </summary>
-        /// <param name="path"></param>
-        /// <param name="allowDirection">允许的行走方向</param>
-        /// <returns></returns>
+        /// <param name="path">Original path; 原始路径</param>
+        /// <param name="allowDirection">Allowed walk directions; only collinear points along these directions are removed; 允许的行走方向，仅沿这些方向的共线点会被移除</param>
+        /// <returns>Simplified path; 简化后的路径</returns>
         public static Position[] ClearRedundancies(Position[] path, int[] allowDirection)
         {
             if (null == path)
@@ -145,8 +145,8 @@ namespace JLGames.Infra.AStar
         /// Clear redundant points, keep inflection points
         /// 清除冗余点，保留拐点
         /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
+        /// <param name="path">Original path; 原始路径</param>
+        /// <returns>Simplified path; 简化后的路径</returns>
         public static Position[] ClearRedundancies(Position[] path)
         {
             if (null == path)
@@ -177,10 +177,10 @@ namespace JLGames.Infra.AStar
         /// Determine whether three points are in a line
         /// 判断三点是否一线 
         /// </summary>
-        /// <param name="first"></param>
-        /// <param name="second"></param>
-        /// <param name="third"></param>
-        /// <returns></returns>
+        /// <param name="first">First point; 第一点</param>
+        /// <param name="second">Middle point; 中间点</param>
+        /// <param name="third">Third point; 第三点</param>
+        /// <returns>True if collinear; 共线时返回 true</returns>
         public static bool IsInLine(Position first, Position second, Position third)
         {
             return (second.Y - first.Y) * (third.X - first.X) == (third.Y - first.Y) * (second.X - first.X);
@@ -190,10 +190,10 @@ namespace JLGames.Infra.AStar
         /// Whether the standard line direction
         /// 是否标准线向
         /// </summary>
-        /// <param name="pos1"></param>
-        /// <param name="pos2"></param>
-        /// <param name="includeOblique">包含斜向</param>
-        /// <returns></returns>
+        /// <param name="pos1">First position; 坐标一</param>
+        /// <param name="pos2">Second position; 坐标二</param>
+        /// <param name="includeOblique">Whether diagonal/3D oblique lines count; 是否包含斜向</param>
+        /// <returns>True if on axis-aligned or (when allowed) oblique line; 在轴对齐或（允许时）斜线上返回 true</returns>
         public static bool IsInStandardLine(Position pos1, Position pos2, bool includeOblique)
         {
             if (pos1.Equals(pos2))

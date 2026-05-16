@@ -1,7 +1,11 @@
-﻿using System;
+using System;
 
 namespace JLGames.Infra.AStar
 {
+    /// <summary>
+    /// Grid-based A* map implementation.
+    /// 基于格子的 A* 地图实现
+    /// </summary>
     public class AStarGridMap : IAStarGridMap
     {
         private Size m_DataSize;
@@ -10,6 +14,7 @@ namespace JLGames.Infra.AStar
         private int[][][] m_MadData;
         private IAStarAlg m_AStarAlg;
 
+        /// <inheritdoc />
         public void InitGridMap(Size dataSize)
         {
             if (dataSize.Empty)
@@ -20,6 +25,7 @@ namespace JLGames.Infra.AStar
             InitGridMap(dataSize, new Size {Width = 1, Height = 1, Depth = 1});
         }
 
+        /// <inheritdoc />
         public void InitGridMap(Size dataSize, Size gridSize)
         {
             if (dataSize.Empty || gridSize.Empty)
@@ -33,6 +39,7 @@ namespace JLGames.Infra.AStar
             m_AStarAlg.InitMapSize(dataSize.Width, dataSize.Height, dataSize.Depth);
         }
 
+        /// <inheritdoc />
         public Exception SetMapData(int[] data)
         {
             var sourece = m_AStarAlg.SetData(data);
@@ -45,6 +52,7 @@ namespace JLGames.Infra.AStar
             return null;
         }
 
+        /// <inheritdoc />
         public Exception SetMapData(int[][] data)
         {
             var sourece = m_AStarAlg.SetData(data);
@@ -57,6 +65,7 @@ namespace JLGames.Infra.AStar
             return null;
         }
 
+        /// <inheritdoc />
         public Exception SetMapData(int[][][] data)
         {
             var sourece = m_AStarAlg.SetData(data);
@@ -69,11 +78,13 @@ namespace JLGames.Infra.AStar
             return null;
         }
 
+        /// <inheritdoc />
         public void SetAllowedDirections(int[] direction)
         {
             m_AStarAlg.SetAllowedDirections(direction);
         }
 
+        /// <inheritdoc />
         public void SetCustomFunc(AStarDelegates.FuncDn dn, AStarDelegates.FuncHn hn)
         {
             if (null != dn)
@@ -89,16 +100,19 @@ namespace JLGames.Infra.AStar
 
         //------------------------
 
+        /// <inheritdoc />
         public Size GetGridSize()
         {
             return m_GridSize;
         }
 
+        /// <inheritdoc />
         public Size GetDataSize()
         {
             return m_DataSize;
         }
 
+        /// <inheritdoc />
         public Size GetPixelSize()
         {
             return new Size
@@ -109,16 +123,19 @@ namespace JLGames.Infra.AStar
             };
         }
 
+        /// <inheritdoc />
         public IAStarAlg GetAStartAlg()
         {
             return m_AStarAlg;
         }
 
+        /// <inheritdoc />
         public int GetDataValue(Position pos)
         {
             return InnerGetDataValue(pos);
         }
 
+        /// <inheritdoc />
         public bool CheckPath(Position[] path)
         {
             if (null == path || path.Length == 0)
@@ -137,12 +154,14 @@ namespace JLGames.Infra.AStar
             return true;
         }
 
+        /// <inheritdoc />
         public bool CanLineTo(Position startPos, Position endPos)
         {
             return InnerCanLineTo(startPos, endPos);
         }
 
 
+        /// <inheritdoc />
         public Position[] SearchPath(Position startPos, Position endPos, bool keepTurningPoint = false)
         {
             return InnerSearchPath(startPos, endPos, keepTurningPoint);
