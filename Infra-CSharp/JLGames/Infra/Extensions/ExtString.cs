@@ -4,6 +4,10 @@ using System.Text.RegularExpressions;
 
 namespace JLGames.Infra.Extensions
 {
+    /// <summary>
+    /// String extension methods: rich text tags and regex-based splitting.
+    /// 字符串扩展方法：富文本标签与基于正则的分割。
+    /// </summary>
     public static class ExtString
     {
         /// <summary>
@@ -46,8 +50,8 @@ namespace JLGames.Infra.Extensions
         /// Convert to italic rich text
         /// 转化为斜体富文本
         /// </summary>
-        /// <param name="str"></param>
-        /// <returns></returns>
+        /// <param name="str">Source text. 源文本。</param>
+        /// <returns>Rich text wrapped with italic tags. 带斜体标签的富文本。</returns>
         public static string ToRichItalic(this string str)
         {
             return $"{ItalicTag}{str}{ItalicTagEnd}";
@@ -57,8 +61,8 @@ namespace JLGames.Infra.Extensions
         /// Convert to bold rich text
         /// 转化为粗体富文本
         /// </summary>
-        /// <param name="str"></param>
-        /// <returns></returns>
+        /// <param name="str">Source text. 源文本。</param>
+        /// <returns>Rich text wrapped with bold tags. 带粗体标签的富文本。</returns>
         public static string ToRichBold(this string str)
         {
             return $"{BoldTag}{str}{BoldTagEnd}";
@@ -68,9 +72,9 @@ namespace JLGames.Infra.Extensions
         /// Convert to rich text with text size
         /// 转化为带文本大小富文本
         /// </summary>
-        /// <param name="str"></param>
-        /// <param name="size"></param>
-        /// <returns></returns>
+        /// <param name="str">Source text. 源文本。</param>
+        /// <param name="size">Font size. 字体大小。</param>
+        /// <returns>Rich text wrapped with size tag. 带字号标签的富文本。</returns>
         public static string ToRichSize(this string str, int size)
         {
             return $"<size={size}>{str}{SizeTagEnd}";
@@ -81,9 +85,9 @@ namespace JLGames.Infra.Extensions
         /// Convert to rich text with text size
         /// 转化为带文本大小富文本
         /// </summary>
-        /// <param name="str"></param>
-        /// <param name="size"></param>
-        /// <returns></returns>
+        /// <param name="str">Source text. 源文本。</param>
+        /// <param name="size">Font size value or unit string. 字号数值或单位字符串。</param>
+        /// <returns>Rich text wrapped with size tag. 带字号标签的富文本。</returns>
         public static string ToRichSize(this string str, string size)
         {
             return $"<size={size}>{str}{SizeTagEnd}";
@@ -93,9 +97,9 @@ namespace JLGames.Infra.Extensions
         /// Convert to rich text with text color
         /// 转化为带文本颜色富文本
         /// </summary>
-        /// <param name="str"></param>
-        /// <param name="color"></param>
-        /// <returns></returns>
+        /// <param name="str">Source text. 源文本。</param>
+        /// <param name="color">Color as #RRGGBB, hex without #, or color name. 颜色（#RRGGBB、无 # 的十六进制或颜色名）。</param>
+        /// <returns>Rich text wrapped with color tag. 带颜色标签的富文本。</returns>
         public static string ToRichColor(this string str, string color)
         {
             if (color.StartsWith("#"))
@@ -117,18 +121,19 @@ namespace JLGames.Infra.Extensions
         /// Processing behavior when regular matching
         /// 正则匹配时的处理行为
         /// </summary>
-        /// <param name="matched"></param>
+        /// <param name="matched">Matched substring. 匹配到的子串。</param>
+        /// <returns>Transformed string to include in split result. 纳入分割结果中的转换后字符串。</returns>
         public delegate string MatchedAction(string matched);
 
         /// <summary>
         /// Split string using regular expression
         /// 使用正则表达式分割字符串
         /// </summary>
-        /// <param name="str"></param>
-        /// <param name="regex"></param>
-        /// <param name="includeMatched"></param>
-        /// <param name="matchedAction">ignore when includeMatched=false</param>
-        /// <returns></returns>
+        /// <param name="str">Source string. 源字符串。</param>
+        /// <param name="regex">Pattern used as delimiters. 用作分隔符的正则表达式。</param>
+        /// <param name="includeMatched">Whether matched segments are included in the result. 是否将匹配段纳入结果。</param>
+        /// <param name="matchedAction">Transform for matched segments when <paramref name="includeMatched"/> is true; ignored otherwise. <paramref name="includeMatched"/> 为 true 时对匹配段的转换；否则忽略。</param>
+        /// <returns>Split segments; null when <paramref name="str"/> is null or empty. 分割后的片段；<paramref name="str"/> 为空时返回 null。</returns>
         public static string[] Split(this string str, Regex regex, bool includeMatched = false, MatchedAction matchedAction = null)
         {
             if (string.IsNullOrEmpty(str)) return null;
