@@ -1,24 +1,17 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 
 namespace JLGames.Infra.Crypto.Symmetric
 {
     /// <summary>
-    /// IDESCipher 接口
-    /// DES：Data Encryption Standard（数据加密标准），对应算法是 DEA
-    /// 特点：
-    /// 1. 对称加密
-    /// 2. 使用同一个密钥（SK）
+    /// DES/3DES cipher interface (DEA algorithm).
+    /// DES 对称加密接口（数据加密标准，算法 DEA）
     /// </summary>
     public interface IDesCipher : ICipher
     {
-        /// <summary>
-        /// 密钥长度
-        /// </summary>
+        /// <summary>Key length in bytes. / 密钥长度（字节）</summary>
         int KeySize { get; }
 
-        /// <summary>
-        /// 块大小
-        /// </summary>
+        /// <summary>Block size in bytes (8 for DES). / 块大小（字节）</summary>
         int BlockSize { get; }
 
         /// <summary>

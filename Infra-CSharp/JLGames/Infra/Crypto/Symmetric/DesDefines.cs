@@ -1,5 +1,8 @@
-﻿namespace JLGames.Infra.Crypto.Symmetric
+namespace JLGames.Infra.Crypto.Symmetric
 {
+    /// <summary>
+    /// DES / 3DES 块大小与密钥长度常量。
+    /// </summary>
     public static class DesDefines
     {
         /// <summary>

@@ -1,9 +1,13 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace JLGames.Infra.Crypto
 {
+    /// <summary>
+    /// Common byte-array and OID helpers for the crypto module.
+    /// 加密模块通用字节数组与 OID 校验工具。
+    /// </summary>
     public static class CryptoUtils
     {
         /// <summary>
@@ -25,8 +29,8 @@ namespace JLGames.Infra.Crypto
         /// <summary>
         /// 判断是否为 Rsa算法标识(OID)
         /// </summary>
-        /// <param name="rsaOid"></param>
-        /// <exception cref="Exception"></exception>
+        /// <param name="rsaOid">待校验的 OID 字节序列</param>
+        /// <returns>与内置 RSA OID 一致时返回 <c>true</c></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool AssertIsRsaOid(byte[] rsaOid)
         {
@@ -36,8 +40,8 @@ namespace JLGames.Infra.Crypto
         /// <summary>
         /// 判断是否为 Dsa算法标识(OID)
         /// </summary>
-        /// <param name="dsaOid"></param>
-        /// <exception cref="Exception"></exception>
+        /// <param name="dsaOid">待校验的 OID 字节序列</param>
+        /// <returns>与内置 DSA OID 一致时返回 <c>true</c></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool AssertIsDsaOid(byte[] dsaOid)
         {
@@ -47,8 +51,8 @@ namespace JLGames.Infra.Crypto
         /// <summary>
         /// 判断是否为 Ecdsa算法标识(OID)
         /// </summary>
-        /// <param name="ecdsaOid"></param>
-        /// <exception cref="Exception"></exception>
+        /// <param name="ecdsaOid">待校验的 OID 字节序列</param>
+        /// <returns>与内置 ECDSA OID 一致时返回 <c>true</c></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool AssertIsEcdsaOid(byte[] ecdsaOid)
         {
@@ -58,9 +62,9 @@ namespace JLGames.Infra.Crypto
         /// <summary>
         /// 合并两个字节数组
         /// </summary>
-        /// <param name="bs"></param>
-        /// <param name="bs1"></param>
-        /// <returns></returns>
+        /// <param name="bs">第一个数组</param>
+        /// <param name="bs1">第二个数组</param>
+        /// <returns>按顺序拼接后的新数组</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] Combine(byte[] bs, byte[] bs1)
         {
@@ -73,10 +77,10 @@ namespace JLGames.Infra.Crypto
         /// <summary>
         /// 拆分数组为两个
         /// </summary>
-        /// <param name="data"></param>
-        /// <param name="firstSize"></param>
-        /// <param name="first"></param>
-        /// <param name="second"></param>
+        /// <param name="data">源数组</param>
+        /// <param name="firstSize">第一段长度（字节）</param>
+        /// <param name="first">输出：前 <paramref name="firstSize"/> 字节</param>
+        /// <param name="second">输出：剩余字节</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Extract(byte[] data, int firstSize, out byte[] first, out byte[] second)
         {
@@ -89,11 +93,11 @@ namespace JLGames.Infra.Crypto
         /// <summary>
         /// 合并多个字节数组
         /// </summary>
-        /// <param name="bs"></param>
-        /// <param name="bs1"></param>
-        /// <param name="bs2"></param>
-        /// <param name="others"></param>
-        /// <returns></returns>
+        /// <param name="bs">第一个数组</param>
+        /// <param name="bs1">第二个数组</param>
+        /// <param name="bs2">第三个数组</param>
+        /// <param name="others">后续待拼接的数组</param>
+        /// <returns>按顺序拼接后的新数组</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte[] CombineMulti(byte[] bs, byte[] bs1, byte[] bs2, params byte[][] others)
         {

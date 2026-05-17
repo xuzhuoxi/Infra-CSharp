@@ -1,14 +1,19 @@
-﻿using System.IO;
+using System.IO;
 using System.Linq;
 
 namespace JLGames.Infra.Crypto.ASN1
 {
+    /// <summary>
+    /// 针对常见 ASN.1 类型的 TLV 高级读取器（布尔、整数、OID 等）。
+    /// </summary>
     public class TLVAdvancedReader : TLVReader
     {
+        /// <inheritdoc cref="TLVReader(BinaryReader)"/>
         public TLVAdvancedReader(BinaryReader reader) : base(reader)
         {
         }
 
+        /// <inheritdoc cref="TLVReader(byte[])"/>
         public TLVAdvancedReader(byte[] data) : base(data)
         {
         }
@@ -16,7 +21,7 @@ namespace JLGames.Infra.Crypto.ASN1
         /// <summary>
         /// 验证标记后读取一个布尔数据块
         /// </summary>
-        /// <returns></returns>
+        /// <returns>布尔值的 DER 编码字节</returns>
         public byte[] ReadBoolean()
         {
             return ReadBlock(DerTags.BOOLEAN).Value;
@@ -25,7 +30,7 @@ namespace JLGames.Infra.Crypto.ASN1
         /// <summary>
         /// 验证标记后读取一个NULL数据块
         /// </summary>
-        /// <returns></returns>
+        /// <returns>NULL 类型数据块</returns>
         public TLVBlock ReadNull()
         {
             return ReadBlock(DerTags.NULL);
@@ -35,7 +40,7 @@ namespace JLGames.Infra.Crypto.ASN1
         /// 验证标记后读取一个整数数据块
         /// 如果有前导零，则移除
         /// </summary>
-        /// <returns></returns>
+        /// <returns>整数的有效载荷字节（已去除无意义前导 0x00）</returns>
         public byte[] ReadInteger()
         {
             var integerValue = ReadBlock(DerTags.INTEGER).Value;
@@ -51,9 +56,10 @@ namespace JLGames.Infra.Crypto.ASN1
         }
 
         /// <summary>
-        /// 验证标记后读取一个SEQUENCE数据块
+        /// 验证标记后读取一个 SEQUENCE 数据块。
         /// </summary>
-        /// <returns></returns>
+        /// <param name="includeValue">为 <c>true</c> 时读取 Value，否则仅 Tag/Length</param>
+        /// <returns>SEQUENCE 数据块</returns>
         public TLVBlock ReadSequence(bool includeValue)
         {
             if (includeValue)
@@ -68,7 +74,7 @@ namespace JLGames.Infra.Crypto.ASN1
         ///     parameters      ANY DEFINED BY algorithm OPTIONAL
         /// }
         /// </summary>
-        /// <returns></returns>
+        /// <returns>RSA 算法 OID 数据块</returns>
         public TLVBlock ReadRsaOid()
         {
             ReadSequence(false);
@@ -81,8 +87,8 @@ namespace JLGames.Infra.Crypto.ASN1
         /// 读取 OCTET STRING 数据块
         /// 不会包含前导比特数
         /// </summary>
-        /// <param name="includeValue"></param>
-        /// <returns></returns>
+        /// <param name="includeValue">为 <c>true</c> 时读取 Value，否则仅 Tag/Length</param>
+        /// <returns>OCTET STRING 数据块</returns>
         public TLVBlock ReadOctetString(bool includeValue)
         {
             if (includeValue)
@@ -94,7 +100,7 @@ namespace JLGames.Infra.Crypto.ASN1
         /// 读取 BIT STRING 数据块
         /// Value[0]: 必定是前导比特数
         /// </summary>
-        /// <returns></returns>
+        /// <returns>BIT STRING 数据块（Value 已去除前导比特数字节并裁剪无效位）</returns>
         public TLVBlock ReadBitString()
         {
             var tag = ReadTag(DerTags.BIT_STRING);
@@ -120,6 +126,11 @@ namespace JLGames.Infra.Crypto.ASN1
             };
         }
 
+        /// <summary>
+        /// 读取 OBJECT IDENTIFIER 数据块。
+        /// </summary>
+        /// <param name="includeValue">为 <c>true</c> 时读取 Value，否则仅 Tag/Length</param>
+        /// <returns>OID 数据块</returns>
         public TLVBlock ReadObjectIdentifier(bool includeValue)
         {
             if (includeValue) return ReadBlock(DerTags.OBJECT_IDENTIFIER);

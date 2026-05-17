@@ -1,9 +1,13 @@
-﻿using System;
+using System;
 using System.Security.Cryptography;
 using JLGames.Infra.Crypto.ASN1;
 
 namespace JLGames.Infra.Crypto.Asymmetric
 {
+    /// <summary>
+    /// PEM/DER to <see cref="RSAParameters"/> parsing utilities.
+    /// PEM/DER 与 <see cref="RSAParameters"/> 之间的解析工具。
+    /// </summary>
     public static class RsaParamUtils
     {
         /// <summary>
@@ -18,8 +22,9 @@ namespace JLGames.Infra.Crypto.Asymmetric
         ///     parameters             ANY DEFINED BY algorithm OPTIONAL
         /// }
         /// </summary>
-        /// <param name="derBytes"></param>
-        /// <returns></returns>
+        /// <param name="derBytes">DER 编码的 SubjectPublicKeyInfo 字节</param>
+        /// <returns>可用于 <see cref="RSA.ImportParameters"/> 的公钥参数</returns>
+        /// <exception cref="Exception">算法 OID 非 RSA 或 ASN.1 结构非法</exception>
         public static RSAParameters DecodeX509Params(byte[] derBytes)
         {
             using (var reader = new TLVAdvancedReader(derBytes))
@@ -97,8 +102,8 @@ namespace JLGames.Infra.Crypto.Asymmetric
         ///    - exponent2（dq）：私钥指数d对(q-1)的模（即d mod (q-1)）。
         ///    - coefficient（iq）：反转系数，计算q^-1 mod p。
         /// </summary>
-        /// <param name="deBytes"></param>
-        /// <returns></returns>
+        /// <param name="deBytes">DER 编码的 PKCS#8 PrivateKeyInfo 字节</param>
+        /// <returns>包含公钥与 CRT 参数的完整私钥 <see cref="RSAParameters"/></returns>
         public static RSAParameters DecodePkcs8Params(byte[] deBytes)
         {
             // Console.WriteLine($"Der:[{string.Join(" ", Array.ConvertAll(deBytes, b => $"0x{b:X2}"))}]");
@@ -141,8 +146,8 @@ namespace JLGames.Infra.Crypto.Asymmetric
         ///     publicExponent INTEGER -- 公钥指数（通常是 65537）
         /// }
         /// </summary>
-        /// <param name="derBytes"></param>
-        /// <returns></returns>
+        /// <param name="derBytes">DER 编码的 PKCS#1 RSAPublicKey 字节</param>
+        /// <returns>仅含 Modulus 与 Exponent 的公钥参数</returns>
         public static RSAParameters DecodePkcs1V15Public(byte[] derBytes)
         {
             using (var reader = new TLVAdvancedReader(derBytes))
@@ -191,8 +196,8 @@ namespace JLGames.Infra.Crypto.Asymmetric
         ///     }
         /// }
         /// </summary>
-        /// <param name="derBytes"></param>
-        /// <returns></returns>
+        /// <param name="derBytes">DER 编码的 PKCS#1 RSAPrivateKey 字节（version 0，非多素数）</param>
+        /// <returns>完整私钥 <see cref="RSAParameters"/></returns>
         public static RSAParameters DecodePkcs1V15Private(byte[] derBytes)
         {
             using (var reader = new TLVAdvancedReader(derBytes))
@@ -222,12 +227,13 @@ namespace JLGames.Infra.Crypto.Asymmetric
         }
 
         /// <summary>
-        /// 从 PEM 格式的内容中提取 Base64的Der编码数据
+        /// Extract Base64 DER payload from PEM text.
+        /// 从 PEM 文本中提取 Base64 的 DER 编码数据。
         /// </summary>
-        /// <param name="keyFileText"></param>
-        /// <param name="keyType"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentException"></exception>
+        /// <param name="keyFileText">完整 PEM 文本（含 BEGIN/END 行）</param>
+        /// <param name="keyType"><see cref="PemTypes"/> 中的标签，如 RSA PRIVATE KEY</param>
+        /// <returns>解码后的 DER 字节数组</returns>
+        /// <exception cref="ArgumentException">PEM 头尾不匹配或格式非法</exception>
         public static byte[] ExtractDerData(string keyFileText, string keyType)
         {
             var header = $"-----BEGIN {keyType}-----";

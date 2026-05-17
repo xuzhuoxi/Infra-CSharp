@@ -4,12 +4,21 @@ using JLGames.Infra.Crypto.Symmetric;
 
 namespace JLGames.Infra.Crypto.Asymmetric
 {
+    /// <summary>
+    /// RSA 公钥加解密与签名验证实现（PKCS#1 v1.5 填充）。
+    /// </summary>
     public class RsaPublicCipher : IRsaPublicCipher
     {
         private readonly RSAEncryptionPadding m_PaddingMode;
+        /// <summary>单次 RSA 加密可容纳的最大明文字节数（密钥长度/8 - 11）。</summary>
         public int EncryptPartLen { get; private set; }
+        /// <inheritdoc/>
         public RSA PublicKey { get; private set; }
 
+        /// <summary>
+        /// 使用 .NET <see cref="RSA"/> 公钥实例创建处理器。
+        /// </summary>
+        /// <param name="publicKey">RSA 公钥</param>
         public RsaPublicCipher(RSA publicKey)
         {
             PublicKey = publicKey;
@@ -18,6 +27,7 @@ namespace JLGames.Infra.Crypto.Asymmetric
             m_PaddingMode = RSAEncryptionPadding.Pkcs1;
         }
 
+        /// <inheritdoc/>
         public byte[] Encrypt(byte[] plaintext)
         {
             if (plaintext.Length <= EncryptPartLen)
@@ -40,6 +50,7 @@ namespace JLGames.Infra.Crypto.Asymmetric
             }
         }
 
+        /// <inheritdoc/>
         public byte[] EncryptHybrid(byte[] plaintext)
         {
             if (plaintext.Length <= EncryptPartLen)
@@ -143,6 +154,7 @@ namespace JLGames.Infra.Crypto.Asymmetric
             return VerifySignHash(origData, signature, hashAlgorithm);
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             PublicKey?.Dispose();

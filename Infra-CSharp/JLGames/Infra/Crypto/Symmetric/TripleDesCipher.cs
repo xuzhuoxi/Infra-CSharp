@@ -1,12 +1,20 @@
-﻿using System;
+using System;
 using System.Security.Cryptography;
 
 namespace JLGames.Infra.Crypto.Symmetric
 {
+    /// <summary>
+    /// 三重 DES（3DES）对称加密，密钥 8/16/24 字节自动展开为 24 字节。
+    /// </summary>
     public class TripleDesCipher : DesCipher
     {
+        /// <summary>报告 3DES 密钥长度（24 字节），与 DES 块大小（8 字节）不同。</summary>
         public override int BlockSize => DesDefines.TripleKeySize;
 
+        /// <summary>
+        /// 使用 8、16 或 24 字节密钥创建 3DES 实例。
+        /// </summary>
+        /// <param name="key">原始密钥</param>
         public TripleDesCipher(byte[] key)
         {
             if (null == key) throw new ArgumentException("Key must not be Null.");

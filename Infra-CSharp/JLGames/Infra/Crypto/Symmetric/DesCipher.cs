@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Security.Cryptography;
 
 namespace JLGames.Infra.Crypto.Symmetric
@@ -11,13 +11,19 @@ namespace JLGames.Infra.Crypto.Symmetric
         protected byte[] m_Key;
         protected PaddingMode m_PaddingMode;
         protected SymmetricAlgorithm m_Des;
+        /// <inheritdoc/>
         public int KeySize => DesDefines.KeySize;
+        /// <inheritdoc/>
         public virtual int BlockSize => DesDefines.BlockSize;
 
         protected DesCipher()
         {
         }
 
+        /// <summary>
+        /// 使用 8 字节（DES）、16 或 24 字节（3DES）密钥创建实例。
+        /// </summary>
+        /// <param name="key">对称密钥</param>
         public DesCipher(byte[] key)
         {
             if (null == key) throw new ArgumentException("Key must not be Null.");
@@ -52,6 +58,7 @@ namespace JLGames.Infra.Crypto.Symmetric
         /// <summary>
         /// 设置填充方式
         /// </summary>
+        /// <inheritdoc/>
         public void SetPaddingMode(PaddingMode paddingMode)
         {
             m_PaddingMode = paddingMode;
@@ -62,6 +69,7 @@ namespace JLGames.Infra.Crypto.Symmetric
         /// </summary>
         /// <param name="plaintext">明文数据</param>
         /// <returns>加密后的数据</returns>
+        /// <inheritdoc/>
         public byte[] Encrypt(byte[] plaintext) => EncryptCbc(plaintext);
 
         /// <summary>
@@ -69,8 +77,10 @@ namespace JLGames.Infra.Crypto.Symmetric
         /// </summary>
         /// <param name="ciphertext">密文数据</param>
         /// <returns>解密后的数据</returns>
+        /// <inheritdoc/>
         public byte[] Decrypt(byte[] ciphertext) => DecryptCbc(ciphertext);
 
+        /// <inheritdoc/>
         public byte[] EncryptMode(byte[] plaintext, BlockMode blockMode)
         {
             switch (blockMode)
@@ -82,6 +92,7 @@ namespace JLGames.Infra.Crypto.Symmetric
             }
         }
 
+        /// <inheritdoc/>
         public byte[] EncryptMode(byte[] plaintext, byte[] iv, BlockMode blockMode)
         {
             switch (blockMode)
@@ -93,6 +104,7 @@ namespace JLGames.Infra.Crypto.Symmetric
             }
         }
 
+        /// <inheritdoc/>
         public byte[] DecryptMode(byte[] ciphertext, BlockMode blockMode)
         {
             switch (blockMode)
@@ -104,6 +116,7 @@ namespace JLGames.Infra.Crypto.Symmetric
             }
         }
 
+        /// <inheritdoc/>
         public byte[] DecryptMode(byte[] ciphertext, byte[] iv, BlockMode blockMode)
         {
             switch (blockMode)
@@ -120,6 +133,7 @@ namespace JLGames.Infra.Crypto.Symmetric
         /// <summary>
         /// ECB模式加密
         /// </summary>
+        /// <inheritdoc/>
         public byte[] EncryptEcb(byte[] plaintext)
         {
             m_Des.Mode = CipherMode.ECB;
@@ -138,6 +152,7 @@ namespace JLGames.Infra.Crypto.Symmetric
         /// <summary>
         /// ECB模式解密
         /// </summary>
+        /// <inheritdoc/>
         public byte[] DecryptEcb(byte[] ciphertext)
         {
             m_Des.Mode = CipherMode.ECB;
@@ -158,6 +173,7 @@ namespace JLGames.Infra.Crypto.Symmetric
         /// <summary>
         /// CBC模式加密
         /// </summary>
+        /// <inheritdoc/>
         public byte[] EncryptCbc(byte[] plaintext)
         {
             m_Des.Mode = CipherMode.CBC;
@@ -169,6 +185,7 @@ namespace JLGames.Infra.Crypto.Symmetric
             }
         }
 
+        /// <inheritdoc/>
         public byte[] EncryptCbc(byte[] plaintext, byte[] iv)
         {
             m_Des.Mode = CipherMode.CBC;
@@ -183,12 +200,14 @@ namespace JLGames.Infra.Crypto.Symmetric
         /// <summary>
         /// CBC模式解密
         /// </summary>
+        /// <inheritdoc/>
         public byte[] DecryptCbc(byte[] ciphertext)
         {
             CryptoUtils.Extract(ciphertext, DesDefines.BlockSize, out var iv, out var data);
             return DecryptCbc(data, iv);
         }
 
+        /// <inheritdoc/>
         public byte[] DecryptCbc(byte[] ciphertext, byte[] iv)
         {
             m_Des.Mode = CipherMode.CBC;
@@ -201,6 +220,7 @@ namespace JLGames.Infra.Crypto.Symmetric
 
         // CTR ---------- ---------- ---------- ---------- ----------
         
+        /// <inheritdoc/>
         public byte[] EncryptCtr(byte[] plaintext)
         {
             m_Des.GenerateIV();
@@ -208,17 +228,20 @@ namespace JLGames.Infra.Crypto.Symmetric
             return CryptoUtils.Combine(m_Des.IV, encrypted);
         }
 
+        /// <inheritdoc/>
         public byte[] EncryptCtr(byte[] plaintext, byte[] iv)
         {
             return CtrWithEcb(plaintext, iv);
         }
 
+        /// <inheritdoc/>
         public byte[] DecryptCtr(byte[] ciphertext)
         {
             CryptoUtils.Extract(ciphertext, DesDefines.BlockSize, out var iv, out var data);
             return DecryptCtr(data, iv);
         }
 
+        /// <inheritdoc/>
         public byte[] DecryptCtr(byte[] ciphertext, byte[] iv)
         {
             return CtrWithEcb(ciphertext, iv);

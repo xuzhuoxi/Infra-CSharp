@@ -1,5 +1,8 @@
-﻿namespace JLGames.Infra.Crypto.Symmetric
+namespace JLGames.Infra.Crypto.Symmetric
 {
+    /// <summary>
+    /// AES 块大小与默认密钥长度常量。
+    /// </summary>
     public static class AesDefines
     {
         /// <summary>

@@ -1,22 +1,33 @@
-﻿using System;
+using System;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 
 namespace JLGames.Infra.Crypto.Symmetric
 {
+    /// <summary>
+    /// Managed AES-GCM authenticated encryption engine.
+    /// AES-GCM 认证加密引擎（纯托管实现）
+    /// </summary>
     public sealed class AesGcmEngine
     {
+        /// <summary>Default singleton (16-byte tag). / 默认单例（16 字节标签）。</summary>
         public static AesGcmEngine Default { get; private set; } = new AesGcmEngine();
 
         private const int m_BlockSize = 16;
         private readonly int m_AuthenticationTagSize;
+        /// <summary>认证标签长度（字节），有效范围 12–16。</summary>
         public int TagSize => m_AuthenticationTagSize;
 
+        /// <summary>使用默认 16 字节认证标签创建引擎。</summary>
         public AesGcmEngine()
         {
             m_AuthenticationTagSize = 16;
         }
 
+        /// <summary>
+        /// 使用指定认证标签长度创建引擎。
+        /// </summary>
+        /// <param name="authenticationTagSize">标签长度（12–16 字节）</param>
         public AesGcmEngine(int authenticationTagSize)
         {
             if (authenticationTagSize < 12 || authenticationTagSize > 16)
@@ -25,13 +36,14 @@ namespace JLGames.Infra.Crypto.Symmetric
         }
 
         /// <summary>
-        /// 加密
+        /// Authenticated encryption.
+        /// GCM 加密并生成认证标签
         /// </summary>
-        /// <param name="plaintext"></param>
-        /// <param name="key">长度有三种，可以是16(AES-128),24(AES-192)或32(AES-256)</param>
-        /// <param name="nonce">长度不固定，推荐长度为12字节(96位)</param>
-        /// <param name="ciphertext"></param>
-        /// <param name="tag">允许范围[12,16], 这里只支持16</param>
+        /// <param name="plaintext">Plaintext / 明文</param>
+        /// <param name="key">16/24/32-byte AES key / AES 密钥</param>
+        /// <param name="nonce">Nonce (12 bytes recommended) / nonce</param>
+        /// <param name="ciphertext">Output ciphertext (same length as plaintext) / 输出密文</param>
+        /// <param name="tag">Authentication tag (<see cref="TagSize"/> bytes) / 认证标签</param>
         public void Encrypt(byte[] plaintext, byte[] key, byte[] nonce, out byte[] ciphertext, out byte[] tag)
         {
             ciphertext = new byte[plaintext.Length];
@@ -78,14 +90,15 @@ namespace JLGames.Infra.Crypto.Symmetric
         }
 
         /// <summary>
-        /// 解密
+        /// Verify tag and decrypt.
+        /// 验证标签后解密
         /// </summary>
-        /// <param name="ciphertext"></param>
-        /// <param name="key">长度有三种，可以是16(AES-128),24(AES-192)或32(AES-256)</param>
-        /// <param name="nonce">长度不固定，推荐长度为12字节(96位)</param>
-        /// <param name="tag">允许范围[12,16], 这里只支持16</param>
-        /// <param name="plaintext"></param>
-        /// <returns></returns>
+        /// <param name="ciphertext">Ciphertext / 密文</param>
+        /// <param name="key">16/24/32-byte AES key / AES 密钥</param>
+        /// <param name="nonce">Nonce used during encryption / 加密时使用的 nonce</param>
+        /// <param name="tag">Authentication tag to verify / 待验证的认证标签</param>
+        /// <param name="plaintext">Plaintext on success / 验证通过后的明文</param>
+        /// <returns><c>true</c> if tag is valid and decryption succeeds / 验证通过返回 true</returns>
         public bool Decrypt(byte[] ciphertext, byte[] key, byte[] nonce, byte[] tag, out byte[] plaintext)
         {
             plaintext = new byte[ciphertext.Length];

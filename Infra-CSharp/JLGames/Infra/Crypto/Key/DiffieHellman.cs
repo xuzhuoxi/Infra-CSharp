@@ -4,6 +4,9 @@ using System.Security.Cryptography;
 
 namespace JLGames.Infra.Crypto.Key
 {
+    /// <summary>
+    /// RFC 3526 Group 14（2048 位 MODP）Diffie-Hellman 密钥交换。
+    /// </summary>
     public static class DiffieHellman
     {
         // RFC 3526 Group 14 (2048-bit MODP) prime number
@@ -24,9 +27,9 @@ A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE6
         }
 
         /// <summary>
-        /// GenerateDHKeyPair generates a DH key pair (private, public)
+        /// 生成 DH 密钥对（私钥 x 与公钥 g^x mod p）。
         /// </summary>
-        /// <returns></returns>
+        /// <returns>新生成的密钥对</returns>
         public static DhKeyPair GenerateDhKeyPair()
         {
             // Generate a random private key in range [0, p)
@@ -44,11 +47,11 @@ A637ED6B0BFF5CB6F406B7EDEE386BFB5A899FA5AE9F24117C4B1FE6
         }
 
         /// <summary>
-        /// ComputeDHSharedK computes the shared key (K = public^private mod p)
+        /// 计算共享密钥 K = theirPublic^myPrivate mod p。
         /// </summary>
-        /// <param name="theirPublic"></param>
-        /// <param name="myPrivate"></param>
-        /// <returns></returns>
+        /// <param name="theirPublic">对方公钥</param>
+        /// <param name="myPrivate">本方私钥</param>
+        /// <returns>共享大整数（通常需再经 KDF 派生为对称密钥）</returns>
         public static BigInteger ComputeDhSharedK(BigInteger theirPublic, BigInteger myPrivate)
         {
             return BigInteger.ModPow(theirPublic, myPrivate, s_P);

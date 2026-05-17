@@ -1,17 +1,26 @@
-﻿using System;
+using System;
 
 namespace JLGames.Infra.Crypto.Asymmetric
 {
+    /// <summary>
+    /// 将长字节流按 RSA 块大小切分为多个分组，用于分段加解密。
+    /// </summary>
     public sealed class RsaGroup : IDisposable
     {
         private byte[] m_Buff;
         private int m_GroupSize;
         private int m_Position;
 
+        /// <summary>创建空分组读取器，稍后通过 <see cref="ResetData"/> 装载数据。</summary>
         public RsaGroup()
         {
         }
 
+        /// <summary>
+        /// 创建分组读取器并绑定缓冲区与分组大小。
+        /// </summary>
+        /// <param name="buff">待切分数据</param>
+        /// <param name="groupSize">每组最大字节数</param>
         public RsaGroup(byte[] buff, int groupSize)
         {
             m_Buff = buff;
@@ -27,10 +36,10 @@ namespace JLGames.Infra.Crypto.Asymmetric
         }
 
         /// <summary>
-        /// 重装装载数据
+        /// 重新装载数据并重置读取位置。
         /// </summary>
-        /// <param name="buff"></param>
-        /// <param name="groupSize"></param>
+        /// <param name="buff">待切分数据</param>
+        /// <param name="groupSize">每组最大字节数</param>
         public void ResetData(byte[] buff, int groupSize)
         {
             m_Buff = buff;
@@ -46,7 +55,7 @@ namespace JLGames.Infra.Crypto.Asymmetric
         /// <summary>
         /// 读取下一分组
         /// </summary>
-        /// <returns></returns>
+        /// <returns>下一分组字节；最后一组可能短于分组大小</returns>
         public byte[] ReadNext()
         {
             var len = Math.Min(m_GroupSize, m_Buff.Length - m_Position);
@@ -56,6 +65,7 @@ namespace JLGames.Infra.Crypto.Asymmetric
             return next;
         }
 
+        /// <summary>释放内部缓冲区引用。</summary>
         public void Dispose()
         {
             m_Buff = null;

@@ -3,11 +3,13 @@ using System.Security.Cryptography;
 
 namespace JLGames.Infra.Crypto.Asymmetric
 {
+    /// <summary>
+    /// RSA public-key operations: encrypt, hybrid encrypt, verify (PKCS#1 v1.5).
+    /// RSA 公钥操作：加密、混合加密与签名验证
+    /// </summary>
     public interface IRsaPublicCipher : IDisposable
     {
-        /// <summary>
-        /// 获取公钥
-        /// </summary>
+        /// <summary>RSA public key instance. / 获取公钥</summary>
         RSA PublicKey { get; }
 
         /// <summary>
@@ -69,11 +71,13 @@ namespace JLGames.Infra.Crypto.Asymmetric
         bool VerifySignHashBase64(byte[] origData, string base64Signature, HashAlgorithmName hashAlgorithm);
     }
 
+    /// <summary>
+    /// RSA private-key operations: decrypt, hybrid decrypt, sign (PKCS#1 v1.5).
+    /// RSA 私钥操作：解密、混合解密与签名
+    /// </summary>
     public interface IRsaPrivateCipher : IDisposable
     {
-        /// <summary>
-        /// 获取私钥
-        /// </summary>
+        /// <summary>RSA private key instance. / 获取私钥</summary>
         RSA PrivateKey { get; }
 
         /// <summary>
@@ -123,6 +127,10 @@ namespace JLGames.Infra.Crypto.Asymmetric
         string SignHashBase64(byte[] origData, HashAlgorithmName hashAlgorithm);
     }
 
+    /// <summary>
+    /// Full RSA cipher with both public and private key operations.
+    /// 同时具备 RSA 公钥与私钥能力的完整接口
+    /// </summary>
     public interface IRsaCipher : IRsaPrivateCipher, IRsaPublicCipher
     {
     }

@@ -1,10 +1,8 @@
-﻿namespace JLGames.Infra.Crypto.Symmetric
+namespace JLGames.Infra.Crypto.Symmetric
 {
     /// <summary>
-    /// 异常混淆器：Data Encrytion Standard（数据加密标准），对应算法是DEA
-    /// 特点：
-    ///   1. 快
-    ///   2. 不安全
+    /// Simple repeating XOR obfuscation (not a standard cipher).
+    /// 按字节循环异或的轻量混淆接口；实现快，不适合高安全场景。
     /// </summary>
     public interface IXorCipher : ICipher
     {

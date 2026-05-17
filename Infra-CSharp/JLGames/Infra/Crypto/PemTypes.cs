@@ -2,6 +2,9 @@ using System;
 
 namespace JLGames.Infra.Crypto
 {
+    /// <summary>
+    /// PEM 封装中 <c>-----BEGIN …-----</c> / <c>-----END …-----</c> 标签常量。
+    /// </summary>
     public static class PemTypes
     {
         /// <summary>
@@ -111,15 +114,28 @@ namespace JLGames.Infra.Crypto
         public const string Cms = "CMS";
     }
 
+    /// <summary>
+    /// 加密模块业务异常。
+    /// </summary>
     public class CryptoException : Exception
     {
+        /// <summary>
+        /// 使用指定消息创建异常。
+        /// </summary>
+        /// <param name="message">异常描述</param>
         public CryptoException(string message) : base(message)
         {
         }
     }
 
+    /// <summary>
+    /// 加密模块预定义错误实例。
+    /// </summary>
     public static class Errors
     {
+        /// <summary>
+        /// 不支持的 PEM 类型。
+        /// </summary>
         public static readonly Exception ErrUnsupportedPemType = new CryptoException("unsupported pem type");
     }
 }

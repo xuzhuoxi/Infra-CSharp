@@ -1,15 +1,22 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Security.Cryptography;
 
 namespace JLGames.Infra.Crypto.Symmetric
 {
+    /// <summary>
+    /// AES 对称加解密（默认 GCM）；支持 CBC、CTR、GCM 等分组模式。
+    /// </summary>
     public class AesCipher : IAesCipher
     {
         private const int m_GcmNonceSize = 12;
         private readonly byte[] m_Key;
         private PaddingMode m_PaddingMode;
 
+        /// <summary>
+        /// 使用指定密钥创建 AES 实例（密钥长度 16/24/32 字节对应 AES-128/192/256）。
+        /// </summary>
+        /// <param name="key">对称密钥</param>
         public AesCipher(byte[] key)
         {
             m_Key = key;
@@ -17,24 +24,30 @@ namespace JLGames.Infra.Crypto.Symmetric
             m_PaddingMode = PaddingMode.PKCS7;
         }
 
+        /// <inheritdoc/>
         public byte[] Key => (byte[])m_Key.Clone();
+        /// <inheritdoc/>
         public int BlockSize => AesDefines.BlockSize;
 
+        /// <inheritdoc/>
         public void SetPadding(PaddingMode paddingMode)
         {
             m_PaddingMode = paddingMode;
         }
 
+        /// <inheritdoc/>
         public byte[] Encrypt(byte[] plaintext)
         {
             return EncryptGcm(plaintext); // 默认使用 GCM 加密
         }
 
+        /// <inheritdoc/>
         public byte[] Decrypt(byte[] ciphertext)
         {
             return DecryptGcm(ciphertext); // 默认使用 GCM 解密
         }
 
+        /// <inheritdoc/>
         public byte[] EncryptMode(byte[] plaintext, BlockMode blockMode)
         {
             switch (blockMode)
@@ -50,6 +63,7 @@ namespace JLGames.Infra.Crypto.Symmetric
             }
         }
 
+        /// <inheritdoc/>
         public byte[] EncryptMode(byte[] plaintext, byte[] iv, BlockMode blockMode)
         {
             switch (blockMode)
@@ -65,6 +79,7 @@ namespace JLGames.Infra.Crypto.Symmetric
             }
         }
 
+        /// <inheritdoc/>
         public byte[] DecryptMode(byte[] ciphertext, BlockMode blockMode)
         {
             switch (blockMode)
@@ -80,6 +95,7 @@ namespace JLGames.Infra.Crypto.Symmetric
             }
         }
 
+        /// <inheritdoc/>
         public byte[] DecryptMode(byte[] ciphertext, byte[] iv, BlockMode blockMode)
         {
             switch (blockMode)
@@ -97,6 +113,7 @@ namespace JLGames.Infra.Crypto.Symmetric
 
         // CBC ---------- ---------- ---------- ---------- ----------
 
+        /// <inheritdoc/>
         public byte[] EncryptCbc(byte[] plaintext)
         {
             var iv = new byte[AesDefines.BlockSize];
@@ -105,6 +122,7 @@ namespace JLGames.Infra.Crypto.Symmetric
             return CryptoUtils.Combine(iv, output);
         }
 
+        /// <inheritdoc/>
         public byte[] EncryptCbc(byte[] plaintext, byte[] iv)
         {
             using (var aes = Aes.Create())
@@ -121,12 +139,14 @@ namespace JLGames.Infra.Crypto.Symmetric
             }
         }
 
+        /// <inheritdoc/>
         public byte[] DecryptCbc(byte[] ciphertext)
         {
             CryptoUtils.Extract(ciphertext, AesDefines.BlockSize, out var iv, out var data);
             return DecryptCbc(data, iv);
         }
 
+        /// <inheritdoc/>
         public byte[] DecryptCbc(byte[] ciphertext, byte[] iv)
         {
             using (var aes = Aes.Create())
@@ -145,6 +165,7 @@ namespace JLGames.Infra.Crypto.Symmetric
 
         // CTR ---------- ---------- ---------- ---------- ----------
 
+        /// <inheritdoc/>
         public byte[] EncryptCtr(byte[] plaintext)
         {
             var iv = new byte[AesDefines.BlockSize];
@@ -153,6 +174,7 @@ namespace JLGames.Infra.Crypto.Symmetric
             return CryptoUtils.Combine(iv, output);
         }
 
+        /// <inheritdoc/>
         public byte[] EncryptCtr(byte[] plaintext, byte[] iv)
         {
             // Org.BouncyCastle.Crypto
@@ -161,12 +183,14 @@ namespace JLGames.Infra.Crypto.Symmetric
             return AesCtrEngine.Default.ProcessWithIv(plaintext, m_Key, iv);
         }
 
+        /// <inheritdoc/>
         public byte[] DecryptCtr(byte[] ciphertext)
         {
             CryptoUtils.Extract(ciphertext, AesDefines.BlockSize, out var iv, out var data);
             return DecryptCtr(data, iv);
         }
 
+        /// <inheritdoc/>
         public byte[] DecryptCtr(byte[] ciphertext, byte[] iv)
         {
             // Org.BouncyCastle.Crypto
@@ -177,6 +201,7 @@ namespace JLGames.Infra.Crypto.Symmetric
 
         // GCM ---------- ---------- ---------- ---------- ----------
 
+        /// <inheritdoc/>
         public byte[] EncryptGcm(byte[] plaintext)
         {
             var nonce = new byte[m_GcmNonceSize]; // GCM nonce size is 12 bytes
@@ -185,6 +210,7 @@ namespace JLGames.Infra.Crypto.Symmetric
             return CryptoUtils.Combine(nonce, output);
         }
 
+        /// <inheritdoc/>
         public byte[] EncryptGcm(byte[] plaintext, byte[] nonce)
         {
             AesGcmEngine.Default.Encrypt(plaintext, m_Key, nonce, out var ciphertext, out var tag);
@@ -194,17 +220,14 @@ namespace JLGames.Infra.Crypto.Symmetric
             // return BouncyCastleAesGcmEngine.Default.EncryptGcm(plaintext, m_Key, nonce);
         }
 
-        /// <summary>
-        /// merge ciphertext, include nonce, ciphertext and tag 
-        /// </summary>
-        /// <param name="ciphertext">nonce + ciphertext + tag</param>
-        /// <returns></returns>
+        /// <inheritdoc/>
         public byte[] DecryptGcm(byte[] ciphertext)
         {
             CryptoUtils.Extract(ciphertext, m_GcmNonceSize, out var nonce, out var data); // GCM nonce size is 12 bytes
             return DecryptGcm(data, nonce);
         }
 
+        /// <inheritdoc/>
         public byte[] DecryptGcm(byte[] ciphertext, byte[] nonce)
         {
             // Console.WriteLine($"DecryptGcm：{ciphertext?.Length}");
