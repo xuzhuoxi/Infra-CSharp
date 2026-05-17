@@ -31,10 +31,10 @@ namespace JLGames.Infra.Pool
 
 
     /// <summary>
-    /// 重用对象池
-    /// 内部包含三个子池：可重用对象池、使用中对象池、准备销毁对象池
+    /// Reusable object pool with three sub-pools: reusable, in-use, and pending destroy.
+    /// 重用对象池，内含三个子池：可重用、使用中、待销毁。
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">Pooled object type.<br/>池内对象类型。</typeparam>
     public class ReuseObjectPool<T>
     {
         private readonly int m_MaxReuseCount;
@@ -44,8 +44,8 @@ namespace JLGames.Infra.Pool
         /// Constructor
         /// 构造函数
         /// </summary>
-        /// <param name="initCapacity">Capacity size of sub pool(子池初始容量)</param>
-        /// <param name="maxReuseCount">Maximum number of reused objects(最大重用对象数量)</param>
+        /// <param name="initCapacity">Initial capacity of each sub-pool.<br/>各子池初始容量。</param>
+        /// <param name="maxReuseCount">Maximum objects allowed in the reusable sub-pool.<br/>可重用子池允许的最大对象数。</param>
         public ReuseObjectPool(int initCapacity = 8, int maxReuseCount = 100)
         {
             m_MaxReuseCount = maxReuseCount;
@@ -95,8 +95,8 @@ namespace JLGames.Infra.Pool
         /// Check if there is an object in the subpool
         /// 检查子池中是否有对象
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
+        /// <param name="type">Sub-pool to check.<br/>要检查的子池类型。</param>
+        /// <returns>True if the sub-pool has no objects.<br/>子池为空时返回 true。</returns>
         public bool IsPoolEmpty(ReusePoolSubType type)
         {
             return GetSubPool(type).Count <= 0;
@@ -106,9 +106,9 @@ namespace JLGames.Infra.Pool
         /// Check if the object exists in the pool
         /// 检查对象是否存在于池中
         /// </summary>
-        /// <param name="type"></param>
-        /// <param name="o"></param>
-        /// <returns></returns>
+        /// <param name="type">Sub-pool to search.<br/>要检索的子池类型。</param>
+        /// <param name="o">Object to look up.<br/>待查找的对象。</param>
+        /// <returns>True if the object exists in the sub-pool.<br/>对象存在于该子池时返回 true。</returns>
         public bool InPool(ReusePoolSubType type, T o)
         {
             if (null == o) return false;
@@ -123,9 +123,9 @@ namespace JLGames.Infra.Pool
         /// If the object is in another pool, remove it and add it to the target pool
         /// 如果对象在其它池中，移除后增加到目标池中
         /// </summary>
-        /// <param name="targetType"></param>
-        /// <param name="o"></param>
-        /// <returns></returns>
+        /// <param name="targetType">Destination sub-pool.<br/>目标子池类型。</param>
+        /// <param name="o">Object to move.<br/>要移动的对象。</param>
+        /// <returns>False if already in target pool; otherwise whether the move succeeded.<br/>对象已在目标池时返回 false；否则表示是否移动成功。</returns>
         public bool TransferTo(ReusePoolSubType targetType, T o)
         {
             if (InPool(targetType, o))
@@ -143,7 +143,7 @@ namespace JLGames.Infra.Pool
         /// Remove an object from the reuse pool and add it to the usage pool
         /// 从重用池中移除一个对象，并加入到使用池中
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Reused object moved to the in-use pool, or default if reusable pool is empty.<br/>从可重用池取出并移入使用池的对象；可重用池为空时为 default。</returns>
         public T TransferResueToUsing()
         {
             if (SelfReusablePool.Count <= 0) return default(T);
@@ -155,9 +155,9 @@ namespace JLGames.Infra.Pool
         /// Remove the object from the pool
         /// 从池中移除对象
         /// </summary>
-        /// <param name="sourceType"></param>
-        /// <param name="o"></param>
-        /// <returns></returns>
+        /// <param name="sourceType">Sub-pool to remove from.<br/>源子池类型。</param>
+        /// <param name="o">Object to remove.<br/>要移除的对象。</param>
+        /// <returns>True if the object was removed.<br/>成功移除时返回 true。</returns>
         public bool RemoveFormPool(ReusePoolSubType sourceType, T o)
         {
             var pool = GetSubPool(sourceType);
@@ -166,11 +166,11 @@ namespace JLGames.Infra.Pool
 
         /// <summary>
         /// Add object to target pool.
-        /// 转移对象
+        /// 将对象加入目标子池。
         /// </summary>
-        /// <param name="targetType"></param>
-        /// <param name="o"></param>
-        /// <returns></returns>
+        /// <param name="targetType">Destination sub-pool.<br/>目标子池类型。</param>
+        /// <param name="o">Object to add.<br/>要加入的对象。</param>
+        /// <returns>True if added; false if null, duplicate, or reusable pool is full.<br/>加入成功返回 true；对象为 null、已存在或可重用池已满时返回 false。</returns>
         public bool AddToPool(ReusePoolSubType targetType, T o)
         {
             var pool = GetSubPool(targetType);
@@ -179,13 +179,13 @@ namespace JLGames.Infra.Pool
         }
 
         /// <summary>
-        /// Transfer object to target pool.
-        /// 转移对象
+        /// Transfer an object from one sub-pool to another.
+        /// 将对象从一个子池转移到另一个子池。
         /// </summary>
-        /// <param name="sourceType"></param>
-        /// <param name="targetType"></param>
-        /// <param name="o"></param>
-        /// <returns></returns>
+        /// <param name="sourceType">Source sub-pool.<br/>源子池类型。</param>
+        /// <param name="targetType">Destination sub-pool.<br/>目标子池类型。</param>
+        /// <param name="o">Object to transfer.<br/>要转移的对象。</param>
+        /// <returns>Transferred object on success, or default on failure.<br/>转移成功返回该对象，失败时为 default。</returns>
         public T TransferBetween(ReusePoolSubType sourceType, ReusePoolSubType targetType, T o)
         {
             if (sourceType == targetType)
@@ -204,8 +204,8 @@ namespace JLGames.Infra.Pool
         /// Clear all objects in sub pool
         /// 清空子池对象
         /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
+        /// <param name="type">Sub-pool to clear.<br/>要清空的子池类型。</param>
+        /// <returns>Objects that were in the sub-pool before clearing; null if sub-pool not found.<br/>清空前子池中的对象数组；子池不存在时为 null。</returns>
         public T[] ClearSubPool(ReusePoolSubType type)
         {
             var pool = GetSubPool(type);
@@ -216,7 +216,7 @@ namespace JLGames.Infra.Pool
         /// Clear all objects
         /// 清空全部池内对象
         /// </summary>
-        /// <returns></returns>
+        /// <returns>All objects from every sub-pool before clearing.<br/>清空前所有子池中的对象合并数组。</returns>
         public T[] ClearAll()
         {
             var rs = ArrayUtil.MergeArray(SelfReusablePool.ToArray(), SelfUsingPool.ToArray(),
@@ -233,8 +233,8 @@ namespace JLGames.Infra.Pool
         /// Traverse all elements of the subpool
         /// 遍历子池全部元素
         /// </summary>
-        /// <param name="poolType"></param>
-        /// <param name="action"></param>
+        /// <param name="poolType">Sub-pool to traverse.<br/>要遍历的子池类型。</param>
+        /// <param name="action">Action invoked per element.<br/>对每个元素执行的回调。</param>
         public void ForeachElement(ReusePoolSubType poolType, Action<T> action)
         {
             var pool = GetSubPool(poolType);

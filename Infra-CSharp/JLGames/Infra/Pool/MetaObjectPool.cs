@@ -9,27 +9,28 @@ namespace JLGames.Infra.Pool
     /// Modify the pool size to automatically increase or decrease objects.
     /// 通过调整池Size，自动增加或减少对象
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">Pooled reference type.<br/>池内管理的引用类型。</typeparam>
     public class MetaObjectPool<T> where T : class
     {
         /// <summary>
-        /// object constructor
-        /// 对象构造器
+        /// Factory that creates a new pooled instance.
+        /// 创建新池对象的工厂委托。
         /// </summary>
+        /// <returns>New instance.<br/>新创建的对象实例。</returns>
         public delegate T OriginGenFunc();
 
         /// <summary>
         /// Callback on creation
         /// 创建时回调
         /// </summary>
-        /// <param name="o"></param>
+        /// <param name="o">Newly created instance.<br/>新创建的对象实例。</param>
         public delegate void CreateCallback(T o);
 
         /// <summary>
         /// Callback on destroy
         /// 移除时销毁回调
         /// </summary>
-        /// <param name="o"></param>
+        /// <param name="o">Instance being removed from the pool.<br/>从池中移除的对象实例。</param>
         public delegate void DestroyCallback(T o);
 
         protected readonly T m_Original;
@@ -39,6 +40,10 @@ namespace JLGames.Infra.Pool
         protected CreateCallback m_CreateCallback = null;
         protected DestroyCallback m_DestroyCallback = null;
 
+        /// <summary>
+        /// Current number of objects in the pool.
+        /// 池中当前对象数量。
+        /// </summary>
         public int Count => m_ObjectPool.Count;
 
         /// <summary>
@@ -93,7 +98,7 @@ namespace JLGames.Infra.Pool
         /// Setting callback on creation
         /// 设置创建对象时回调
         /// </summary>
-        /// <param name="callback"></param>
+        /// <param name="callback">Callback invoked when an object is added.<br/>对象被添加时触发的回调。</param>
         public void SetCreateCallback(CreateCallback callback)
         {
             m_CreateCallback = callback;
@@ -103,18 +108,18 @@ namespace JLGames.Infra.Pool
         /// Setting callback on destroy
         /// 设置删除对象时回调
         /// </summary>
-        /// <param name="callback"></param>
+        /// <param name="callback">Callback invoked when an object is removed.<br/>对象被移除时触发的回调。</param>
         public void SetDestroyCallback(DestroyCallback callback)
         {
             m_DestroyCallback = callback;
         }
 
         /// <summary>
-        /// Updata number of objects
-        /// 更新对象数量
+        /// Resize the pool to the target count.
+        /// 将池调整到目标对象数量。
         /// </summary>
-        /// <param name="size">对象数量</param>
-        /// <returns>size==原来对象数量时:null</returns>
+        /// <param name="size">Target object count.<br/>目标对象数量。</param>
+        /// <returns>Added or removed instances; null if count unchanged.<br/>新增或移除的对象数组；数量未变时为 null。</returns>
         public T[] UpdateToSize(int size)
         {
             return m_ObjectPool.Count == size ? null : Offset(size - m_ObjectPool.Count);
@@ -124,8 +129,8 @@ namespace JLGames.Infra.Pool
         /// Update number of objects by offset
         /// 通过差值更新对象数量
         /// </summary>
-        /// <param name="offset">数量偏差值</param>
-        /// <returns>offset==0;null</returns>
+        /// <param name="offset">Delta count (positive to add, negative to remove).<br/>数量偏差（正数增加，负数减少）。</param>
+        /// <returns>Added or removed instances; null if offset is 0.<br/>新增或移除的对象数组；offset 为 0 时为 null。</returns>
         public T[] Offset(int offset)
         {
             if (0 == offset) return null;
@@ -137,8 +142,8 @@ namespace JLGames.Infra.Pool
         /// Remove number of objects.
         /// 删除对象数量
         /// </summary>
-        /// <param name="removeSize">删除的数量</param>
-        /// <returns>removeSize少于0: null</returns>
+        /// <param name="removeSize">Number of instances to remove.<br/>要移除的对象数量。</param>
+        /// <returns>Removed instances; null if removeSize is less than or equal to 0.<br/>被移除的对象数组；removeSize 小于等于 0 时为 null。</returns>
         public virtual T[] Remove(int removeSize)
         {
             if (removeSize <= 0) return null;
@@ -163,8 +168,8 @@ namespace JLGames.Infra.Pool
         /// Add number of objects.
         /// 增加对象数量
         /// </summary>
-        /// <param name="addSize">>增加的数量</param>
-        /// <returns>addSize少于0: null</returns>
+        /// <param name="addSize">Number of instances to add.<br/>要新增的对象数量。</param>
+        /// <returns>Newly added instances; null if addSize is less than or equal to 0.<br/>新增的对象数组；addSize 小于等于 0 时为 null。</returns>
         public virtual T[] Add(int addSize)
         {
             if (addSize <= 0) return null;
@@ -179,6 +184,11 @@ namespace JLGames.Infra.Pool
             return rs;
         }
 
+        /// <summary>
+        /// Gets or sets the object at the specified index.
+        /// 按索引获取或设置池中对象。
+        /// </summary>
+        /// <param name="index">Zero-based index.<br/>从 0 开始的索引。</param>
         public T this[int index]
         {
             get { return m_ObjectPool[index]; }
@@ -202,8 +212,8 @@ namespace JLGames.Infra.Pool
         /// find the first matched element.
         /// 查找第一个匹配项
         /// </summary>
-        /// <param name="match"></param>
-        /// <returns></returns>
+        /// <param name="match">Predicate for matching.<br/>匹配条件。</param>
+        /// <returns>First match, or default if none.<br/>第一个匹配项；无匹配时为 default。</returns>
         public T FindFirst(Predicate<T> match)
         {
             for (var index = 0; index < m_ObjectPool.Count; index++)
@@ -221,8 +231,8 @@ namespace JLGames.Infra.Pool
         /// find the last matched element.
         /// 查找最后一个匹配项
         /// </summary>
-        /// <param name="match"></param>
-        /// <returns></returns>
+        /// <param name="match">Predicate for matching.<br/>匹配条件。</param>
+        /// <returns>Last match, or default if none.<br/>最后一个匹配项；无匹配时为 default。</returns>
         public T FindLast(Predicate<T> match)
         {
             for (var index = m_ObjectPool.Count - 1; index >= 0; index--)
@@ -240,8 +250,8 @@ namespace JLGames.Infra.Pool
         /// remove the first matched element.
         /// 移除第一个匹配项
         /// </summary>
-        /// <param name="match"></param>
-        /// <returns></returns>
+        /// <param name="match">Predicate for matching.<br/>匹配条件。</param>
+        /// <returns>Removed instance, or default if none matched.<br/>被移除的实例；无匹配时为 default。</returns>
         public virtual T RemoveFirst(Predicate<T> match)
         {
             for (var index = 0; index < m_ObjectPool.Count; index++)
@@ -261,8 +271,8 @@ namespace JLGames.Infra.Pool
         /// remove the last matched element.
         /// 删除最后一个匹配项
         /// </summary>
-        /// <param name="match"></param>
-        /// <returns></returns>
+        /// <param name="match">Predicate for matching.<br/>匹配条件。</param>
+        /// <returns>Removed instance, or default if none matched.<br/>被移除的实例；无匹配时为 default。</returns>
         public virtual T RemoveLast(Predicate<T> match)
         {
             for (var index = m_ObjectPool.Count - 1; index >= 0; index--)
