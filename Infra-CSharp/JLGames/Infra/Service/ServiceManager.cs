@@ -2,6 +2,10 @@
 
 namespace JLGames.Infra.Service
 {
+    /// <summary>
+    /// Orchestrates service injection, activation, initialization, and load/save; reports aggregate progress via events.
+    /// 编排服务的参数注入、激活、初始化及加载/保存，并通过事件上报整体进度。
+    /// </summary>
     public sealed class ServiceManager : EventDispatcher
     {
         /// <summary>
@@ -66,7 +70,7 @@ namespace JLGames.Infra.Service
         /// service data loading
         /// 服务数据加载
         /// </summary>
-        /// <param name="endCall"></param>
+        /// <param name="endCall">Invoked when all configured load-data services finish.<br/>全部配置的数据加载服务完成后的回调。</param>
         public void LoadServicesData(Callback endCall)
         {
             var handler = new ServiceLoadDataHandler(m_Services, this);
@@ -77,7 +81,7 @@ namespace JLGames.Infra.Service
         /// Service data storage
         /// 服务数据保存
         /// </summary>
-        /// <param name="endCall"></param>
+        /// <param name="endCall">Invoked when all configured save-data services finish.<br/>全部配置的数据保存服务完成后的回调。</param>
         public void SaveServicesData(Callback endCall)
         {
             var handler = new ServiceSaveDataHandler(m_Services, this);
@@ -90,7 +94,7 @@ namespace JLGames.Infra.Service
         /// If it has been initialized once, try to execute the callback directly
         /// 如果已经初始化一次，就尝试直接执行回调
         /// </summary>
-        /// <param name="endCall"></param>
+        /// <param name="endCall">Invoked after Init and InitData complete for all services.<br/>全部服务 Init 与 InitData 完成后的回调。</param>
         public void StartInitalization(Callback endCall)
         {
             m_Services = ServiceConfig.Shared.ServiceInfos;
@@ -256,8 +260,16 @@ namespace JLGames.Infra.Service
 
         //----------------------------------
 
+        /// <summary>
+        /// Global service manager singleton.
+        /// 全局服务管理器单例。
+        /// </summary>
         public static ServiceManager Shared { get; } = new ServiceManager();
 
+        /// <summary>
+        /// Shorthand for <see cref="ServiceConfig.Shared"/>.
+        /// <see cref="ServiceConfig.Shared"/> 的简写访问。
+        /// </summary>
         public static ServiceConfig Config => ServiceConfig.Shared;
     }
 }

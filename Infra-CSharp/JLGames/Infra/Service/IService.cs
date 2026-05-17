@@ -7,8 +7,8 @@
     public interface IService
     {
         /// <summary>
-        /// Service name.
-        /// 服务名称
+        /// Unique service name; set from <see cref="ServiceConfig.AddConfig"/>.
+        /// 服务唯一名称；由 <see cref="ServiceConfig.AddConfig"/> 写入。
         /// </summary>
         string ServiceName { get; set; }
     }

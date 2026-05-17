@@ -1,8 +1,10 @@
 ﻿namespace JLGames.Infra.Service
 {
     /// <summary>
-    /// Service Awaka interface
-    /// 服务激活接口
+    /// Early activation hook before <see cref="IInitService.Init"/>.
+    /// 在 <see cref="IInitService.Init"/> 之前执行的早期激活钩子。
+    /// Invoked synchronously by <see cref="ServiceManager"/> during startup; must not use async.
+    /// 由 <see cref="ServiceManager"/> 在启动时同步调用；不允许使用异步。
     /// </summary>
     public interface IAwakableService
     {

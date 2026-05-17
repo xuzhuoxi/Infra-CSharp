@@ -18,8 +18,8 @@ namespace JLGames.Infra.Service
         bool IsInited { get; }
 
         /// <summary>
-        /// Initialize base data
-        /// 初始化基础数据
+        /// Initialize the service; dispatch <see cref="ServiceEvents.OnServiceInited"/> with <see cref="IService.ServiceName"/> when done.
+        /// 初始化服务；完成后应派发 <see cref="ServiceEvents.OnServiceInited"/>，数据为 <see cref="IService.ServiceName"/>。
         /// </summary>
         void Init();
     }
