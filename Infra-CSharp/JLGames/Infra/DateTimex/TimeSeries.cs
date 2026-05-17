@@ -32,8 +32,8 @@ namespace JLGames.Infra.DateTimex
         /// Construct a time series object
         /// 构造一个时间序列对象
         /// </summary>
-        /// <param name="basestamp">Base Stamp（基础时间戳）</param>
-        /// <param name="loop">Weather to loop（是否循环）</param>
+        /// <param name="basestamp">Base timestamp subtracted before locating slices. 定位前减去的基础时间戳。</param>
+        /// <param name="loop">Whether to loop when locating timestamps. 定位时间戳时是否循环。</param>
         public TimeSeries(long basestamp = 0, bool loop = false)
         {
             m_Basestamp = basestamp;
@@ -45,7 +45,7 @@ namespace JLGames.Infra.DateTimex
         /// Set base timestamp
         /// 设置基础时间戳
         /// </summary>
-        /// <param name="basestamp"></param>
+        /// <param name="basestamp">Base timestamp for locating slices. 用于定位时间片的基础时间戳。</param>
         public void SetBasestamp(long basestamp)
         {
             m_Basestamp = basestamp;
@@ -55,8 +55,8 @@ namespace JLGames.Infra.DateTimex
         /// Checks whether a time slice with the specified name is contained
         /// 检查是否包含指定名称的时间片
         /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
+        /// <param name="name">Slice name to look up. 要查找的时间片名称。</param>
+        /// <returns>True if any slice uses this name. 存在同名时间片时返回 true。</returns>
         public bool Contains(string name)
         {
             if (string.IsNullOrEmpty(name)) return false;
@@ -67,8 +67,8 @@ namespace JLGames.Infra.DateTimex
         /// Find the first time slice with the specified name
         /// 查找第一个指定名称的时间片
         /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
+        /// <param name="name">Slice name to find. 要查找的时间片名称。</param>
+        /// <returns>Index of the first match, or -1 if not found. 首个匹配的索引，未找到时为 -1。</returns>
         public int FindFirstSlice(string name)
         {
             if (string.IsNullOrEmpty(name)) return -1;
@@ -79,8 +79,8 @@ namespace JLGames.Infra.DateTimex
         /// Find the last time slice with the specified name
         /// 查找最后一个指定名称的时间片
         /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
+        /// <param name="name">Slice name to find. 要查找的时间片名称。</param>
+        /// <returns>Index of the last match, or -1 if not found. 最后一个匹配的索引，未找到时为 -1。</returns>
         public int FindLastSlice(string name)
         {
             if (string.IsNullOrEmpty(name)) return -1;
@@ -91,8 +91,8 @@ namespace JLGames.Infra.DateTimex
         /// Locating time slices based on timestamps
         /// 根据时间戳定位时间片
         /// </summary>
-        /// <param name="timestamp"></param>
-        /// <returns></returns>
+        /// <param name="timestamp">Absolute timestamp (relative to series baseline). 绝对时间戳（相对序列基准）。</param>
+        /// <returns>Name of the slice containing the offset, or null if none. 包含该偏移的时间片名称，无匹配时为 null。</returns>
         public string LocateTo(long timestamp)
         {
             if (timestamp < m_Basestamp || m_Slices.Count <= 0) return null;
@@ -106,9 +106,9 @@ namespace JLGames.Infra.DateTimex
         /// Add time slice
         /// 追加时间片
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="duration"></param>
-        /// <returns></returns>
+        /// <param name="name">Slice name. 时间片名称。</param>
+        /// <param name="duration">Duration in ticks (no leading gap). 时长（Tick），无前导间隔。</param>
+        /// <returns>True if added; false when name is empty or duration is negative. 添加成功返回 true；名称为空或时长为负时返回 false。</returns>
         public bool AddSlice(string name, long duration)
         {
             return AddSlice(name, 0, duration);
@@ -118,10 +118,10 @@ namespace JLGames.Infra.DateTimex
         /// Add time slice
         /// 追加时间片
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="space"></param>
-        /// <param name="duration"></param>
-        /// <returns></returns>
+        /// <param name="name">Slice name. 时间片名称。</param>
+        /// <param name="space">Leading gap before this slice within the series layout. 本片在序列布局中的前导间隔。</param>
+        /// <param name="duration">Duration in ticks. 时长（Tick）。</param>
+        /// <returns>True if added; false when arguments are invalid. 参数有效且添加成功时返回 true。</returns>
         public bool AddSlice(string name, long space, long duration)
         {
             if (string.IsNullOrEmpty(name) || space < 0 || duration < 0) return false;
@@ -133,9 +133,9 @@ namespace JLGames.Infra.DateTimex
         /// Remove time slice
         /// 移除时间片
         /// </summary>
-        /// <param name="index"></param>
-        /// <param name="keepBlank">是否把移除后的时间片转为空白</param>
-        /// <returns></returns>
+        /// <param name="index">Index of the slice to remove. 要移除的时间片索引。</param>
+        /// <param name="keepBlank">If true, shift the next slice to absorb the removed span. 为 true 时，将下一片平移以保留空白时长。</param>
+        /// <returns>Removed slice name, or null if index is out of range. 被移除片的名称；索引越界时为 null。</returns>
         public string RemoveAt(int index, bool keepBlank = false)
         {
             if (index < 0 || index >= m_Slices.Count) return null;
@@ -153,8 +153,8 @@ namespace JLGames.Infra.DateTimex
         /// Remove the first time slice
         /// 移除第一个时间片
         /// </summary>
-        /// <param name="keepBlank"></param>
-        /// <returns></returns>
+        /// <param name="keepBlank">If true, shift the next slice after removal. 为 true 时，移除后平移下一片。</param>
+        /// <returns>Removed slice name, or null if the series is empty. 被移除片的名称；序列为空时为 null。</returns>
         public string RemoveFirst(bool keepBlank = false)
         {
             return RemoveAt(0, keepBlank);
@@ -164,7 +164,7 @@ namespace JLGames.Infra.DateTimex
         /// Remove last time slice
         /// 移除最后一个时间片
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Removed slice name, or null if the series is empty. 被移除片的名称；序列为空时为 null。</returns>
         public string RemoveLast()
         {
             if (m_Slices.Count == 0) return null;

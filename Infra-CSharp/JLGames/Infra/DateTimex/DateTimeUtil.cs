@@ -4,8 +4,8 @@ using System.Globalization;
 namespace JLGames.Infra.DateTimex
 {
     /// <summary>
-    /// More:
-    ///   TimeSpan
+    /// Date/time utilities: tick constants, conversions, current timestamps, calendar helpers, and formatting.
+    /// 日期时间工具：Tick 常量、单位换算、当前时间戳、日历辅助与格式化。
     /// </summary>
     public static class DateTimeUtil
     {
@@ -101,26 +101,26 @@ namespace JLGames.Infra.DateTimex
 
         //------------------------------------------
 
-        private static readonly DateTime m_DateTimeSimpleZero = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-        private static readonly DateTime m_DateTimeZero = new DateTime(0, DateTimeKind.Utc);
+        private static readonly DateTime s_DateTimeSimpleZero = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+        private static readonly DateTime s_DateTimeZero = new DateTime(0, DateTimeKind.Utc);
 
         /// <summary>
         /// The timestamp (tick) of 1970.1.1
         /// 1970.1.1的时间戳(Ticks)
         /// </summary>
-        public static long Ticks1970 => m_DateTimeSimpleZero.Ticks;
+        public static long Ticks1970 => s_DateTimeSimpleZero.Ticks;
 
         /// <summary>
         /// The current timestamp (tick) from 0001.1.1
         /// 距离0001.1.1的当前时间戳(Ticks)
         /// </summary>
-        public static long NowTicks => DateTime.UtcNow.Ticks - m_DateTimeZero.Ticks;
+        public static long NowTicks => DateTime.UtcNow.Ticks - s_DateTimeZero.Ticks;
 
         /// <summary>
         /// The current timestamp (tick) from 1970.1.1
         /// 距离1970.1.1的当前时间戳(Ticks)
         /// </summary>
-        public static long NowTicks1970 => DateTime.UtcNow.Ticks - m_DateTimeSimpleZero.Ticks;
+        public static long NowTicks1970 => DateTime.UtcNow.Ticks - s_DateTimeSimpleZero.Ticks;
 
         /// <summary>
         /// The current timestamp (nano) from 0001.1.1
@@ -186,8 +186,8 @@ namespace JLGames.Infra.DateTimex
         /// Ticks to nanoseconds
         /// Tick数 转 纳秒数
         /// </summary>
-        /// <param name="ticks"></param>
-        /// <returns></returns>
+        /// <param name="ticks">Tick count to convert. 待转换的 Tick 数。</param>
+        /// <returns>Nanoseconds. 纳秒数。</returns>
         public static long Ticks2Nanos(long ticks)
         {
             return ticks * 100;
@@ -197,8 +197,8 @@ namespace JLGames.Infra.DateTimex
         /// Ticks to milliseconds
         /// Tick数 转 毫秒数
         /// </summary>
-        /// <param name="ticks"></param>
-        /// <returns></returns>
+        /// <param name="ticks">Tick count to convert. 待转换的 Tick 数。</param>
+        /// <returns>Milliseconds. 毫秒数。</returns>
         public static long Ticks2Millis(long ticks)
         {
             return ticks / TicksPerMilliSecond;
@@ -208,8 +208,8 @@ namespace JLGames.Infra.DateTimex
         /// Ticks to seconds
         /// Tick数 转 秒数
         /// </summary>
-        /// <param name="ticks"></param>
-        /// <returns></returns>
+        /// <param name="ticks">Tick count to convert. 待转换的 Tick 数。</param>
+        /// <returns>Seconds. 秒数。</returns>
         public static long Ticks2Seconds(long ticks)
         {
             return ticks / TicksPerSecond;
@@ -219,8 +219,8 @@ namespace JLGames.Infra.DateTimex
         /// Ticks to minutes
         /// Tick数 转 分钟数
         /// </summary>
-        /// <param name="ticks"></param>
-        /// <returns></returns>
+        /// <param name="ticks">Tick count to convert. 待转换的 Tick 数。</param>
+        /// <returns>Minutes. 分钟数。</returns>
         public static long Ticks2Minutes(long ticks)
         {
             return ticks / TicksPerMinute;
@@ -230,8 +230,8 @@ namespace JLGames.Infra.DateTimex
         /// Ticks to hours
         /// Tick数 转 小时数
         /// </summary>
-        /// <param name="ticks"></param>
-        /// <returns></returns>
+        /// <param name="ticks">Tick count to convert. 待转换的 Tick 数。</param>
+        /// <returns>Hours. 小时数。</returns>
         public static long Ticks2Hours(long ticks)
         {
             return ticks / TicksPerHour;
@@ -241,8 +241,8 @@ namespace JLGames.Infra.DateTimex
         /// Nanoseconds to ticks
         /// 纳秒数 转 Tick数
         /// </summary>
-        /// <param name="nanos"></param>
-        /// <returns></returns>
+        /// <param name="nanos">Nanoseconds to convert. 待转换的纳秒数。</param>
+        /// <returns>Ticks. Tick 数。</returns>
         public static long Nanos2Ticks(long nanos)
         {
             return nanos / 100;
@@ -294,7 +294,7 @@ namespace JLGames.Infra.DateTimex
 
         //--------------------
 
-        private static readonly int[] m_MonthDay = {31, 0, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; // 0 means not sure; 0代表不确定
+        private static readonly int[] s_MonthDay = {31, 0, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; // 0 means not sure; 0代表不确定
 
         /// <summary>
         /// Get the number of days in each month
@@ -307,7 +307,7 @@ namespace JLGames.Infra.DateTimex
         {
             if (month != 2)
             {
-                return m_MonthDay[month - 1];
+                return s_MonthDay[month - 1];
             }
 
             return CheckLeapYear(year) ? 29 : 28;
@@ -341,9 +341,7 @@ namespace JLGames.Infra.DateTimex
         {
             if (start > end)
             {
-                var temp = start;
-                start = end;
-                end = temp;
+                (start, end) = (end, start);
             }
 
             var sy = start.Year;

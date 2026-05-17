@@ -2,6 +2,10 @@
 
 namespace JLGames.Infra.DateTimex
 {
+    /// <summary>
+    /// Elapsed-time timer with pause/resume, manual lost-time adjustment, and optional custom tick source.
+    /// 可暂停/恢复的流逝时间计时器，支持手动调整流失时间，并可注入自定义 Tick 来源。
+    /// </summary>
     public sealed class StampTimer
     {
         /// <summary>
@@ -51,10 +55,9 @@ namespace JLGames.Infra.DateTimex
         private long NowTicks => m_TicksGetter?.Invoke() ?? DateTimeUtil.NowTicks1970;
 
         /// <summary>
-        /// Lost time
-        /// 流失的时间
+        /// Lost time since <see cref="Start"/>, excluding pause intervals.
+        /// 自 <see cref="Start"/> 起流逝的时间（不含暂停时段）。
         /// </summary>
-        /// <returns></returns>
         public long LostTicks
         {
             get
@@ -86,35 +89,47 @@ namespace JLGames.Infra.DateTimex
 
         /// <summary>
         /// Pause lost time(ticks)
-        /// 暂停用掉的时间(Ticks)
+        /// 暂停累计占用的时间(Ticks)
         /// </summary>
-        /// <returns></returns>
         public long PauseTicks =>
             IsPause ? NowTicks - m_PauseStamp + m_PauseLostTicks : m_PauseLostTicks;
 
         /// <summary>
         /// Pause lost time(millisecond)
-        /// 暂停用掉的时间(毫秒)
+        /// 暂停累计占用的时间(毫秒)
         /// </summary>
-        /// <returns></returns>
         public long PauseMilliseconds => DateTimeUtil.Ticks2Millis(PauseTicks);
 
         /// <summary>
         /// Is it pausing
-        /// 是否暂时中
+        /// 是否暂停中
         /// </summary>
         public bool IsPause => m_PauseStamp > 0;
 
+        /// <summary>
+        /// Create a timer with zero baseline lost time.
+        /// 创建基准流失时间为 0 的计时器。
+        /// </summary>
         public StampTimer()
         {
             m_BaseLostTicks = 0;
         }
 
+        /// <summary>
+        /// Create a timer with the specified baseline lost ticks.
+        /// 以指定的基准流失 Tick 数创建计时器。
+        /// </summary>
+        /// <param name="baseLostTicks">Baseline lost ticks counted before <see cref="Start"/>. 在 <see cref="Start"/> 之前计入的基准流失 Tick。</param>
         public StampTimer(long baseLostTicks)
         {
             m_BaseLostTicks = baseLostTicks;
         }
 
+        /// <summary>
+        /// Create a timer with baseline lost time derived from a <see cref="DateTime"/>.
+        /// 根据 <see cref="DateTime"/> 推导基准流失时间并创建计时器。
+        /// </summary>
+        /// <param name="baseLostDateTime">Date/time used as the baseline anchor. 作为基准锚点的日期时间。</param>
         public StampTimer(DateTime baseLostDateTime)
         {
             m_BaseLostTicks = baseLostDateTime.Ticks;
@@ -124,7 +139,7 @@ namespace JLGames.Infra.DateTimex
         /// Set the function to get the current timestamp
         /// 设置获取当前时间戳的函数
         /// </summary>
-        /// <param name="getter"></param>
+        /// <param name="getter">Custom tick provider; uses <see cref="DateTimeUtil.NowTicks1970"/> when null. 自定义 Tick 提供器；为 null 时使用 <see cref="DateTimeUtil.NowTicks1970"/>。</param>
         public void SetNowTicksGetter(NowTicksGetter getter)
         {
             m_TicksGetter = getter;
@@ -175,7 +190,7 @@ namespace JLGames.Infra.DateTimex
         /// Increase lost time
         /// 增加流失时间
         /// </summary>
-        /// <param name="lostTicks"></param>
+        /// <param name="lostTicks">Ticks to add to running or pausing lost time depending on state. 根据当前状态追加到运行或暂停流失时间的 Tick 数。</param>
         public void AddLost(long lostTicks)
         {
             if (IsPause)
@@ -188,7 +203,7 @@ namespace JLGames.Infra.DateTimex
         /// Increase running lost time
         /// 增加运行流失时间
         /// </summary>
-        /// <param name="lostTicks"></param>
+        /// <param name="lostTicks">Ticks to add while the timer is running. 计时器运行期间追加的流失 Tick 数。</param>
         public void AddRunningLost(long lostTicks)
         {
             m_RunningLostTicks += lostTicks;
@@ -198,7 +213,7 @@ namespace JLGames.Infra.DateTimex
         /// Increase pausing lost time
         /// 增加暂停运行时间
         /// </summary>
-        /// <param name="lostTicks"></param>
+        /// <param name="lostTicks">Ticks to add while the timer is paused. 计时器暂停期间追加的流失 Tick 数。</param>
         public void AddPausingLost(long lostTicks)
         {
             m_PauseLostTicks += lostTicks;
@@ -210,8 +225,8 @@ namespace JLGames.Infra.DateTimex
         /// Generate a timestamp object
         /// 生成一个时间戳对象
         /// </summary>
-        /// <param name="initTicks"></param>
-        /// <returns></returns>
+        /// <param name="initTicks">Initial baseline lost ticks. 初始基准流失 Tick 数。</param>
+        /// <returns>A new <see cref="StampTimer"/> instance. 新的 <see cref="StampTimer"/> 实例。</returns>
         public static StampTimer GenTimer(long initTicks)
         {
             var rs = new StampTimer(initTicks);
@@ -222,7 +237,7 @@ namespace JLGames.Infra.DateTimex
         /// Generate a timestamp object
         /// 生成一个时间戳对象
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A new <see cref="StampTimer"/> with zero baseline. 基准为 0 的新 <see cref="StampTimer"/> 实例。</returns>
         public static StampTimer GenTimer()
         {
             var rs = new StampTimer(0);
