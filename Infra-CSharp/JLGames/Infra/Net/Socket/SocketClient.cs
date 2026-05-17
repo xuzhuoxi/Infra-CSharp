@@ -4,6 +4,10 @@ using JLGames.Infra.Event;
 
 namespace JLGames.Infra.Net
 {
+    /// <summary>
+    /// Default implementation of <see cref="ISocketClient"/> (connect, send, receive, events).
+    /// <see cref="ISocketClient"/> 的默认实现（连接、收发、事件）。
+    /// </summary>
     public class SocketClient : EventDispatcher, ISocketClient
     {
         private string m_Name;
@@ -16,8 +20,16 @@ namespace JLGames.Infra.Net
         private ISocketSender m_Sender;
         private ISocketReceiver m_Receiver;
 
+        /// <inheritdoc/>
         public string Name => m_Name;
 
+        /// <summary>
+        /// Create a socket client.
+        /// 创建 Socket 客户端。
+        /// </summary>
+        /// <param name="name">Client name.<br/>客户端名称。</param>
+        /// <param name="littleEndian">Use little-endian for messages.<br/>消息是否小端。</param>
+        /// <param name="apmMode">Use APM async model when true.<br/>为 true 时使用 APM 异步模型。</param>
         public SocketClient(string name, bool littleEndian, bool apmMode)
         {
             m_Name = name;
@@ -25,36 +37,47 @@ namespace JLGames.Infra.Net
             m_ApmMode = apmMode;
         }
 
+        /// <summary>
+        /// Update the client display name.
+        /// 更新客户端名称。
+        /// </summary>
+        /// <param name="name">New name.<br/>新名称。</param>
         public void SetName(string name)
         {
             m_Name = name;
         }
 
+        /// <inheritdoc/>
         public void SendBytes(byte[] bytes)
         {
             m_Sender?.SendBytes(bytes);
         }
 
+        /// <inheritdoc/>
         public void SendMessage(byte[] message)
         {
             m_Sender?.SendMessage(message);
         }
 
+        /// <inheritdoc/>
         public void SendMessage(string[] messages)
         {
             m_Sender?.SendMessage(messages);
         }
 
+        /// <inheritdoc/>
         public void SendMessage(string message, params string[] messages)
         {
             m_Sender?.SendMessage(message, messages);
         }
 
+        /// <inheritdoc/>
         public void SetMessageHandler(SocketDelegates.OnBinaryMessageHandler handler)
         {
             m_Receiver?.SetMessageHandler(handler);
         }
 
+        /// <inheritdoc/>
         public void StartReceiving()
         {
             if (null == m_Receiver) return;
@@ -63,6 +86,7 @@ namespace JLGames.Infra.Net
             m_Receiver.StartReceiving();
         }
 
+        /// <inheritdoc/>
         public void StopReceiving()
         {
             if (null == m_Receiver) return;
@@ -71,15 +95,19 @@ namespace JLGames.Infra.Net
             m_Receiver.StopReceiving();
         }
 
+        /// <inheritdoc/>
         public bool IsReceiving => m_Receiver.IsReceiving;
 
+        /// <inheritdoc/>
         public bool Connected => m_ConnectAdapter.Connected;
 
+        /// <inheritdoc/>
         public void SetContext(SynchronizationContext context)
         {
             m_SyncContext = context;
         }
 
+        /// <inheritdoc/>
         public void ConnectServer(SocketParams @params)
         {
             if (null != m_ConnectAdapter)
@@ -125,6 +153,7 @@ namespace JLGames.Infra.Net
                 new SocketEvents.SocketConnEventInfo(false, info.Error, info.Exception));
         }
 
+        /// <inheritdoc/>
         public void DisconnectServer()
         {
             if (null == m_ConnectAdapter)
@@ -181,10 +210,10 @@ namespace JLGames.Infra.Net
         }
 
         /// <summary>
-        /// 使用设置好的线程上下文重新发布事件
-        /// 如果线程上下文为空，则直接发布事件
+        /// Redispatch event on the configured synchronization context, or directly if none.
+        /// 在已配置的同步上下文上重新派发事件；未配置则直接派发。
         /// </summary>
-        /// <param name="evd"></param>
+        /// <param name="evd">Event data.<br/>事件数据。</param>
         private void RedispatchEvent(EventData evd)
         {
             if (null == m_SyncContext)

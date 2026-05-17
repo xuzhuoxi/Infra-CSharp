@@ -11,6 +11,10 @@
 
 namespace JLGames.Infra.Net
 {
+    /// <summary>
+    /// Application-level network response / error codes (generated from Excel).
+    /// 应用层网络响应/错误码（由 Excel 导出生成）。
+    /// </summary>
     public static class NetResponseCode
     {   
         /// <summary>

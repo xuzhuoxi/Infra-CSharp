@@ -4,6 +4,10 @@ using System.Threading;
 
 namespace JLGames.Infra.Net
 {
+    /// <summary>
+    /// <see cref="IConnectAdapter"/> using <see cref="Socket.ConnectAsync"/> / <see cref="Socket.DisconnectAsync"/> (TAP).
+    /// 基于 <see cref="Socket.ConnectAsync"/> / <see cref="Socket.DisconnectAsync"/> 的连接适配器（TAP）。
+    /// </summary>
     internal class ConnectAsyncAdapter : IConnectAdapter
     {
         private SocketParams m_Params;
@@ -16,25 +20,41 @@ namespace JLGames.Infra.Net
         private bool m_Connecting;
         private bool m_Disconnecting;
 
+        /// <inheritdoc/>
         public Socket Socket => m_Client;
+
+        /// <inheritdoc/>
         public bool Connected => m_Client?.Connected ?? false;
+
+        /// <inheritdoc/>
         public bool ActionDoing => m_Connecting || m_Disconnecting;
 
+        /// <summary>
+        /// Create adapter; call <see cref="Connect"/> with parameters before use.
+        /// 创建适配器；使用前须通过 <see cref="Connect"/> 传入参数。
+        /// </summary>
         public ConnectAsyncAdapter()
         {
         }
 
+        /// <summary>
+        /// Create adapter with initial connection parameters.
+        /// 使用初始连接参数创建适配器。
+        /// </summary>
+        /// <param name="params">Connection parameters.<br/>连接参数。</param>
         public ConnectAsyncAdapter(SocketParams @params)
         {
             m_Params = @params;
         }
 
+        /// <inheritdoc/>
         public void Connect(SocketParams @params, AdapterDelegates.OnConnect onConnect)
         {
             m_Params = @params;
             Connect(onConnect);
         }
 
+        /// <inheritdoc/>
         public void Connect(AdapterDelegates.OnConnect onConnect)
         {
             if (m_Connecting || m_Disconnecting || (null != m_Client && m_Client.Connected))
@@ -52,6 +72,7 @@ namespace JLGames.Infra.Net
             StartConnect();
         }
 
+        /// <inheritdoc/>
         public void Close(AdapterDelegates.OnDisconnect onDisconnect, bool release)
         {
             if (null == m_Client || !m_Client.Connected || m_Disconnecting || m_Connecting)

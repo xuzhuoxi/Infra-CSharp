@@ -4,6 +4,10 @@ using JLGames.Infra.Event;
 
 namespace JLGames.Infra.Net
 {
+    /// <summary>
+    /// <see cref="IReceiveAdapter"/> using <see cref="Socket.BeginReceive"/> (APM).
+    /// 基于 <see cref="Socket.BeginReceive"/> 的接收适配器（APM）。
+    /// </summary>
     internal class BeginReceiveAdapter : EventDispatcher, IReceiveAdapter
     {
         private readonly Socket m_Socket;
@@ -15,8 +19,16 @@ namespace JLGames.Infra.Net
         private AdapterDelegates.OnReceive m_OnReceiveHandler;
         private bool m_Receiving = false;
 
+        /// <inheritdoc/>
         public bool IsReceiving => m_Receiving;
 
+        /// <summary>
+        /// Create receive adapter for the given socket and message reader.
+        /// 为指定 Socket 与消息读取器创建接收适配器。
+        /// </summary>
+        /// <param name="socket">Socket to receive from.<br/>用于接收的 Socket。</param>
+        /// <param name="reader">Buffer for incoming message bytes.<br/>入站消息字节缓冲区。</param>
+        /// <param name="buffSize">Receive buffer size in bytes.<br/>接收缓冲区大小（字节）。</param>
         public BeginReceiveAdapter(Socket socket, INetMessageReader reader, int buffSize)
         {
             m_Socket = socket;
@@ -26,6 +38,7 @@ namespace JLGames.Infra.Net
             m_ResultInfo = new AdapterDelegates.ReceiveResultInfo();
         }
 
+        /// <inheritdoc/>
         public void Start(AdapterDelegates.OnReceive onReceive)
         {
             if (m_Receiving) return;
@@ -35,6 +48,7 @@ namespace JLGames.Infra.Net
             BeginReceive();
         }
 
+        /// <inheritdoc/>
         public void Stop()
         {
             if (!m_Receiving) return;
@@ -42,6 +56,7 @@ namespace JLGames.Infra.Net
             m_OnReceiveHandler = null;
         }
 
+        /// <inheritdoc/>
         public void Next()
         {
             BeginReceive();

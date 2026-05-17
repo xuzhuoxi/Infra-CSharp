@@ -5,6 +5,10 @@ using JLGames.Infra.Event;
 
 namespace JLGames.Infra.Net
 {
+    /// <summary>
+    /// Default implementation of <see cref="ISocketReceiver"/> with async receive adapters.
+    /// 带异步接收适配器的 <see cref="ISocketReceiver"/> 默认实现。
+    /// </summary>
     public class SocketReceiver : EventDispatcher, ISocketReceiver
     {
         private const int BuffSize = 8192;
@@ -14,11 +18,23 @@ namespace JLGames.Infra.Net
         private readonly IReceiveAdapter m_ReceiveAdapter;
         private SocketDelegates.OnBinaryMessageHandler m_Handler;
 
+        /// <inheritdoc/>
         public bool IsReceiving => m_Socket.Connected && m_ReceiveAdapter.IsReceiving;
 
+        /// <inheritdoc/>
         public string Name { get; private set; }
+
+        /// <inheritdoc/>
         public bool Connected => m_Socket.Connected;
 
+        /// <summary>
+        /// Create a receiver for the given socket and message reader.
+        /// 为指定 Socket 与消息读取器创建接收器。
+        /// </summary>
+        /// <param name="name">Receiver name.<br/>接收器名称。</param>
+        /// <param name="socket">Underlying socket.<br/>底层 Socket。</param>
+        /// <param name="reader">Message unpacker.<br/>消息解包器。</param>
+        /// <param name="oldApi">Use APM (Begin/End) receive when true.<br/>为 true 时使用 APM（Begin/End）接收。</param>
         public SocketReceiver(string name, Socket socket, INetMessageReader reader, bool oldApi)
         {
             Name = name;
@@ -30,16 +46,19 @@ namespace JLGames.Infra.Net
                 m_ReceiveAdapter = new ReceiveAsyncAdapter(socket, m_Reader, BuffSize);
         }
 
+        /// <inheritdoc/>
         public void SetMessageHandler(SocketDelegates.OnBinaryMessageHandler handler)
         {
             m_Handler = handler;
         }
 
+        /// <inheritdoc/>
         public void StartReceiving()
         {
             m_ReceiveAdapter.Start(OnReceive);
         }
 
+        /// <inheritdoc/>
         public void StopReceiving()
         {
             m_ReceiveAdapter.Stop();

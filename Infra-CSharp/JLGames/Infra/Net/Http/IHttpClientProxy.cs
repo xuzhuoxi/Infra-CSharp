@@ -4,25 +4,30 @@ using System.Threading.Tasks;
 
 namespace JLGames.Infra.Net
 {
+    /// <summary>
+    /// HTTP client proxy for async GET/POST with configurable timeout and keep-alive.
+    /// HTTP 客户端代理，支持可配置超时与长连接的异步 GET/POST。
+    /// </summary>
     public interface IHttpClientProxy : IDisposable
     {
         /// <summary>
-        /// 设置超时时间<br/>
-        /// 不影响创建时设置的超时设置<br/>
+        /// Set request timeout (does not change the constructor default stored for reset).
+        /// 设置请求超时（不影响构造时保存的默认超时，Reset 仍恢复构造值）。
         /// </summary>
-        /// <param name="timeout"></param>
+        /// <param name="timeout">Timeout duration.<br/>超时时长。</param>
         void SetTimeout(TimeSpan timeout);
 
         /// <summary>
-        /// 重置超时时间<br/>
-        /// 使用创建时设置的超时设置
+        /// Reset timeout to the value passed at construction.
+        /// 重置为构造时设置的超时。
         /// </summary>
         void ResetTimeout();
 
         /// <summary>
-        /// 设置是不否使用长连接
+        /// Enable or disable HTTP keep-alive.
+        /// 设置是否使用长连接。
         /// </summary>
-        /// <param name="enable"></param>
+        /// <param name="enable">True to enable keep-alive.<br/>为 true 时启用长连接。</param>
         void SetKeepAlive(bool enable);
 
         #region Get functions

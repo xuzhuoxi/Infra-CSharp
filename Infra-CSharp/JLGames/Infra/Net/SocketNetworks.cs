@@ -1,7 +1,15 @@
 ﻿namespace JLGames.Infra.Net
 {
+    /// <summary>
+    /// Network protocol type constants and conversions.
+    /// 网络协议类型常量与转换工具。
+    /// </summary>
     public static class SocketNetworks
     {
+        /// <summary>
+        /// Supported network protocol kinds.
+        /// 支持的网络协议类型。
+        /// </summary>
         public enum Network
         {
             /// <summary>
@@ -105,6 +113,12 @@
         /// </summary>
         public const string Quic = "quic";
 
+        /// <summary>
+        /// Get the string identifier for a network enum value.
+        /// 将网络类型枚举转换为字符串标识。
+        /// </summary>
+        /// <param name="network">Network type.<br/>网络类型。</param>
+        /// <returns>Protocol string (e.g. "tcp", "udp").<br/>协议字符串（如 "tcp"、"udp"）。</returns>
         public static string GetNetworkValue(Network network)
         {
             switch (network)
@@ -132,6 +146,12 @@
             }
         }
 
+        /// <summary>
+        /// Parse a protocol string into a network enum value (case-insensitive).
+        /// 将协议字符串解析为网络类型枚举（不区分大小写）。
+        /// </summary>
+        /// <param name="network">Protocol string.<br/>协议字符串。</param>
+        /// <returns>Matching <see cref="Network"/>; <see cref="Network.Undefined"/> if unknown.<br/>匹配的枚举值；未知时返回 <see cref="Network.Undefined"/>。</returns>
         public static Network GetNetwork(string network)
         {
             switch (network.ToLower())

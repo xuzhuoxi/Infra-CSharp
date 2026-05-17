@@ -71,29 +71,19 @@ namespace JLGames.Infra.Net
             Preheat();
         }
 
-        /// <summary>
-        /// 设置超时时间<br/>
-        /// 不影响创建时设置的超时设置<br/>
-        /// </summary>
-        /// <param name="timeout"></param>
+        /// <inheritdoc/>
         public void SetTimeout(TimeSpan timeout)
         {
             m_Client.Timeout = timeout;
         }
 
-        /// <summary>
-        /// 重置超时时间<br/>
-        /// 使用创建时设置的超时设置
-        /// </summary>
+        /// <inheritdoc/>
         public void ResetTimeout()
         {
             m_Client.Timeout = m_Timeout;
         }
 
-        /// <summary>
-        /// 设置是不否使用长连接
-        /// </summary>
-        /// <param name="enable"></param>
+        /// <inheritdoc/>
         public void SetKeepAlive(bool enable)
         {
             var contains = m_Client.DefaultRequestHeaders.Connection.Contains(c_KeepAlive);
@@ -485,6 +475,7 @@ namespace JLGames.Infra.Net
             });
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             m_Client?.Dispose();
