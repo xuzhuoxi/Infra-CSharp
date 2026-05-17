@@ -1,5 +1,9 @@
 ﻿namespace JLGames.Infra.Mathx
 {
+    /// <summary>
+    /// Extension helpers for <see cref="Point1"/> area indexing.
+    /// <see cref="Point1"/> 区间索引相关的扩展方法。
+    /// </summary>
     public static class Point1Utils
     {
         /// <summary>

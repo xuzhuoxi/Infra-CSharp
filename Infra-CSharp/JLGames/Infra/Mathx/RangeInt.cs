@@ -2,6 +2,10 @@
 
 namespace JLGames.Infra.Mathx
 {
+    /// <summary>
+    /// Half-open integer range [Start, Start + Length).
+    /// 半开整型区间 [Start, Start + Length)。
+    /// </summary>
     [Serializable]
     public struct RangeInt
     {

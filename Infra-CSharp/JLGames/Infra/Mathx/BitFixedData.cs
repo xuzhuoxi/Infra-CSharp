@@ -87,6 +87,7 @@ namespace JLGames.Infra.Mathx
             m_RawData = new uint[RawDataLen];
         }
 
+        /// <inheritdoc />
         public override string ToString()
         {
             return ToBitString(0, BitLen, " ");
@@ -280,12 +281,13 @@ namespace JLGames.Infra.Mathx
         protected readonly StringBuilder TempSb = new StringBuilder();
 
         /// <summary>
-        /// 取位数的二进制字符串表示
+        /// Binary string for a bit range (optional separator between value groups).
+        /// 取指定比特范围的二进制字符串表示（可在业务值组之间插入分隔符）。
         /// </summary>
-        /// <param name="bitIndex"></param>
-        /// <param name="bitLen"></param>
-        /// <param name="valueSpace"></param>
-        /// <returns></returns>
+        /// <param name="bitIndex">Start bit index.<br/>起始位索引。</param>
+        /// <param name="bitLen">Number of bits.<br/>位数。</param>
+        /// <param name="valueSpace">Separator inserted between groups.<br/>组间分隔字符串。</param>
+        /// <returns>Binary representation.<br/>二进制字符串。</returns>
         public string ToBitString(int bitIndex, int bitLen, string valueSpace = "")
         {
             if (null == m_RawData || m_RawData.Length == 0) return "";

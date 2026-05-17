@@ -2,6 +2,10 @@
 
 namespace JLGames.Infra.Mathx
 {
+    /// <summary>
+    /// Common math helpers: clamp, parity, remainder/modulo, distance, and float comparisons.
+    /// 常用数学工具：钳制、奇偶、余数/取模、距离与浮点比较等。
+    /// </summary>
     public static class MathUtil
     {
         /// <summary>
@@ -40,6 +44,10 @@ namespace JLGames.Infra.Mathx
             return value;
         }
 
+        /// <summary>
+        /// Returns whether <paramref name="val"/> is strictly between <paramref name="a"/> and <paramref name="b"/> (endpoints excluded; order of a/b does not matter).
+        /// 判断 <paramref name="val"/> 是否严格位于 <paramref name="a"/> 与 <paramref name="b"/> 之间（不含端点；a、b 大小无关）。
+        /// </summary>
         public static bool Between(double val, double a, double b)
         {
             if (a > b)
@@ -50,6 +58,10 @@ namespace JLGames.Infra.Mathx
             return val > a && val < b;
         }
 
+        /// <summary>
+        /// Returns whether <paramref name="val"/> is strictly between <paramref name="a"/> and <paramref name="b"/> (endpoints excluded; order of a/b does not matter).
+        /// 判断 <paramref name="val"/> 是否严格位于 <paramref name="a"/> 与 <paramref name="b"/> 之间（不含端点；a、b 大小无关）。
+        /// </summary>
         public static bool Between(float val, float a, float b)
         {
             if (a > b)
@@ -60,6 +72,10 @@ namespace JLGames.Infra.Mathx
             return val > a && val < b;
         }
 
+        /// <summary>
+        /// Returns whether <paramref name="val"/> is strictly between <paramref name="a"/> and <paramref name="b"/> (endpoints excluded; order of a/b does not matter).
+        /// 判断 <paramref name="val"/> 是否严格位于 <paramref name="a"/> 与 <paramref name="b"/> 之间（不含端点；a、b 大小无关）。
+        /// </summary>
         public static bool Between(int val, int a, int b)
         {
             if (a > b)
@@ -70,6 +86,10 @@ namespace JLGames.Infra.Mathx
             return val > a && val < b;
         }
 
+        /// <summary>
+        /// Returns whether <paramref name="val"/> is strictly between <paramref name="a"/> and <paramref name="b"/> (endpoints excluded; order of a/b does not matter).
+        /// 判断 <paramref name="val"/> 是否严格位于 <paramref name="a"/> 与 <paramref name="b"/> 之间（不含端点；a、b 大小无关）。
+        /// </summary>
         public static bool Between(long val, long a, long b)
         {
             if (a > b)
@@ -154,31 +174,61 @@ namespace JLGames.Infra.Mathx
 
         //---------------------------------------------
 
+        /// <summary>
+        /// Returns whether two floats are approximately equal (difference less than machine epsilon).
+        /// 判断两个浮点数是否近似相等（差值小于机器精度）。
+        /// </summary>
+        /// <param name="a">First value.<br/>第一个值。</param>
+        /// <param name="b">Second value.<br/>第二个值。</param>
+        /// <param name="epsilon">Unused; kept for API compatibility.<br/>未使用，保留以兼容 API。</param>
         public static bool IsSimilar(float a, float b, float epsilon = float.Epsilon)
         {
             return Math.Abs(a - b) < Math.Abs(float.Epsilon);
         }
 
+        /// <summary>
+        /// Returns whether two doubles are approximately equal (difference less than machine epsilon).
+        /// 判断两个双精度浮点数是否近似相等（差值小于机器精度）。
+        /// </summary>
+        /// <param name="a">First value.<br/>第一个值。</param>
+        /// <param name="b">Second value.<br/>第二个值。</param>
+        /// <param name="epsilon">Unused; kept for API compatibility.<br/>未使用，保留以兼容 API。</param>
         public static bool IsSimilar(double a, double b, double epsilon = double.Epsilon)
         {
             return Math.Abs(a - b) < Math.Abs(double.Epsilon);
         }
 
+        /// <summary>
+        /// Floors to int with a small positive bias from <paramref name="epsilon"/> to reduce boundary errors.
+        /// 向下取整为 int，通过 <paramref name="epsilon"/> 施加微小正偏置以降低边界误差。
+        /// </summary>
         public static int FloorToInt(this float a, float epsilon = float.Epsilon)
         {
             return (int)Math.Floor(a + Math.Abs(epsilon));
         }
 
+        /// <summary>
+        /// Floors to int with a small positive bias from <paramref name="epsilon"/> to reduce boundary errors.
+        /// 向下取整为 int，通过 <paramref name="epsilon"/> 施加微小正偏置以降低边界误差。
+        /// </summary>
         public static int FloorToInt(this double a, double epsilon = double.Epsilon)
         {
             return (int)Math.Floor(a + Math.Abs(epsilon));
         }
 
+        /// <summary>
+        /// Ceils to int with a small negative bias from <paramref name="epsilon"/> to reduce boundary errors.
+        /// 向上取整为 int，通过 <paramref name="epsilon"/> 施加微小负偏置以降低边界误差。
+        /// </summary>
         public static int CeilToInt(this float a, float epsilon = float.Epsilon)
         {
             return (int)Math.Ceiling(a - Math.Abs(epsilon));
         }
 
+        /// <summary>
+        /// Ceils to int with a small negative bias from <paramref name="epsilon"/> to reduce boundary errors.
+        /// 向上取整为 int，通过 <paramref name="epsilon"/> 施加微小负偏置以降低边界误差。
+        /// </summary>
         public static int CeilToInt(this double a, double epsilon = double.Epsilon)
         {
             return (int)Math.Ceiling(a - Math.Abs(epsilon));
@@ -239,6 +289,10 @@ namespace JLGames.Infra.Mathx
 
         //距离相关
 
+        /// <summary>
+        /// Euclidean distance between two 2D points.
+        /// 二维点之间的欧几里得距离。
+        /// </summary>
         public static float Distance(float ax, float ay, float bx, float by)
         {
             var num1 = ax - bx;
@@ -246,6 +300,10 @@ namespace JLGames.Infra.Mathx
             return (float)Math.Sqrt((double)num1 * num1 + (double)num2 * num2);
         }
 
+        /// <summary>
+        /// Squared Euclidean distance between two 2D points (avoids sqrt).
+        /// 二维点之间欧几里得距离的平方（免开方）。
+        /// </summary>
         public static float DistanceSquare(float ax, float ay, float bx, float by)
         {
             var num1 = ax - bx;

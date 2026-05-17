@@ -2,6 +2,10 @@
 
 namespace JLGames.Infra.Mathx
 {
+    /// <summary>
+    /// Integer interval [Min, Max] with optional inclusive maximum.
+    /// 整型区间 [Min, Max]，可选择是否包含最大值。
+    /// </summary>
     [Serializable]
     public struct IntervalInt
     {
@@ -16,7 +20,8 @@ namespace JLGames.Infra.Mathx
         public int Max;
 
         /// <summary>
-        ///   <para>where include max value</para>
+        /// Whether <see cref="Max"/> is included in the interval when computing <see cref="Length"/>.
+        /// 计算 <see cref="Length"/> 时是否包含 <see cref="Max"/>。
         /// </summary>
         public bool MaxIncluded;
 

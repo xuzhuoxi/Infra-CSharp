@@ -2,6 +2,10 @@
 
 namespace JLGames.Infra.Mathx
 {
+    /// <summary>
+    /// Half-open float range [Start, Start + Length).
+    /// 半开浮点区间 [Start, Start + Length)。
+    /// </summary>
     [Serializable]
     public struct Range
     {

@@ -2,35 +2,70 @@
 
 namespace JLGames.Infra.Mathx
 {
+    /// <summary>
+    /// 2D line segment with integer endpoints.
+    /// 二维线段（整型端点）。
+    /// </summary>
     public struct Line2Int : IEquatable<Line2Int>
     {
+        /// <summary>
+        /// Start point.
+        /// 起点。
+        /// </summary>
         public Point2Int Start;
+
+        /// <summary>
+        /// End point.
+        /// 终点。
+        /// </summary>
         public Point2Int End;
 
+        /// <summary>
+        /// Squared length (avoids sqrt).
+        /// 长度的平方（免开方）。
+        /// </summary>
         public int SqrMagnitude => (Start.X - End.X) * (Start.X - End.X) + (Start.Y - End.Y) * (Start.Y - End.Y);
+
+        /// <summary>
+        /// Euclidean length.
+        /// 欧几里得长度。
+        /// </summary>
         public double Magnitude => Math.Sqrt(SqrMagnitude);
+
+        /// <summary>
+        /// Whether start and end coincide.
+        /// 起终点是否重合。
+        /// </summary>
         public bool IsPoint => Start == End;
 
+        /// <inheritdoc />
         public override string ToString()
         {
             return $"{{Start={Start},End={End}}}";
         }
 
+        /// <inheritdoc />
         public override int GetHashCode()
         {
             return Start.GetHashCode() ^ End.GetHashCode() << 2;
         }
 
+        /// <inheritdoc />
         public override bool Equals(object obj)
         {
             return obj is Line2Int && Equals((Line2Int) obj);
         }
 
+        /// <inheritdoc />
         public bool Equals(Line2Int other)
         {
             return Start == other.Start && End == other.End;
         }
 
+        /// <summary>
+        /// Creates a 2D integer segment.
+        /// 创建二维整型线段。
+        /// </summary>
         public Line2Int(Point2Int start, Point2Int end)
         {
             Start = start;

@@ -1,5 +1,9 @@
 ﻿namespace JLGames.Infra.Mathx
 {
+    /// <summary>
+    /// Precomputed single-bit and multi-bit masks for primitive integer types.
+    /// 为基本整型预计算的单比特与多比特掩码。
+    /// </summary>
     public static class BitMark
     {
         /// <summary>
@@ -127,26 +131,46 @@
             }
         }
 
+        /// <summary>
+        /// Returns a <see cref="byte"/> mask covering <paramref name="markLen"/> bits starting at <paramref name="markIndex"/>.
+        /// 返回从 <paramref name="markIndex"/> 起连续 <paramref name="markLen"/> 位的 <see cref="byte"/> 掩码。
+        /// </summary>
         public static byte GetByteMark(int markIndex, int markLen)
         {
             return (byte) GetIntMark(markIndex, markLen);
         }
 
+        /// <summary>
+        /// Returns the single-bit <see cref="byte"/> mask at <paramref name="markIndex"/>.
+        /// 返回 <paramref name="markIndex"/> 处的单比特 <see cref="byte"/> 掩码。
+        /// </summary>
         public static byte GetByteMark(int markIndex)
         {
             return ByteMarks[markIndex];
         }
 
+        /// <summary>
+        /// Returns a <see cref="ushort"/> mask covering <paramref name="markLen"/> bits starting at <paramref name="markIndex"/>.
+        /// 返回从 <paramref name="markIndex"/> 起连续 <paramref name="markLen"/> 位的 <see cref="ushort"/> 掩码。
+        /// </summary>
         public static ushort GetUshortMark(int markIndex, int markLen)
         {
             return (ushort) GetIntMark(markIndex, markLen);
         }
 
+        /// <summary>
+        /// Returns the single-bit <see cref="ushort"/> mask at <paramref name="markIndex"/>.
+        /// 返回 <paramref name="markIndex"/> 处的单比特 <see cref="ushort"/> 掩码。
+        /// </summary>
         public static ushort GetUshortMark(int markIndex)
         {
             return UshortMarks[markIndex];
         }
 
+        /// <summary>
+        /// Returns an <see cref="int"/> mask covering <paramref name="markLen"/> bits starting at <paramref name="markIndex"/>.
+        /// 返回从 <paramref name="markIndex"/> 起连续 <paramref name="markLen"/> 位的 <see cref="int"/> 掩码。
+        /// </summary>
         public static int GetIntMark(int markIndex, int markLen)
         {
             var rs = 0;
@@ -158,11 +182,19 @@
             return rs;
         }
 
+        /// <summary>
+        /// Returns the single-bit <see cref="int"/> mask at <paramref name="markIndex"/>.
+        /// 返回 <paramref name="markIndex"/> 处的单比特 <see cref="int"/> 掩码。
+        /// </summary>
         public static int GetIntMark(int markIndex)
         {
             return IntMarks[markIndex];
         }
 
+        /// <summary>
+        /// Returns a <see cref="uint"/> mask covering <paramref name="markLen"/> bits starting at <paramref name="markIndex"/>.
+        /// 返回从 <paramref name="markIndex"/> 起连续 <paramref name="markLen"/> 位的 <see cref="uint"/> 掩码。
+        /// </summary>
         public static uint GetUintMark(int markIndex, int markLen)
         {
             uint rs = 0;
@@ -174,11 +206,19 @@
             return rs;
         }
 
+        /// <summary>
+        /// Returns the single-bit <see cref="uint"/> mask at <paramref name="markIndex"/>.
+        /// 返回 <paramref name="markIndex"/> 处的单比特 <see cref="uint"/> 掩码。
+        /// </summary>
         public static uint GetUintMark(int markIndex)
         {
             return UintMarks[markIndex];
         }
 
+        /// <summary>
+        /// Returns a <see cref="ulong"/> mask covering <paramref name="markLen"/> bits starting at <paramref name="markIndex"/>.
+        /// 返回从 <paramref name="markIndex"/> 起连续 <paramref name="markLen"/> 位的 <see cref="ulong"/> 掩码。
+        /// </summary>
         public static ulong GetUlongMark(int markIndex, int markLen)
         {
             ulong rs = 0;
@@ -190,6 +230,10 @@
             return rs;
         }
 
+        /// <summary>
+        /// Returns the single-bit <see cref="ulong"/> mask at <paramref name="markIndex"/>.
+        /// 返回 <paramref name="markIndex"/> 处的单比特 <see cref="ulong"/> 掩码。
+        /// </summary>
         public static ulong GetUlongMark(int markIndex)
         {
             return UlongMarks[markIndex];

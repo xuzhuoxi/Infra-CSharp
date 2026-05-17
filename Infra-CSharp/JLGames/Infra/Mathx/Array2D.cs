@@ -14,15 +14,30 @@ namespace JLGames.Infra.Mathx
         private Point2Int m_Size;
         private Bounds2Int m_Bound;
 
+        /// <summary>
+        /// Creates an empty wrapper (call <see cref="SetData"/> before use).
+        /// 创建空包装（使用前需调用 <see cref="SetData"/>）。
+        /// </summary>
         public Array2D()
         {
         }
 
+        /// <summary>
+        /// Wraps a jagged 2D array; infers size from row 0 and row count.
+        /// 包装锯齿二维数组；根据首行宽度与行数推断尺寸。
+        /// </summary>
+        /// <param name="data">Row-major jagged array.<br/>行优先锯齿数组。</param>
         public Array2D(T[][] data)
         {
             SetData(data);
         }
 
+        /// <summary>
+        /// Builds a jagged 2D array from a flat buffer and row width.
+        /// 由扁平缓冲与行宽构建锯齿二维数组。
+        /// </summary>
+        /// <param name="data">Flat row-major buffer.<br/>扁平行优先缓冲。</param>
+        /// <param name="width">Cells per row.<br/>每行单元数。</param>
         public Array2D(T[] data, int width)
         {
             SetData(data, width);
@@ -212,11 +227,17 @@ namespace JLGames.Infra.Mathx
             return rs;
         }
 
+        /// <inheritdoc />
         public override string ToString()
         {
             return ToPrintString(true);
         }
 
+        /// <summary>
+        /// Formats all cells as comma-separated rows (optionally reversed Y order).
+        /// 将所有单元格格式化为逗号分隔的行（可选反转 Y 顺序）。
+        /// </summary>
+        /// <param name="reverse">If true, print from top row index downward.<br/>为 true 时按行索引从大到小输出。</param>
         public string ToPrintString(bool reverse)
         {
             var sb = new StringBuilder();

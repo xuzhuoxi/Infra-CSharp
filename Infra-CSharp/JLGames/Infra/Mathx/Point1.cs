@@ -25,18 +25,35 @@
             public double Remainder;
         }
 
+        /// <summary>
+        /// Coordinate value on the 1D axis.
+        /// 一维坐标值。
+        /// </summary>
         public double Value;
 
+        /// <summary>
+        /// Creates a 1D point with the given value.
+        /// 使用指定值创建一维点。
+        /// </summary>
+        /// <param name="value">Coordinate value.<br/>坐标值。</param>
         public Point1(double value)
         {
             Value = value;
         }
 
+        /// <summary>
+        /// Implicit conversion from <see cref="double"/> to <see cref="Point1"/>.
+        /// 从 <see cref="double"/> 到 <see cref="Point1"/> 的隐式转换。
+        /// </summary>
         public static implicit operator Point1(double point)
         {
             return new Point1(point);
         }
 
+        /// <summary>
+        /// Implicit conversion from <see cref="Point1"/> to <see cref="double"/>.
+        /// 从 <see cref="Point1"/> 到 <see cref="double"/> 的隐式转换。
+        /// </summary>
         public static implicit operator double(Point1 point)
         {
             return point.Value;

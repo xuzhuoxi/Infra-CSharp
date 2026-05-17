@@ -25,18 +25,35 @@
             public int Remainder;
         }
 
+        /// <summary>
+        /// Coordinate value on the 1D axis.
+        /// 一维坐标值（整型）。
+        /// </summary>
         public int Value;
 
+        /// <summary>
+        /// Creates a 1D integer point with the given value.
+        /// 使用指定值创建整型一维点。
+        /// </summary>
+        /// <param name="value">Coordinate value.<br/>坐标值。</param>
         public Point1Int(int value)
         {
             Value = value;
         }
 
+        /// <summary>
+        /// Implicit conversion from <see cref="int"/> to <see cref="Point1Int"/>.
+        /// 从 <see cref="int"/> 到 <see cref="Point1Int"/> 的隐式转换。
+        /// </summary>
         public static implicit operator Point1Int(int point)
         {
             return new Point1Int(point);
         }
 
+        /// <summary>
+        /// Implicit conversion from <see cref="Point1Int"/> to <see cref="int"/>.
+        /// 从 <see cref="Point1Int"/> 到 <see cref="int"/> 的隐式转换。
+        /// </summary>
         public static implicit operator int(Point1Int point)
         {
             return point.Value;

@@ -2,6 +2,10 @@
 
 namespace JLGames.Infra.Mathx
 {
+    /// <summary>
+    /// Closed float interval [Min, Max].
+    /// 闭区间浮点范围 [Min, Max]。
+    /// </summary>
     [Serializable]
     public struct Interval
     {
