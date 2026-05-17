@@ -2,6 +2,10 @@
 
 namespace JLGames.Infra.Event
 {
+    /// <summary>
+    /// Per-event-type handler list: registration, ordered dispatch, and limited invoke counts.
+    /// 单一事件类型的处理器列表：注册、按权重派发及限定调用次数。
+    /// </summary>
     public sealed class EventGroup
     {
         private struct EventItem
@@ -24,7 +28,7 @@ namespace JLGames.Infra.Event
         /// Trigger the listener event
         /// 触发监听事件
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">Event data to pass to handlers.<br/>传递给处理器的事件数据。</param>
         public void Handle(EventData data)
         {
             if (m_Handlers.Count == 0) return;
@@ -38,13 +42,13 @@ namespace JLGames.Infra.Event
         }
 
         /// <summary>
-        /// Add event hande function, use custom order, custom reamin
-        /// 添加事件处理函数, 使用自定义执行顺序系数, 自定义响应次数
+        /// Add event handler with custom weight and invoke limit.
+        /// 添加事件处理函数，使用自定义权重与响应次数。
         /// </summary>
-        /// <param name="handler"></param>
-        /// <param name="weight"></param>
-        /// <param name="handleTimes"></param>
-        /// <param name="tag"></param>
+        /// <param name="handler">Handler callback.<br/>处理回调。</param>
+        /// <param name="weight">Dispatch order weight (higher runs first).<br/>派发权重（越大越先执行）。</param>
+        /// <param name="handleTimes">Max invocations; 0 means unlimited.<br/>最大调用次数；0 表示不限次数。</param>
+        /// <param name="tag">Optional tag for later removal.<br/>可选标签，便于后续按标签移除。</param>
         public void AddEventHandler(EventDelegates.EventHandler handler, int weight, uint handleTimes, string tag)
         {
             if (null == handler) return;
@@ -55,8 +59,8 @@ namespace JLGames.Infra.Event
         /// Delete listener function
         /// 删除监听函数
         /// </summary>
-        /// <param name="handler"></param>
-        /// <param name="tag"></param>
+        /// <param name="handler">Handler to remove.<br/>要移除的处理器。</param>
+        /// <param name="tag">Optional tag filter.<br/>可选标签过滤。</param>
         public void RemoveEventHandler(EventDelegates.EventHandler handler, string tag)
         {
             if (null == handler || m_Handlers.Count == 0) return;
@@ -71,7 +75,7 @@ namespace JLGames.Infra.Event
         /// Delete listener function
         /// 删除监听函数
         /// </summary>
-        /// <param name="tag"></param>
+        /// <param name="tag">Tag of handlers to remove.<br/>要移除的处理器标签。</param>
         public void RemoveEventHandler(string tag)
         {
             if (string.IsNullOrEmpty(tag)) return;

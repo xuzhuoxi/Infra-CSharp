@@ -29,14 +29,24 @@ namespace JLGames.Infra.Event
         protected readonly string m_DispatcherName = "Default";
 
         /// <summary>
-        /// 自定义名称
+        /// Dispatcher instance name.
+        /// 调度器实例名称。
         /// </summary>
         public string DispatcherName => m_DispatcherName;
 
+        /// <summary>
+        /// Create a dispatcher with the default name.
+        /// 使用默认名称创建调度器。
+        /// </summary>
         public EventDispatcher()
         {
         }
 
+        /// <summary>
+        /// Create a dispatcher with the given name.
+        /// 使用指定名称创建调度器。
+        /// </summary>
+        /// <param name="name">Instance name.<br/>实例名称。</param>
         public EventDispatcher(string name)
         {
             m_DispatcherName = name;
@@ -44,13 +54,16 @@ namespace JLGames.Infra.Event
 
         // IThreadEventDispatcher
 
+        /// <inheritdoc />
         public bool IsNullContext => m_ThreadEventContext == null;
 
+        /// <inheritdoc />
         public void SetThreadEventContext(SynchronizationContext context)
         {
             m_ThreadEventContext = context;
         }
 
+        /// <inheritdoc />
         public void ClearThreadEventContext()
         {
             m_ThreadEventContext = null;
@@ -58,26 +71,31 @@ namespace JLGames.Infra.Event
 
         // IEventListener
 
+        /// <inheritdoc />
         public void OnceEventListener(string type, EventDelegates.EventHandler handler, int weight = EventConst.DefaultWeight, string tag = null)
         {
             AddEventListener(type, handler, weight, 1, tag);
         }
 
+        /// <inheritdoc />
         public void AddEventListener(string type, EventDelegates.EventHandler handler, string tag = null)
         {
             AddEventListener(type, handler, EventConst.DefaultWeight, 0, tag);
         }
 
+        /// <inheritdoc />
         public void AddEventListener(string type, EventDelegates.EventHandler handler, int weight, string tag = null)
         {
             AddEventListener(type, handler, weight, 0, tag);
         }
 
+        /// <inheritdoc />
         public void AddEventListener(string type, EventDelegates.EventHandler handler, uint listeningTimes, string tag = null)
         {
             AddEventListener(type, handler, EventConst.DefaultWeight, listeningTimes, tag);
         }
 
+        /// <inheritdoc />
         public void AddEventListener(string type, EventDelegates.EventHandler handler, int weight, uint listeningTimes, string tag = null)
         {
             EventGroup eventGroup;
@@ -94,29 +112,34 @@ namespace JLGames.Infra.Event
             eventGroup.AddEventHandler(handler, weight, listeningTimes, tag);
         }
 
+        /// <inheritdoc />
         public void RemoveEventListener(string type, EventDelegates.EventHandler handler, string tag = null)
         {
             if (null == handler || string.IsNullOrEmpty(type) || !m_Event2Group.ContainsKey(type)) return;
             m_Event2Group[type].RemoveEventHandler(handler, tag);
         }
 
+        /// <inheritdoc />
         public void RemoveEventListener(string type, string tag)
         {
             if (string.IsNullOrEmpty(type) || string.IsNullOrEmpty(tag) || !m_Event2Group.ContainsKey(type)) return;
             m_Event2Group[type].RemoveEventHandler(tag);
         }
 
+        /// <inheritdoc />
         public void RemoveEventListener(string type)
         {
             if (string.IsNullOrEmpty(type) || !m_Event2Group.ContainsKey(type)) return;
             m_Event2Group.Remove(type);
         }
 
+        /// <inheritdoc />
         public void RemoveEventListener()
         {
             m_Event2Group.Clear();
         }
 
+        /// <inheritdoc />
         public virtual void Dispose()
         {
             m_Event2Group.Clear();
@@ -124,6 +147,7 @@ namespace JLGames.Infra.Event
 
         // IEventDispatcher
 
+        /// <inheritdoc />
         public virtual void DispatchEvent(string type, object data)
         {
             if (!m_Event2Group.ContainsKey(type))
@@ -133,6 +157,7 @@ namespace JLGames.Infra.Event
             DispatchData(eventData);
         }
 
+        /// <inheritdoc />
         public virtual void DispatchEvent(EventData evd)
         {
             if (!m_Event2Group.ContainsKey(evd.Type))
