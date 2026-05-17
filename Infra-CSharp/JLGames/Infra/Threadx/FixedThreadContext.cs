@@ -4,6 +4,10 @@ using System.Threading;
 
 namespace JLGames.Infra.Threadx
 {
+    /// <summary>
+    /// <see cref="SynchronizationContext"/> that marshals work to a fixed main thread via a blocking queue.
+    /// 将工作通过阻塞队列派发到固定主线程的 <see cref="SynchronizationContext"/>。
+    /// </summary>
     public class FixedThreadContext : SynchronizationContext, IDisposable, ICloneable<SynchronizationContext>
     {
         private const int KAwqInitialCapacity = 20;
@@ -12,23 +16,47 @@ namespace JLGames.Infra.Threadx
         private bool m_Disposed;
         private int m_ExecFlag = 0;
 
+        /// <summary>
+        /// Managed thread ID of the thread that owns this context (target for marshaled work).
+        /// 拥有本上下文的托管线程 ID（工作派发的目标线程）。
+        /// </summary>
         public int MainThreadId => m_MainThreadId;
 
+        /// <summary>
+        /// Number of work items currently queued and not yet taken.
+        /// 当前已入队、尚未取出的工作项数量。
+        /// </summary>
         public int PendingCount => m_AsyncWorkQueue.Count;
 
+        /// <summary>
+        /// Creates a context with a new internal queue bound to <paramref name="mainThreadId"/>.
+        /// 创建绑定到 <paramref name="mainThreadId"/> 的上下文，并新建内部队列。
+        /// </summary>
+        /// <param name="mainThreadId">Managed thread ID of the main thread. 主线程的托管线程 ID。</param>
         public FixedThreadContext(int mainThreadId)
         {
             m_AsyncWorkQueue = new BlockingCollection<ContextWorkRequest>(KAwqInitialCapacity);
             m_MainThreadId = mainThreadId;
         }
 
+        /// <summary>
+        /// Creates a context that shares an existing queue (used by <see cref="Clone"/>).
+        /// 使用已有队列创建上下文（供 <see cref="Clone"/> 使用）。
+        /// </summary>
+        /// <param name="queue">Shared async work queue. 共享的异步工作队列。</param>
+        /// <param name="mainThreadId">Managed thread ID of the main thread. 主线程的托管线程 ID。</param>
         public FixedThreadContext(BlockingCollection<ContextWorkRequest> queue, int mainThreadId)
         {
             m_AsyncWorkQueue = queue;
             m_MainThreadId = mainThreadId;
         }
 
-        // Post will add the call to a task list to be executed later on the main thread then work will continue asynchronously
+        /// <summary>
+        /// Queues the callback for asynchronous execution on the main thread; the caller returns immediately.
+        /// 将回调加入队列，在主线程上异步执行；调用方立即返回。
+        /// </summary>
+        /// <param name="callback">Delegate to run on the main thread. 在主线程上执行的委托。</param>
+        /// <param name="state">State passed to <paramref name="callback"/>. 传给 <paramref name="callback"/> 的状态对象。</param>
         public override void Post(SendOrPostCallback callback, object state)
         {
             lock (m_AsyncWorkQueue)
@@ -37,9 +65,16 @@ namespace JLGames.Infra.Threadx
             }
         }
 
-        // Send will process the call synchronously. If the call is processed on the main thread, we'll invoke it
-        // directly here. If the call is processed on another thread it will be queued up like POST to be executed
-        // on the main thread and it will wait. Once the main thread processes the work we can continue
+        /// <summary>
+        /// Runs the callback on the main thread and blocks until it completes.
+        /// 在主线程上执行回调并阻塞调用方直至完成。
+        /// </summary>
+        /// <remarks>
+        /// If already on the main thread, invokes <paramref name="callback"/> directly; otherwise enqueues with a wait handle and blocks.
+        /// 若已在主线程则直接调用 <paramref name="callback"/>；否则入队并借助等待句柄阻塞直至执行完毕。
+        /// </remarks>
+        /// <param name="callback">Delegate to run on the main thread. 在主线程上执行的委托。</param>
+        /// <param name="state">State passed to <paramref name="callback"/>. 传给 <paramref name="callback"/> 的状态对象。</param>
         public override void Send(SendOrPostCallback callback, object state)
         {
             if (m_MainThreadId == System.Threading.Thread.CurrentThread.ManagedThreadId)
@@ -60,18 +95,28 @@ namespace JLGames.Infra.Threadx
             }
         }
 
+        /// <summary>
+        /// Stops background execution and marks the queue as complete for adding.
+        /// 停止后台执行，并将队列标记为不再接受新项。
+        /// </summary>
         public void Dispose()
         {
             StopExec();
         }
 
+        /// <summary>
+        /// Returns a new context instance that shares the same queue and main thread ID.
+        /// 返回共享同一队列与主线程 ID 的新上下文实例。
+        /// </summary>
+        /// <returns>A cloned <see cref="SynchronizationContext"/>. 克隆后的 <see cref="SynchronizationContext"/>。</returns>
         public SynchronizationContext Clone()
         {
             return new FixedThreadContext(m_AsyncWorkQueue, m_MainThreadId);
         }
 
         /// <summary>
-        /// 处理全部任务，由外部线程调用
+        /// Drains all currently queued work items; intended to be called from the main thread (or an external pump).
+        /// 处理当前队列中的全部工作项；由主线程或外部泵循环调用。
         /// </summary>
         public void ProcessTasks()
         {
@@ -79,9 +124,10 @@ namespace JLGames.Infra.Threadx
         }
 
         /// <summary>
-        /// 处理任务，由外部线程调用
+        /// Dequeues and runs at most <paramref name="maxTaskSize"/> work items without blocking on an empty queue.
+        /// 最多取出并执行 <paramref name="maxTaskSize"/> 个工作项；队列为空时不阻塞。
         /// </summary>
-        /// <param name="maxTaskSize"></param>
+        /// <param name="maxTaskSize">Maximum number of items to process this call. 本次调用最多处理的工作项数。</param>
         public void ProcessTasks(int maxTaskSize)
         {
             for (var i = 0; i < maxTaskSize; i++)
@@ -102,8 +148,8 @@ namespace JLGames.Infra.Threadx
         }
 
         /// <summary>
-        /// Enable multi-threaded monitoring and processing tasks
-        /// 开启多线程监听并处理任务
+        /// Starts a background thread that blocks on the queue and invokes work items until <see cref="StopExec"/>.
+        /// 启动后台线程，阻塞等待队列中的工作项并执行，直至调用 <see cref="StopExec"/>。
         /// </summary>
         public void StartExec()
         {
@@ -116,8 +162,8 @@ namespace JLGames.Infra.Threadx
         }
 
         /// <summary>
-        /// Stop adding and end multithreading after all Task processing is completed
-        /// 停止添加，在全部Task处理完成后结束多线程
+        /// Stops accepting new work and completes the queue; the background thread exits after pending items are processed.
+        /// 停止接受新工作并完成队列；待处理项执行完毕后后台线程退出。
         /// </summary>
         public void StopExec()
         {
