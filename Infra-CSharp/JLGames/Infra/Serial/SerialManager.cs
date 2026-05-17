@@ -3,6 +3,10 @@ using JLGames.Infra.Event;
 
 namespace JLGames.Infra.Serial
 {
+    /// <summary>
+    /// Default <see cref="ISerialManager"/> implementation; drives modules sequentially and dispatches manager lifecycle events.
+    /// 默认 <see cref="ISerialManager"/> 实现；按序驱动各模块并派发管理器生命周期事件。
+    /// </summary>
     public sealed class SerialManager : EventDispatcher, ISerialManager
     {
         private readonly List<ISerialModule> m_Modules = new List<ISerialModule>();
@@ -10,12 +14,14 @@ namespace JLGames.Infra.Serial
         private int m_Index;
         private Callback m_EndCall;
 
+        /// <inheritdoc />
         public void AppendModule(ISerialModule module)
         {
             if (null == module) return;
             m_Modules.Add(module);
         }
 
+        /// <inheritdoc />
         public bool StartManager(Callback endCall = null)
         {
             if (m_Status != SerialStatus.Stopped) return false;
@@ -27,6 +33,7 @@ namespace JLGames.Infra.Serial
             return true;
         }
 
+        /// <inheritdoc />
         public bool StopManager(Callback endCall = null)
         {
             if (m_Status != SerialStatus.Started) return false;
