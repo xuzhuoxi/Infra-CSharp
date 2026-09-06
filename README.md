@@ -2,6 +2,7 @@
 
 [![.NET Standard](https://img.shields.io/badge/.NET%20Standard-2.0-blue.svg)](https://docs.microsoft.com/en-us/dotnet/standard/net-standard)
 [![C#](https://img.shields.io/badge/C%23-7.3+-green.svg)](https://docs.microsoft.com/en-us/dotnet/csharp/)
+[![CI](https://github.com/xuzhuoxi/Infra-CSharp/actions/workflows/CI.yml/badge.svg)](https://github.com/xuzhuoxi/Infra-CSharp/actions/workflows/CI.yml)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 一个功能全面的C#基础设施框架，为.NET应用程序提供丰富的工具集和功能模块。
@@ -366,9 +367,14 @@ dotnet test Infra-Tests/Infra-Tests.csproj
 # 运行特定测试类别
 dotnet test --filter "Category=Crypto"
 
+# 与 CI 相同：跳过依赖本机服务的用例
+dotnet test --filter "Category!=RunOnlyThis"
+
 # 运行覆盖率测试
 dotnet test --collect:"XPlat Code Coverage"
 ```
+
+推送到 `master` 或向 `master` 开 Pull Request 时，GitHub Actions 会构建并运行测试（见 `.github/workflows/CI.yml`）。打 `v*.*.*` tag 发版见 [Release 说明](.github/workflows/Release.md)。
 
 ### 测试类别
 

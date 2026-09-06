@@ -2,6 +2,7 @@
 
 [![.NET Standard](https://img.shields.io/badge/.NET%20Standard-2.0-blue.svg)](https://docs.microsoft.com/en-us/dotnet/standard/net-standard)
 [![C#](https://img.shields.io/badge/C%23-7.3+-green.svg)](https://docs.microsoft.com/en-us/dotnet/csharp/)
+[![CI](https://github.com/xuzhuoxi/Infra-CSharp/actions/workflows/CI.yml/badge.svg)](https://github.com/xuzhuoxi/Infra-CSharp/actions/workflows/CI.yml)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A comprehensive C# infrastructure framework providing a rich set of utility tools and functional modules for .NET applications.
@@ -368,9 +369,14 @@ dotnet test Infra-Tests/Infra-Tests.csproj
 # Run specific test category
 dotnet test --filter "Category=Crypto"
 
+# Same as CI: skip tests that need a local server
+dotnet test --filter "Category!=RunOnlyThis"
+
 # Run with coverage
 dotnet test --collect:"XPlat Code Coverage"
 ```
+
+Pushes and pull requests to `master` run build and tests via GitHub Actions (see `.github/workflows/CI.yml`). Tagging `v*.*.*` for a release is documented in [Release.md](.github/workflows/Release.md).
 
 ### Test Categories
 

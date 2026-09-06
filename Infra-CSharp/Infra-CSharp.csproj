@@ -6,8 +6,19 @@
         <RootNamespace></RootNamespace>
         <ImplicitUsings>disable</ImplicitUsings>
         <Nullable>disable</Nullable>
-		<ConsoleEncoding>UTF-8</ConsoleEncoding> 
+        <ConsoleEncoding>UTF-8</ConsoleEncoding> 
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <!-- NuGet 打包暂不启用
+        <PackageId>JLGames.Infra</PackageId>
+        <Authors>xuzhuoxi</Authors>
+        <Description>A comprehensive C# infrastructure framework providing tools and modules for .NET applications.</Description>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/xuzhuoxi/Infra-CSharp</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/xuzhuoxi/Infra-CSharp.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>infrastructure;crypto;network;event;utility</PackageTags>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        -->
     </PropertyGroup>
 
 <!--    <ItemGroup>-->
