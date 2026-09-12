@@ -2,10 +2,128 @@
 
 ## Namespace: JLGames.Infra.Mathx
 
+Points, line segments, intervals, 2D bounds, bit masks, and common math helpers.
+
 ### Structs
 
+#### Point1
+1D point (`double`)
+
+```csharp
+/// <summary>
+/// 1D point
+/// </summary>
+public struct Point1
+{
+    /// <summary>
+    /// Area point
+    /// </summary>
+    public struct AreaPoint1
+    {
+        /// <summary>
+        /// Area index
+        /// </summary>
+        public long AreaIndex;
+
+        /// <summary>
+        /// Area remainder
+        /// </summary>
+        public double Remainder;
+    }
+
+    /// <summary>
+    /// Coordinate value on the 1D axis.
+    /// </summary>
+    public double Value;
+
+    /// <summary>
+    /// Creates a 1D point with the given value.
+    /// </summary>
+    /// <param name="value">Coordinate value.</param>
+    public Point1(double value);
+
+    /// <summary>
+    /// Implicit conversion from double to Point1.
+    /// </summary>
+    public static implicit operator Point1(double point);
+
+    /// <summary>
+    /// Implicit conversion from Point1 to double.
+    /// </summary>
+    public static implicit operator double(Point1 point);
+
+    /// <summary>
+    /// Convert to area point
+    /// </summary>
+    public static AreaPoint1 ToAreaPoint1(double point1, ulong size);
+
+    /// <summary>
+    /// Convert to 1D point
+    /// </summary>
+    public static Point1 FromAreaPoint1(AreaPoint1 point1, ulong size);
+}
+```
+
+#### Point1Int
+1D point (integer)
+
+```csharp
+/// <summary>
+/// 1D point(Integer)
+/// </summary>
+public struct Point1Int
+{
+    /// <summary>
+    /// Area point
+    /// </summary>
+    public struct AreaPoint1Int
+    {
+        /// <summary>
+        /// Area index
+        /// </summary>
+        public int AreaIndex;
+
+        /// <summary>
+        /// Area remainder
+        /// </summary>
+        public int Remainder;
+    }
+
+    /// <summary>
+    /// Coordinate value on the 1D axis.
+    /// </summary>
+    public int Value;
+
+    /// <summary>
+    /// Creates a 1D integer point with the given value.
+    /// </summary>
+    /// <param name="value">Coordinate value.</param>
+    public Point1Int(int value);
+
+    /// <summary>
+    /// Implicit conversion from int to Point1Int.
+    /// </summary>
+    public static implicit operator Point1Int(int point);
+
+    /// <summary>
+    /// Implicit conversion from Point1Int to int.
+    /// </summary>
+    public static implicit operator int(Point1Int point);
+
+    /// <summary>
+    /// Convert to area point
+    /// </summary>
+    public static AreaPoint1Int ToAreaPoint1(int point1, uint size);
+
+    /// <summary>
+    /// Convert to 1D point
+    /// </summary>
+    public static Point1Int FromAreaPoint1(AreaPoint1Int point1, uint size);
+}
+```
+
 #### Point2Int
-2D integer point struct
+2D integer point
 
 ```csharp
 /// <summary>
@@ -13,64 +131,74 @@
 /// </summary>
 public struct Point2Int : IEquatable<Point2Int>
 {
+    /// <summary>
+    /// X coordinate.
+    /// </summary>
     public int X;
+
+    /// <summary>
+    /// Y coordinate.
+    /// </summary>
     public int Y;
 
     /// <summary>
-    /// Constructor
+    /// Component access by index: 0 = X, 1 = Y.
     /// </summary>
-    /// <param name="x">X coordinate</param>
-    /// <param name="y">Y coordinate</param>
-    public Point2Int(int x, int y);
-
-    /// <summary>
-    /// Set coordinate values
-    /// </summary>
-    /// <param name="newX">New X coordinate</param>
-    /// <param name="newY">New Y coordinate</param>
-    public void Set(int newX, int newY);
-
-    /// <summary>
-    /// Indexer, access X or Y coordinate through index
-    /// </summary>
-    /// <param name="index">Index: 0=X, 1=Y</param>
-    /// <returns>Coordinate value</returns>
+    /// <param name="index">Component index (0 or 1).</param>
+    /// <exception cref="IndexOutOfRangeException">Index is not 0 or 1.</exception>
     public int this[int index] { get; set; }
 
     /// <summary>
-    /// Zero vector
+    /// Creates a 2D integer point.
+    /// </summary>
+    /// <param name="x">X coordinate.</param>
+    /// <param name="y">Y coordinate.</param>
+    public Point2Int(int x, int y);
+
+    /// <summary>
+    /// Sets both coordinates.
+    /// </summary>
+    public void Set(int newX, int newY);
+
+    /// <summary>
+    /// Origin (0, 0).
     /// </summary>
     public static readonly Point2Int Zero;
 
     /// <summary>
-    /// Addition operator
+    /// Component-wise addition.
     /// </summary>
     public static Point2Int operator +(Point2Int b, Point2Int c);
 
     /// <summary>
-    /// Subtraction operator
+    /// Component-wise subtraction.
     /// </summary>
     public static Point2Int operator -(Point2Int b, Point2Int c);
 
     /// <summary>
-    /// Equality comparison operator
-    /// </summary>
-    public static bool operator ==(Point2Int b, Point2Int c);
-
-    /// <summary>
-    /// Inequality comparison operator
+    /// Inequality comparison.
     /// </summary>
     public static bool operator !=(Point2Int b, Point2Int c);
 
     /// <summary>
-    /// Implicit conversion to Point3Int
+    /// Equality comparison.
+    /// </summary>
+    public static bool operator ==(Point2Int b, Point2Int c);
+
+    /// <summary>
+    /// Promotes to Point3Int with Z = 0.
     /// </summary>
     public static implicit operator Point3Int(Point2Int v);
+
+    public override string ToString();
+    public override int GetHashCode();
+    public override bool Equals(object obj);
+    public bool Equals(Point2Int other);
 }
 ```
 
 #### Point3Int
-3D integer point struct
+3D integer point
 
 ```csharp
 /// <summary>
@@ -78,99 +206,694 @@ public struct Point2Int : IEquatable<Point2Int>
 /// </summary>
 public struct Point3Int : IEquatable<Point3Int>
 {
+    /// <summary>
+    /// X coordinate.
+    /// </summary>
     public int X;
+
+    /// <summary>
+    /// Y coordinate.
+    /// </summary>
     public int Y;
+
+    /// <summary>
+    /// Z coordinate.
+    /// </summary>
     public int Z;
 
     /// <summary>
-    /// Constructor
+    /// Component access by index: 0 = X, 1 = Y, 2 = Z.
     /// </summary>
-    /// <param name="x">X coordinate</param>
-    /// <param name="y">Y coordinate</param>
-    /// <param name="z">Z coordinate</param>
+    /// <param name="index">Component index (0, 1, or 2).</param>
+    /// <exception cref="IndexOutOfRangeException">Index is not 0, 1, or 2.</exception>
+    public int this[int index] { get; set; }
+
+    /// <summary>
+    /// Creates a 3D integer point.
+    /// </summary>
     public Point3Int(int x, int y, int z);
 
     /// <summary>
-    /// Set coordinate values
+    /// Sets all three coordinates.
     /// </summary>
-    /// <param name="newX">New X coordinate</param>
-    /// <param name="newY">New Y coordinate</param>
-    /// <param name="newZ">New Z coordinate</param>
     public void Set(int newX, int newY, int newZ);
 
     /// <summary>
-    /// Zero vector
+    /// Component-wise addition.
     /// </summary>
-    public static readonly Point3Int Zero;
+    public static Point3Int operator +(Point3Int b, Point3Int c);
+
+    /// <summary>
+    /// Component-wise subtraction.
+    /// </summary>
+    public static Point3Int operator -(Point3Int b, Point3Int c);
+
+    /// <summary>
+    /// Inequality comparison.
+    /// </summary>
+    public static bool operator !=(Point3Int b, Point3Int c);
+
+    /// <summary>
+    /// Equality comparison.
+    /// </summary>
+    public static bool operator ==(Point3Int b, Point3Int c);
+
+    /// <summary>
+    /// Drops Z and returns the XY components as Point2Int.
+    /// </summary>
+    public static implicit operator Point2Int(Point3Int v);
+
+    public override string ToString();
+    public override int GetHashCode();
+    public override bool Equals(object obj);
+    public bool Equals(Point3Int other);
 }
 ```
 
 #### Bounds2Int
-2D integer bounds struct
+Axis-aligned 2D integer bounds `[XMin, XMax) × [YMin, YMax)` (half-open)
 
 ```csharp
 /// <summary>
-/// 2D bounds (Integer)
+/// Axis-aligned 2D integer bounds [XMin, XMax) × [YMin, YMax) (half-open).
 /// </summary>
 public struct Bounds2Int : IEquatable<Bounds2Int>
 {
-    private Point2Int m_Min;
-    private Point2Int m_Max;
-
     /// <summary>
-    /// Minimum X coordinate
+    /// Minimum X (inclusive).
     /// </summary>
     public int XMin { get; set; }
 
     /// <summary>
-    /// Minimum Y coordinate
+    /// Minimum Y (inclusive).
     /// </summary>
     public int YMin { get; set; }
 
     /// <summary>
-    /// Maximum X coordinate
+    /// Maximum X (exclusive).
     /// </summary>
     public int XMax { get; set; }
 
     /// <summary>
-    /// Maximum Y coordinate
+    /// Maximum Y (exclusive).
     /// </summary>
     public int YMax { get; set; }
 
     /// <summary>
-    /// X direction size
+    /// Width (XMax − XMin).
     /// </summary>
     public int XSize { get; set; }
 
     /// <summary>
-    /// Y direction size
+    /// Height (YMax − YMin).
     /// </summary>
     public int YSize { get; set; }
 
     /// <summary>
-    /// Minimum point
+    /// Minimum corner (inclusive).
     /// </summary>
     public Point2Int Min { get; set; }
 
     /// <summary>
-    /// Maximum point
+    /// Maximum corner (exclusive).
     /// </summary>
     public Point2Int Max { get; set; }
 
     /// <summary>
-    /// X direction center point
+    /// Center X coordinate.
     /// </summary>
     public int XCenter { get; }
 
     /// <summary>
-    /// Y direction center point
+    /// Center Y coordinate.
     /// </summary>
     public int YCenter { get; }
 
     /// <summary>
-    /// Center point
+    /// Center point.
     /// </summary>
     public Point2Int Center { get; }
+
+    /// <summary>
+    /// Size as (XSize, YSize).
+    /// </summary>
+    public Point2Int Size { get; }
+
+    /// <summary>
+    /// Number of unit cells (XSize × YSize).
+    /// </summary>
+    public int Area { get; }
+
+    /// <summary>
+    /// Whether the bounds have zero area.
+    /// </summary>
+    public bool IsNone { get; }
+
+    /// <summary>
+    /// Creates bounds from min and max corners.
+    /// </summary>
+    public Bounds2Int(Point2Int min, Point2Int max);
+
+    /// <summary>
+    /// Creates bounds from axis limits.
+    /// </summary>
+    public Bounds2Int(int xMin, int yMin, int xMax, int yMax);
+
+    /// <summary>
+    /// Replaces min and max corners.
+    /// </summary>
+    public void Set(Point2Int min, Point2Int max);
+
+    /// <summary>
+    /// Whether the point lies inside this bounds (half-open).
+    /// </summary>
+    public bool Contains(Point2Int point);
+
+    /// <summary>
+    /// Whether (x, y) lies inside this bounds (half-open).
+    /// </summary>
+    public bool Contains(int x, int y);
+
+    /// <summary>
+    /// Whether x is in [XMin, XMax).
+    /// </summary>
+    public bool ContainsX(int x);
+
+    /// <summary>
+    /// Whether y is in [YMin, YMax).
+    /// </summary>
+    public bool ContainsY(int y);
+
+    /// <summary>
+    /// Check if two bounds intersect
+    /// </summary>
+    /// <param name="bounds2Int">Other bounds.</param>
+    /// <returns>True if any corner of the other bounds lies inside this bounds.</returns>
+    public bool Intersect(Bounds2Int bounds2Int);
+
+    /// <summary>
+    /// Convert to point array
+    /// </summary>
+    /// <returns>All integer points in the bounds, or null if empty.</returns>
+    public Point2Int[] ToArray();
+
+    /// <summary>
+    /// Returns a copy translated by offset.
+    /// </summary>
+    public Bounds2Int Move(Point2Int offset);
+
+    /// <summary>
+    /// Intersection with another bounds (as corners).
+    /// </summary>
+    public Bounds2Int Crop(Bounds2Int subCrop);
+
+    /// <summary>
+    /// Intersection with the axis-aligned box [min, max).
+    /// </summary>
+    public Bounds2Int Crop2(Point2Int min, Point2Int max);
+
+    /// <summary>
+    /// Intersection with the axis-aligned box [minX, maxX) × [minY, maxY).
+    /// </summary>
+    public Bounds2Int Crop2(int minX, int minY, int maxX, int maxY);
+
+    /// <summary>
+    /// Intersection cropped along X only.
+    /// </summary>
+    public Bounds2Int CropX(int minX, int maxX);
+
+    /// <summary>
+    /// Intersection cropped along Y only.
+    /// </summary>
+    public Bounds2Int CropY(int minY, int maxY);
+
+    /// <summary>
+    /// Split with x
+    /// </summary>
+    /// <param name="x">Split line (must lie inside X range for a real split).</param>
+    /// <returns>One or two sub-bounds.</returns>
+    public Bounds2Int[] SplitX(int x);
+
+    /// <summary>
+    /// Split with y
+    /// </summary>
+    /// <param name="y">Split line (must lie inside Y range for a real split).</param>
+    /// <returns>One or two sub-bounds.</returns>
+    public Bounds2Int[] SplitY(int y);
+
+    /// <summary>
+    /// Union of grid points from this bounds and others (deduplicated).
+    /// </summary>
+    public Point2Int[] Add(Bounds2Int add, params Bounds2Int[] other);
+
+    /// <summary>
+    /// Grid points in this bounds minus those in sub and others.
+    /// </summary>
+    public Point2Int[] Sub(Bounds2Int sub, params Bounds2Int[] other);
+
+    /// <summary>
+    /// Inequality comparison.
+    /// </summary>
+    public static bool operator !=(Bounds2Int b, Bounds2Int c);
+
+    /// <summary>
+    /// Equality comparison.
+    /// </summary>
+    public static bool operator ==(Bounds2Int b, Bounds2Int c);
+
+    /// <summary>
+    /// Scales bounds about center (ceil per axis).
+    /// </summary>
+    public static Bounds2Int operator /(Bounds2Int b, float c);
+
+    /// <summary>
+    /// Scales bounds about center (ceil per axis).
+    /// </summary>
+    public static Bounds2Int operator *(Bounds2Int b, float c);
+
+    /// <summary>
+    /// Builds half-open bounds centered at center with given size.
+    /// </summary>
+    public static Bounds2Int NewCenterBound(Point2Int center, Point2Int size);
+
+    /// <summary>
+    /// Builds half-open bounds centered at (centerX, centerY) with given size.
+    /// </summary>
+    public static Bounds2Int NewCenterBound(int centerX, int centerY, int sizeX, int sizeY);
+
+    /// <summary>
+    /// Empty bounds (zero area).
+    /// </summary>
+    public static readonly Bounds2Int Empty;
+
+    public override string ToString();
+    public override int GetHashCode();
+    public override bool Equals(object obj);
+    public bool Equals(Bounds2Int other);
+}
+```
+
+#### Line1
+1D line segment (floating-point endpoints)
+
+```csharp
+/// <summary>
+/// 1D line segment (floating-point endpoints).
+/// </summary>
+public struct Line1 : IEquatable<Line1>
+{
+    /// <summary>
+    /// Start endpoint.
+    /// </summary>
+    public double Start;
+
+    /// <summary>
+    /// End endpoint.
+    /// </summary>
+    public double End;
+
+    /// <summary>
+    /// Smaller of Start and End.
+    /// </summary>
+    public double Min { get; }
+
+    /// <summary>
+    /// Larger of Start and End.
+    /// </summary>
+    public double Max { get; }
+
+    /// <summary>
+    /// Signed length (End − Start).
+    /// </summary>
+    public double Size { get; }
+
+    /// <summary>
+    /// Absolute length.
+    /// </summary>
+    public double AbsSize { get; }
+
+    /// <summary>
+    /// Whether start and end coincide (within float tolerance).
+    /// </summary>
+    public bool IsPoint { get; }
+
+    /// <summary>
+    /// Creates a 1D segment.
+    /// </summary>
+    public Line1(double start, double end);
+
+    /// <summary>
+    /// Splits this segment into sub-segments of length size, aligned at coordinate 0.
+    /// </summary>
+    /// <param name="size">Segment length (must be non-zero).</param>
+    /// <returns>Sub-segments, or null if size is zero.</returns>
+    public Line1[] SliceAtZero(double size);
+
+    /// <summary>
+    /// Splits this segment aligned at Start.
+    /// </summary>
+    public Line1[] SliceAtStart(double size);
+
+    /// <summary>
+    /// Splits this segment aligned at End.
+    /// </summary>
+    public Line1[] SliceAtEnd(double size);
+
+    /// <summary>
+    /// Splits this segment aligned at Min.
+    /// </summary>
+    public Line1[] SliceAtMin(double size);
+
+    /// <summary>
+    /// Splits this segment aligned at Max.
+    /// </summary>
+    public Line1[] SliceAtMax(double size);
+
+    /// <summary>
+    /// Split into multiple Line1s based on basis Point
+    /// </summary>
+    /// <param name="basisPoint">Alignment reference on the axis.</param>
+    /// <param name="size">Segment length (must be non-zero).</param>
+    /// <returns>Sub-segments, or null if size is zero.</returns>
+    public Line1[] SliceAt(double basisPoint, double size);
+
+    public override string ToString();
+    public override int GetHashCode();
+    public override bool Equals(object obj);
+    public bool Equals(Line1 other);
+}
+```
+
+#### Line1Int
+1D line segment (integer endpoints)
+
+```csharp
+/// <summary>
+/// 1D line segment (integer endpoints).
+/// </summary>
+public struct Line1Int : IEquatable<Line1Int>
+{
+    /// <summary>
+    /// Start endpoint.
+    /// </summary>
+    public int Start;
+
+    /// <summary>
+    /// End endpoint.
+    /// </summary>
+    public int End;
+
+    /// <summary>
+    /// Smaller of Start and End.
+    /// </summary>
+    public int Min { get; }
+
+    /// <summary>
+    /// Larger of Start and End.
+    /// </summary>
+    public int Max { get; }
+
+    /// <summary>
+    /// Signed length (End − Start).
+    /// </summary>
+    public int Size { get; }
+
+    /// <summary>
+    /// Absolute length.
+    /// </summary>
+    public int AbsSize { get; }
+
+    /// <summary>
+    /// Whether start and end are equal.
+    /// </summary>
+    public bool IsPoint { get; }
+
+    /// <summary>
+    /// Creates a 1D integer segment.
+    /// </summary>
+    public Line1Int(int start, int end);
+
+    /// <summary>
+    /// Splits this segment into sub-segments of length size, aligned at coordinate 0.
+    /// </summary>
+    public Line1Int[] SliceAtZero(int size);
+
+    /// <summary>
+    /// Splits this segment aligned at Start.
+    /// </summary>
+    public Line1Int[] SliceAtStart(int size);
+
+    /// <summary>
+    /// Splits this segment aligned at End.
+    /// </summary>
+    public Line1Int[] SliceAtEnd(int size);
+
+    /// <summary>
+    /// Splits this segment aligned at Min.
+    /// </summary>
+    public Line1Int[] SliceAtMin(int size);
+
+    /// <summary>
+    /// Splits this segment aligned at Max.
+    /// </summary>
+    public Line1Int[] SliceAtMax(int size);
+
+    /// <summary>
+    /// Split into multiple Line1Int segments based on basis point
+    /// </summary>
+    /// <param name="basisPoint">Alignment reference on the axis.</param>
+    /// <param name="size">Segment length (must be non-zero).</param>
+    /// <returns>Sub-segments, or null if size is zero.</returns>
+    public Line1Int[] SliceAt(int basisPoint, int size);
+
+    public override string ToString();
+    public override int GetHashCode();
+    public override bool Equals(object obj);
+    public bool Equals(Line1Int other);
+}
+```
+
+#### Line2Int
+2D line segment with integer endpoints
+
+```csharp
+/// <summary>
+/// 2D line segment with integer endpoints.
+/// </summary>
+public struct Line2Int : IEquatable<Line2Int>
+{
+    /// <summary>
+    /// Start point.
+    /// </summary>
+    public Point2Int Start;
+
+    /// <summary>
+    /// End point.
+    /// </summary>
+    public Point2Int End;
+
+    /// <summary>
+    /// Squared length (avoids sqrt).
+    /// </summary>
+    public int SqrMagnitude { get; }
+
+    /// <summary>
+    /// Euclidean length.
+    /// </summary>
+    public double Magnitude { get; }
+
+    /// <summary>
+    /// Whether start and end coincide.
+    /// </summary>
+    public bool IsPoint { get; }
+
+    /// <summary>
+    /// Creates a 2D integer segment.
+    /// </summary>
+    public Line2Int(Point2Int start, Point2Int end);
+
+    public override string ToString();
+    public override int GetHashCode();
+    public override bool Equals(object obj);
+    public bool Equals(Line2Int other);
+}
+```
+
+#### Interval
+Closed float interval `[Min, Max]`
+
+```csharp
+/// <summary>
+/// Closed float interval [Min, Max].
+/// </summary>
+[Serializable]
+public struct Interval
+{
+    /// <summary>
+    /// The min value of the interval.
+    /// </summary>
+    public float Min;
+
+    /// <summary>
+    /// The max value of the interval.
+    /// </summary>
+    public float Max;
+
+    /// <summary>
+    /// The length of the interval (inclusive).
+    /// </summary>
+    public float Length { get; set; }
+
+    /// <summary>
+    /// Constructs a new Interval with given min, max values.
+    /// </summary>
+    public Interval(float min, float max);
+}
+```
+
+#### IntervalInt
+Integer interval `[Min, Max]` with optional inclusive maximum
+
+```csharp
+/// <summary>
+/// Integer interval [Min, Max] with optional inclusive maximum.
+/// </summary>
+[Serializable]
+public struct IntervalInt
+{
+    /// <summary>
+    /// The min value of the interval. where 0 is the first position, 1 is the second, 2 is the third, and so on.
+    /// </summary>
+    public int Min;
+
+    /// <summary>
+    /// The max value of the interval.
+    /// </summary>
+    public int Max;
+
+    /// <summary>
+    /// Whether Max is included in the interval when computing Length.
+    /// </summary>
+    public bool MaxIncluded;
+
+    /// <summary>
+    /// The length of the interval.
+    /// </summary>
+    public int Length { get; set; }
+
+    /// <summary>
+    /// Constructs a new IntervalInt with given min, max, maxIncluded values.
+    /// </summary>
+    public IntervalInt(int min, int max, bool maxIncluded);
+}
+```
+
+#### Range
+Half-open float range `[Start, Start + Length)`
+
+```csharp
+/// <summary>
+/// Half-open float range [Start, Start + Length).
+/// </summary>
+[Serializable]
+public struct Range
+{
+    /// <summary>
+    /// The starting index of the range, where 0 is the first position, 1 is the second, 2 is the third, and so on.
+    /// </summary>
+    public float Start;
+
+    /// <summary>
+    /// The length of the range.
+    /// </summary>
+    public float Length;
+
+    /// <summary>
+    /// The end index of the range (not inclusive).
+    /// </summary>
+    public float End { get; set; }
+
+    /// <summary>
+    /// Constructs a new Range with given start, length values.
+    /// </summary>
+    /// <param name="start">The starting index of the range.</param>
+    /// <param name="length">The length of the range.</param>
+    public Range(float start, float length);
+}
+```
+
+#### RangeInt
+Half-open integer range `[Start, Start + Length)`
+
+```csharp
+/// <summary>
+/// Half-open integer range [Start, Start + Length).
+/// </summary>
+[Serializable]
+public struct RangeInt
+{
+    /// <summary>
+    /// The starting index of the range, where 0 is the first position, 1 is the second, 2 is the third, and so on.
+    /// </summary>
+    public int Start;
+
+    /// <summary>
+    /// The length of the range.
+    /// </summary>
+    public int Length;
+
+    /// <summary>
+    /// The end index of the range (not inclusive).
+    /// </summary>
+    public int End { get; set; }
+
+    /// <summary>
+    /// Constructs a new RangeInt with given start, length values.
+    /// </summary>
+    /// <param name="start">The starting index of the range.</param>
+    /// <param name="length">The length of the range.</param>
+    public RangeInt(int start, int length);
+}
+```
+
+### Classes
+
+#### Array2D&lt;T&gt;
+Two-dimensional array wrapper (jagged `T[][]`)
+
+```csharp
+/// <summary>
+/// Two-dimensional array wrapper class
+/// </summary>
+public sealed class Array2D<T>
+{
+    /// <summary>
+    /// Creates an empty wrapper (call SetData before use).
+    /// </summary>
+    public Array2D();
+
+    /// <summary>
+    /// Wraps a jagged 2D array; infers size from row 0 and row count.
+    /// </summary>
+    /// <param name="data">Row-major jagged array.</param>
+    public Array2D(T[][] data);
+
+    /// <summary>
+    /// Builds a jagged 2D array from a flat buffer and row width.
+    /// </summary>
+    /// <param name="data">Flat row-major buffer.</param>
+    /// <param name="width">Cells per row.</param>
+    public Array2D(T[] data, int width);
+
+    /// <summary>
+    /// Set data
+    /// </summary>
+    public void SetData(T[][] data);
+
+    /// <summary>
+    /// Set data
+    /// </summary>
+    public void SetData(T[] data, int width);
 
     /// <summary>
     /// Size
@@ -178,293 +901,390 @@ public struct Bounds2Int : IEquatable<Bounds2Int>
     public Point2Int Size { get; }
 
     /// <summary>
-    /// Area
+    /// Bound
     /// </summary>
-    public int Area { get; }
+    public Bounds2Int Bound { get; }
 
     /// <summary>
-    /// Whether empty
+    /// Get value
     /// </summary>
-    public bool IsNone { get; }
+    public T GetValue(int x, int y);
 
     /// <summary>
-    /// Constructor
+    /// Take the coordinates of the point whose value is nearby
     /// </summary>
-    /// <param name="min">Minimum point</param>
-    /// <param name="max">Maximum point</param>
-    public Bounds2Int(Point2Int min, Point2Int max);
+    /// <param name="max">Maximum search range</param>
+    public Point2Int? GetNearValue(int x, int y, T value, int max);
 
     /// <summary>
-    /// 构造函数
+    /// Check value by position
     /// </summary>
-    /// <param name="xMin">Minimum X coordinate</param>
-    /// <param name="yMin">Minimum Y coordinate</param>
-    /// <param name="xMax">Maximum X coordinate</param>
-    /// <param name="yMax">Maximum Y coordinate</param>
-    public Bounds2Int(int xMin, int yMin, int xMax, int yMax);
+    public bool CheckValue(int x, int y, T value);
 
     /// <summary>
-    /// Set bounds
+    /// Get all data.
     /// </summary>
-    /// <param name="min">Minimum point</param>
-    /// <param name="max">Maximum point</param>
-    public void Set(Point2Int min, Point2Int max);
+    public T[][] GetData();
 
     /// <summary>
-    /// Check if contains specified point
+    /// Get data within the boundaries
     /// </summary>
-    /// <param name="point">Point to check</param>
-    /// <returns>Whether contains</returns>
-    public bool Contains(Point2Int point);
+    public T[][] GetDataAtBound(Bounds2Int bound);
 
     /// <summary>
-    /// Check if contains specified coordinates
+    /// Get data within the boundaries
     /// </summary>
-    /// <param name="x">X coordinate</param>
-    /// <param name="y">Y coordinate</param>
-    /// <returns>Whether contains</returns>
-    public bool Contains(int x, int y);
+    public T[][] GetDataAtBound(int xMin, int yMin, int xMax, int yMax);
 
     /// <summary>
-    /// Check if contains specified X coordinate
+    /// Formats all cells as comma-separated rows (optionally reversed Y order).
     /// </summary>
-    /// <param name="x">X coordinate</param>
-    /// <returns>Whether contains</returns>
-    public bool ContainsX(int x);
+    /// <param name="reverse">If true, print from top row index downward.</param>
+    public string ToPrintString(bool reverse);
 
-    /// <summary>
-    /// Check if contains specified Y coordinate
-    /// </summary>
-    /// <param name="y">Y coordinate</param>
-    /// <returns>Whether contains</returns>
-    public bool ContainsY(int y);
-
-    /// <summary>
-    /// Check if two bounds intersect
-    /// </summary>
-    /// <param name="bounds2Int">Bounds to check</param>
-    /// <returns>Whether intersect</returns>
-    public bool Intersect(Bounds2Int bounds2Int);
-
-    /// <summary>
-    /// Convert to point array
-    /// </summary>
-    /// <returns>Array containing all points</returns>
-    public Point2Int[] ToArray();
-
-    /// <summary>
-    /// Move bounds
-    /// </summary>
-    /// <param name="offset">Offset</param>
-    /// <returns>Moved bounds</returns>
-    public Bounds2Int Move(Point2Int offset);
-
-    /// <summary>
-    /// Crop bounds
-    /// </summary>
-    /// <param name="subCrop">Crop bounds</param>
-    /// <returns>Cropped bounds</returns>
-    public Bounds2Int Crop(Bounds2Int subCrop);
-
-    /// <summary>
-    /// Crop bounds
-    /// </summary>
-    /// <param name="min">Minimum point</param>
-    /// <param name="max">Maximum point</param>
-    /// <returns>Cropped bounds</returns>
-    public Bounds2Int Crop2(Point2Int min, Point2Int max);
-
-    /// <summary>
-    /// Crop bounds
-    /// </summary>
-    /// <param name="minX">Minimum X coordinate</param>
-    /// <param name="minY">Minimum Y coordinate</param>
-    /// <param name="maxX">Maximum X coordinate</param>
-    /// <param name="maxY">Maximum Y coordinate</param>
-    /// <returns>Cropped bounds</returns>
-    public Bounds2Int Crop2(int minX, int minY, int maxX, int maxY);
-
-    /// <summary>
-    /// X direction crop
-    /// </summary>
-    /// <param name="minX">Minimum X coordinate</param>
-    /// <param name="maxX">Maximum X coordinate</param>
-    /// <returns>Cropped bounds</returns>
-    public Bounds2Int CropX(int minX, int maxX);
-
-    /// <summary>
-    /// Y direction crop
-    /// </summary>
-    /// <param name="minY">Minimum Y coordinate</param>
-    /// <param name="maxY">Maximum Y coordinate</param>
-    /// <returns>Cropped bounds</returns>
-    public Bounds2Int CropY(int minY, int maxY);
-
-    /// <summary>
-    /// Split with x
-    /// </summary>
-    /// <param name="x">Split position</param>
-    /// <returns>Split bounds array</returns>
-    public Bounds2Int[] SplitX(int x);
-
-    /// <summary>
-    /// Split with y
-    /// </summary>
-    /// <param name="y">Split position</param>
-    /// <returns>Split bounds array</returns>
-    public Bounds2Int[] SplitY(int y);
-
-    /// <summary>
-    /// Create bounds with center point and size
-    /// </summary>
-    /// <param name="center">Center point</param>
-    /// <param name="size">Size</param>
-    /// <returns>New bounds</returns>
-    public static Bounds2Int NewCenterBound(Point2Int center, Point2Int size);
-
-    /// <summary>
-    /// Create bounds with center point and size
-    /// </summary>
-    /// <param name="centerX">Center X coordinate</param>
-    /// <param name="centerY">Center Y coordinate</param>
-    /// <param name="sizeX">X direction size</param>
-    /// <param name="sizeY">Y direction size</param>
-    /// <returns>New bounds</returns>
-    public static Bounds2Int NewCenterBound(int centerX, int centerY, int sizeX, int sizeY);
-
-    /// <summary>
-    /// Empty bounds
-    /// </summary>
-    public static readonly Bounds2Int Empty;
+    public override string ToString();
 }
 ```
 
-#### Array2D
-Two-dimensional array struct
+#### BitFixedData
+Fixed-length bit memory. Three concepts: raw data, bit data, and business data.
+
+- Raw data (`uint`): The real data type of the stored data
+- Bit data (`bit:bool`): The bitwise data value (0/1) of the original data
+- Business data (`value:uint`): A data value composed of multiple bits spliced together
 
 ```csharp
 /// <summary>
-/// Two-dimensional array
-/// Provides basic operations for two-dimensional arrays
+/// Bit memory (fixed length)
 /// </summary>
-public struct Array2D<T>
+public class BitFixedData
 {
     /// <summary>
-    /// Width
+    /// Number of bits per data.
     /// </summary>
-    public int Width { get; }
+    public int BitsPerValue { get; }
 
     /// <summary>
-    /// Height
+    /// Value length.
     /// </summary>
-    public int Height { get; }
+    public int ValueLen { get; }
 
     /// <summary>
-    /// Array data
+    /// Valid bit length of all data. BitLen = BitsPerValue * ValueLen
     /// </summary>
-    public T[] Data { get; }
+    public int BitLen { get; }
 
     /// <summary>
-    /// Constructor
+    /// Raw data length.
     /// </summary>
-    /// <param name="width">Width</param>
-    /// <param name="height">Height</param>
-    public Array2D(int width, int height);
+    public int RawDataLen { get; }
 
     /// <summary>
-    /// Indexer
+    /// Raw data.
     /// </summary>
-    /// <param name="x">X coordinate</param>
-    /// <param name="y">Y coordinate</param>
-    /// <returns>Element value</returns>
-    public T this[int x, int y] { get; set; }
+    public uint[] RawData { get; }
 
     /// <summary>
-    /// Check if coordinates are valid
+    /// Construct a bit memory (1 bit per value).
     /// </summary>
-    /// <param name="x">X coordinate</param>
-    /// <param name="y">Y coordinate</param>
-    /// <returns>Whether valid</returns>
-    public bool IsValid(int x, int y);
+    public BitFixedData(int valueLen);
 
     /// <summary>
-    /// Get linear index
+    /// Construct a bit memory
     /// </summary>
-    /// <param name="x">X coordinate</param>
-    /// <param name="y">Y coordinate</param>
-    /// <returns>Linear index</returns>
-    public int GetIndex(int x, int y);
+    /// <param name="bitsPerValue">Must be less than 32</param>
+    public BitFixedData(int bitsPerValue, int valueLen);
+
+    /// <summary>
+    /// Set raw data. Lack: set 0. Excess: truncate.
+    /// </summary>
+    public void SetRawData(uint[] data);
+
+    /// <summary>
+    /// Get all values.
+    /// </summary>
+    public uint[] GetValues();
+
+    /// <summary>
+    /// Get a range of values.
+    /// </summary>
+    public uint[] GetValues(int valueIndex, int valueCount);
+
+    /// <summary>
+    /// Get a single value
+    /// </summary>
+    public uint GetValue(int valueIndex);
+
+    /// <summary>
+    /// Set a single value
+    /// </summary>
+    public void SetValue(int valueIndex, uint value);
+
+    /// <summary>
+    /// Take the binary string representation of all bits
+    /// </summary>
+    public string GetStringBits();
+
+    /// <summary>
+    /// Get all bits of data
+    /// </summary>
+    public bool[] GetBits();
+
+    /// <summary>
+    /// Get bit data in a range.
+    /// </summary>
+    public bool[] GetBits(int bitIndex, int bitCount);
+
+    /// <summary>
+    /// Get a single bit of data.
+    /// </summary>
+    public bool GetBit(int bitIndex);
+
+    /// <summary>
+    /// Set a single bit of data.
+    /// </summary>
+    public void SetBit(int bitIndex, bool isTrue);
+
+    /// <summary>
+    /// Binary string for a bit range (optional separator between value groups).
+    /// </summary>
+    /// <param name="bitIndex">Start bit index.</param>
+    /// <param name="bitLen">Number of bits.</param>
+    /// <param name="valueSpace">Separator inserted between groups.</param>
+    /// <returns>Binary representation.</returns>
+    public string ToBitString(int bitIndex, int bitLen, string valueSpace = "");
+
+    public override string ToString();
+}
+```
+
+### Static Utility Classes
+
+#### Point1Utils
+Extension helpers for `Point1` area indexing
+
+```csharp
+/// <summary>
+/// Extension helpers for Point1 area indexing.
+/// </summary>
+public static class Point1Utils
+{
+    /// <summary>
+    /// Convert to area point
+    /// </summary>
+    public static Point1.AreaPoint1 ToAreaPoint1(this Point1 point1, ulong size);
+
+    /// <summary>
+    /// Convert to 1D point
+    /// </summary>
+    public static Point1 FromAreaPoint1(this Point1.AreaPoint1 point1, ulong size);
+}
+```
+
+#### Point1IntUtils
+Extension helpers for `Point1Int` area indexing
+
+```csharp
+/// <summary>
+/// Extension helpers for Point1Int area indexing.
+/// </summary>
+public static class Point1IntUtils
+{
+    /// <summary>
+    /// Convert to area point
+    /// </summary>
+    public static Point1Int.AreaPoint1Int ToAreaPoint1(this Point1Int point1, uint size);
+
+    /// <summary>
+    /// Convert to 1D point
+    /// </summary>
+    public static Point1Int FromAreaPoint1(this Point1Int.AreaPoint1Int point1, uint size);
+}
+```
+
+#### BitMark
+Precomputed single-bit and multi-bit masks for primitive integer types
+
+```csharp
+/// <summary>
+/// Precomputed single-bit and multi-bit masks for primitive integer types.
+/// </summary>
+public static class BitMark
+{
+    /// <summary>
+    /// The number of bits corresponding to a byte data
+    /// </summary>
+    public const int BitsPerByte = 8;
+
+    /// <summary>
+    /// The number of bits corresponding to a ushort data
+    /// </summary>
+    public const int BitsPerUshort = 16;
+
+    /// <summary>
+    /// The number of bits corresponding to a int data
+    /// </summary>
+    public const int BitsPerInt = 32;
+
+    /// <summary>
+    /// The number of bits corresponding to a uint data
+    /// </summary>
+    public const int BitsPerUint = 32;
+
+    /// <summary>
+    /// The number of bits corresponding to a ulong data
+    /// </summary>
+    public const int BitsPerUlong = 64;
+
+    /// <summary>
+    /// Returns a byte mask covering markLen bits starting at markIndex.
+    /// </summary>
+    public static byte GetByteMark(int markIndex, int markLen);
+
+    /// <summary>
+    /// Returns the single-bit byte mask at markIndex.
+    /// </summary>
+    public static byte GetByteMark(int markIndex);
+
+    /// <summary>
+    /// Returns a ushort mask covering markLen bits starting at markIndex.
+    /// </summary>
+    public static ushort GetUshortMark(int markIndex, int markLen);
+
+    /// <summary>
+    /// Returns the single-bit ushort mask at markIndex.
+    /// </summary>
+    public static ushort GetUshortMark(int markIndex);
+
+    /// <summary>
+    /// Returns an int mask covering markLen bits starting at markIndex.
+    /// </summary>
+    public static int GetIntMark(int markIndex, int markLen);
+
+    /// <summary>
+    /// Returns the single-bit int mask at markIndex.
+    /// </summary>
+    public static int GetIntMark(int markIndex);
+
+    /// <summary>
+    /// Returns a uint mask covering markLen bits starting at markIndex.
+    /// </summary>
+    public static uint GetUintMark(int markIndex, int markLen);
+
+    /// <summary>
+    /// Returns the single-bit uint mask at markIndex.
+    /// </summary>
+    public static uint GetUintMark(int markIndex);
+
+    /// <summary>
+    /// Returns a ulong mask covering markLen bits starting at markIndex.
+    /// </summary>
+    public static ulong GetUlongMark(int markIndex, int markLen);
+
+    /// <summary>
+    /// Returns the single-bit ulong mask at markIndex.
+    /// </summary>
+    public static ulong GetUlongMark(int markIndex);
 }
 ```
 
 #### MathUtil
-Mathematics utility class
+Common math helpers: clamp, parity, remainder/modulo, distance, and float comparisons
 
 ```csharp
 /// <summary>
-/// Mathematics utility class
-/// Provides common mathematical calculation functions
+/// Common math helpers: clamp, parity, remainder/modulo, distance, and float comparisons.
 /// </summary>
 public static class MathUtil
 {
     /// <summary>
-    /// Calculate distance between two points
+    /// Clamps the given value between the given minimum float and maximum float values. Returns the given value if it is within the min and max range.
     /// </summary>
-    /// <param name="p1">Point 1</param>
-    /// <param name="p2">Point 2</param>
-    /// <returns>Distance</returns>
-    public static float Distance(Point2Int p1, Point2Int p2);
+    public static float Clamp(float value, float min, float max);
 
     /// <summary>
-    /// Calculate squared distance between two points
+    /// Clamps the given value between a range defined by the given minimum integer and maximum integer values. Returns the given value if it is within min and max.
     /// </summary>
-    /// <param name="p1">Point 1</param>
-    /// <param name="p2">Point 2</param>
-    /// <returns>Squared distance</returns>
-    public static float DistanceSquared(Point2Int p1, Point2Int p2);
-
-    /// <summary>
-    /// Calculate Manhattan distance
-    /// </summary>
-    /// <param name="p1">Point 1</param>
-    /// <param name="p2">Point 2</param>
-    /// <returns>Manhattan distance</returns>
-    public static int ManhattanDistance(Point2Int p1, Point2Int p2);
-
-    /// <summary>
-    /// Calculate Chebyshev distance
-    /// </summary>
-    /// <param name="p1">Point 1</param>
-    /// <param name="p2">Point 2</param>
-    /// <returns>Chebyshev distance</returns>
-    public static int ChebyshevDistance(Point2Int p1, Point2Int p2);
-
-    /// <summary>
-    /// Linear interpolation
-    /// </summary>
-    /// <param name="a">Start value</param>
-    /// <param name="b">End value</param>
-    /// <param name="t">Interpolation factor</param>
-    /// <returns>Interpolation result</returns>
-    public static float Lerp(float a, float b, float t);
-
-    /// <summary>
-    /// Clamp value within specified range
-    /// </summary>
-    /// <param name="value">Value to clamp</param>
-    /// <param name="min">Minimum value</param>
-    /// <param name="max">Maximum value</param>
-    /// <returns>Clamped value</returns>
     public static int Clamp(int value, int min, int max);
 
     /// <summary>
-    /// Clamp value within specified range
+    /// Returns whether val is strictly between a and b (endpoints excluded; order of a/b does not matter).
     /// </summary>
-    /// <param name="value">Value to clamp</param>
-    /// <param name="min">Minimum value</param>
-    /// <param name="max">Maximum value</param>
-    /// <returns>Clamped value</returns>
-    public static float Clamp(float value, float min, float max);
+    public static bool Between(double val, double a, double b);
+    public static bool Between(float val, float a, float b);
+    public static bool Between(int val, int a, int b);
+    public static bool Between(long val, long a, long b);
+
+    /// <summary>
+    /// Clamps value between 0 and 1 and returns value.
+    /// </summary>
+    public static float Clamp01(float value);
+
+    /// <summary>
+    /// Is it an odd number
+    /// </summary>
+    public static bool IsOdd(int num);
+
+    /// <summary>
+    /// Floor to even
+    /// </summary>
+    public static int FloorToEven(float number);
+
+    /// <summary>
+    /// Floor to odd
+    /// </summary>
+    public static int FloorToOdd(float number);
+
+    /// <summary>
+    /// Ceil to even
+    /// </summary>
+    public static int CeilToEven(float number);
+
+    /// <summary>
+    /// Ceil to odd
+    /// </summary>
+    public static int CeilToOdd(float number);
+
+    /// <summary>
+    /// Returns whether two floats are approximately equal (difference less than machine epsilon).
+    /// </summary>
+    /// <param name="epsilon">Unused; kept for API compatibility.</param>
+    public static bool IsSimilar(float a, float b, float epsilon = float.Epsilon);
+    public static bool IsSimilar(double a, double b, double epsilon = double.Epsilon);
+
+    /// <summary>
+    /// Floors to int with a small positive bias from epsilon to reduce boundary errors.
+    /// </summary>
+    public static int FloorToInt(this float a, float epsilon = float.Epsilon);
+    public static int FloorToInt(this double a, double epsilon = double.Epsilon);
+
+    /// <summary>
+    /// Ceils to int with a small negative bias from epsilon to reduce boundary errors.
+    /// </summary>
+    public static int CeilToInt(this float a, float epsilon = float.Epsilon);
+    public static int CeilToInt(this double a, double epsilon = double.Epsilon);
+
+    /// <summary>
+    /// Rem, the result sign is the same as a
+    /// </summary>
+    public static int Rem(this int a, int b);
+    public static double Rem(this double a, double b);
+
+    /// <summary>
+    /// Mod, the result sign is the same as b
+    /// </summary>
+    public static int Mod(this int a, int b);
+    public static double Mod(this double a, double b);
+
+    /// <summary>
+    /// Euclidean distance between two 2D points.
+    /// </summary>
+    public static float Distance(float ax, float ay, float bx, float by);
+
+    /// <summary>
+    /// Squared Euclidean distance between two 2D points (avoids sqrt).
+    /// </summary>
+    public static float DistanceSquare(float ax, float ay, float bx, float by);
 }
 ```
 
@@ -472,192 +1292,244 @@ public static class MathUtil
 
 #### Point Struct Features
 
+**Point1 / Point1Int**
+- **Implicit conversion**: Interchangeable with `double` / `int`
+- **Area points**: Split a coordinate into `AreaIndex` and `Remainder` for grid/chunk indexing
+- **Extensions**: `Point1Utils` / `Point1IntUtils` provide instance helpers
+
 **Point2Int**
-- **Coordinate access**: Supports direct access to X, Y coordinates
-- **Indexer**: Access coordinates through index (0=X, 1=Y)
-- **Operator overloading**: Supports addition, subtraction, equality comparison
-- **Type conversion**: Supports implicit conversion to Point3Int
-- **Performance optimization**: Uses MethodImpl attributes for performance optimization
+- **Coordinate access**: Direct X, Y fields and indexer (0=X, 1=Y)
+- **Operator overloading**: Addition, subtraction, equality
+- **Type conversion**: Implicit promotion to `Point3Int` (Z = 0)
+- **Performance optimization**: Operators use `MethodImpl` inlining
 
 **Point3Int**
-- **3D coordinates**: Supports X, Y, Z three coordinates
-- **Extensibility**: Extended from Point2Int
-- **Consistency**: Maintains same interface design as Point2Int
+- **3D coordinates**: X, Y, Z and indexer (0/1/2)
+- **Operator overloading**: Addition, subtraction, equality
+- **Type conversion**: Implicit demotion to `Point2Int` (drops Z)
 
-#### Bounds Struct Features
+#### Bounds and Lines
 
 **Bounds2Int**
-- **Bounds representation**: Represents rectangular bounds through minimum and maximum points
-- **Property calculation**: Automatically calculates center point, size, area and other properties
-- **Containment detection**: Supports point containment detection and bounds intersection detection
-- **Bounds operations**: Supports move, crop, split and other operations
-- **Point array conversion**: Can convert bounds to array containing all points
+- **Half-open rectangle**: `[XMin, XMax) × [YMin, YMax)`
+- **Derived properties**: Center, size, area, empty check
+- **Containment and intersection**: Point/axis tests and corner-based intersection
+- **Geometry ops**: Move, crop, split, grid union/difference, scale about center
+
+**Line1 / Line1Int**
+- **Directed segments**: Keep Start/End direction; also expose Min/Max, signed length, and absolute length
+- **Aligned slicing**: Split at 0, start, end, min/max, or an arbitrary basis point
+
+**Line2Int**
+- **2D integer segment**: Squared length, Euclidean length, and degenerate-point check
+
+#### Interval Types
+
+**Interval / IntervalInt**
+- **Closed interval**: Represented by Min and Max; `IntervalInt.MaxIncluded` controls whether Length includes Max
+
+**Range / RangeInt**
+- **Half-open range**: Represented by Start and Length; End is exclusive
 
 #### Two-dimensional Array Features
 
-**Array2D<T>**
-- **Generic support**: Supports two-dimensional arrays of any type
-- **Linear storage**: Uses one-dimensional array to store two-dimensional data
-- **Index access**: Supports [x,y] form index access
-- **Bounds checking**: Provides coordinate validity checking
-- **Memory efficiency**: More efficient than nested arrays
+**Array2D&lt;T&gt;**
+- **Wraps existing data**: Jagged `T[][]` or a flat buffer plus row width
+- **Bounded access**: Out-of-range `GetValue` returns `default(T)`
+- **Neighborhood search**: `GetNearValue` finds a target within a radius
+- **Region slice**: `GetDataAtBound` crops by `Bounds2Int`
+
+#### Bit Features
+
+**BitMark**
+- **Precomputed single-bit masks**: `1 << index` for byte/ushort/int/uint/ulong
+- **Multi-bit overloads**: `(index, len)` form for consecutive bits
+
+**BitFixedData**
+- **Fixed packing**: Packs business values into `uint[]` using `BitsPerValue`
+- **Three access layers**: Raw data, bits, and business values
+- **Binary text**: `ToBitString` / `GetStringBits` emit 0/1 strings
 
 #### Mathematics Utility Features
 
 **MathUtil**
-- **Distance calculation**: Supports Euclidean, Manhattan, Chebyshev distances
-- **Interpolation calculation**: Provides linear interpolation functionality
-- **Value clamping**: Provides value range clamping functionality
-- **Performance optimization**: Uses efficient mathematical algorithms
+- **Clamping**: `Clamp`, `Clamp01`, open-interval `Between`
+- **Parity rounding**: Floor/ceil to even or odd
+- **Remainder vs modulo**: `Rem` follows the dividend sign; `Mod` follows the divisor
+- **Distance**: 2D Euclidean distance and its square
+- **Float helpers**: Approximate equality and biased Floor/Ceil to int
 
 ### Usage Examples
 
 #### Point Operations
 ```csharp
-// Create points
 var point1 = new Point2Int(10, 20);
 var point2 = new Point2Int(5, 15);
 
-// Basic operations
 Console.WriteLine($"Point 1: {point1}"); // {X=10,Y=20}
 Console.WriteLine($"Point 2: {point2}"); // {X=5,Y=15}
 
-// Arithmetic operations
-var sum = point1 + point2; // {X=15,Y=35}
-var diff = point1 - point2; // {X=5,Y=5}
+var sum = point1 + point2;   // {X=15,Y=35}
+var diff = point1 - point2;  // {X=5,Y=5}
 
-// Comparison operations
-bool isEqual = point1 == point2; // false
-bool isNotEqual = point1 != point2; // true
+bool isEqual = point1 == point2;     // false
+bool isNotEqual = point1 != point2;  // true
 
-// Index access
 int x = point1[0]; // 10
 int y = point1[1]; // 20
 
-// Set values
 point1.Set(30, 40);
 Console.WriteLine($"After modification: {point1}"); // {X=30,Y=40}
+
+Point3Int p3 = point1;               // Z = 0
+Point2Int back = new Point3Int(1, 2, 3); // {X=1,Y=2}
+```
+
+#### 1D Points and Area Indexing
+```csharp
+Point1 p = 5.5;
+var area = p.ToAreaPoint1(2);                 // AreaIndex=2, Remainder=1.5
+Point1 restored = area.FromAreaPoint1(2);     // 5.5
+
+Point1Int pi = -3;
+var areaInt = pi.ToAreaPoint1(4);             // Negative coordinates map to the correct chunk
 ```
 
 #### Bounds Operations
 ```csharp
-// Create bounds
 var bounds = new Bounds2Int(0, 0, 100, 100);
-Console.WriteLine($"Bounds: {bounds}"); // {Min={X=0,Y=0},Max={X=100,Y=100},Center={X=50,Y=50},Size={X=100,Y=100},Area=10000}
+Console.WriteLine($"Bounds: {bounds}");
+// {Min={X=0,Y=0},Max={X=100,Y=100},Center={X=50,Y=50},Size={X=100,Y=100},Area=10000}
 
-// Property access
 Console.WriteLine($"Center point: {bounds.Center}"); // {X=50,Y=50}
-Console.WriteLine($"Size: {bounds.Size}"); // {X=100,Y=100}
-Console.WriteLine($"Area: {bounds.Area}"); // 10000
+Console.WriteLine($"Size: {bounds.Size}");           // {X=100,Y=100}
+Console.WriteLine($"Area: {bounds.Area}");           // 10000
 
-// Containment detection
 var point = new Point2Int(25, 25);
 bool contains = bounds.Contains(point); // true
-bool containsX = bounds.ContainsX(25); // true
-bool containsY = bounds.ContainsY(25); // true
+bool containsX = bounds.ContainsX(25);  // true
+bool containsY = bounds.ContainsY(25);  // true
+bool onMax = bounds.Contains(100, 50);  // false (half-open; XMax excluded)
 
-// Bounds operations
 var movedBounds = bounds.Move(new Point2Int(10, 10));
-Console.WriteLine($"After move: {movedBounds}"); // {Min={X=10,Y=10},Max={X=110,Y=110},...}
-
 var croppedBounds = bounds.Crop(new Bounds2Int(25, 25, 75, 75));
-Console.WriteLine($"After crop: {croppedBounds}"); // {Min={X=25,Y=25},Max={X=75,Y=75},...}
 
-// Split operations
 var splitBounds = bounds.SplitX(50);
 Console.WriteLine($"X split: {splitBounds.Length} bounds"); // 2
 
-// Create center bounds
 var centerBounds = Bounds2Int.NewCenterBound(new Point2Int(50, 50), new Point2Int(20, 20));
-Console.WriteLine($"Center bounds: {centerBounds}"); // {Min={X=40,Y=40},Max={X=60,Y=60},...}
+// Min={X=40,Y=40}, Max={X=60,Y=60}
+
+var scaled = bounds * 0.5f; // Scale about center; each axis ceiled
+```
+
+#### Line Slicing
+```csharp
+var line = new Line1(1.5, 10.0);
+Line1[] parts = line.SliceAtZero(4);
+// Split into length-4 segments aligned at coordinate 0
+
+var lineInt = new Line1Int(0, 10);
+Line1Int[] chunks = lineInt.SliceAtStart(3);
+
+var seg = new Line2Int(new Point2Int(0, 0), new Point2Int(3, 4));
+Console.WriteLine(seg.SqrMagnitude); // 25
+Console.WriteLine(seg.Magnitude);    // 5
+```
+
+#### Intervals and Ranges
+```csharp
+var interval = new Interval(0f, 10f);
+Console.WriteLine(interval.Length); // 10
+
+var intervalInt = new IntervalInt(0, 10, maxIncluded: true);
+Console.WriteLine(intervalInt.Length); // 11
+
+var range = new RangeInt(2, 5);
+Console.WriteLine(range.End); // 7 (exclusive)
 ```
 
 #### Two-dimensional Array Operations
 ```csharp
-// Create two-dimensional array
-var array = new Array2D<int>(5, 5);
-
-// Set values
-array[2, 3] = 42;
-array[1, 1] = 10;
-
-// Get values
-int value = array[2, 3]; // 42
-
-// Check coordinate validity
-bool isValid = array.IsValid(2, 3); // true
-bool isInvalid = array.IsValid(10, 10); // false
-
-// Iterate through array
-for (int y = 0; y < array.Height; y++)
+int[][] grid =
 {
-    for (int x = 0; x < array.Width; x++)
-    {
-        if (array.IsValid(x, y))
-        {
-            Console.Write($"{array[x, y]} ");
-        }
-    }
-    Console.WriteLine();
-}
+    new[] { 0, 1, 2 },
+    new[] { 3, 4, 5 },
+    new[] { 6, 7, 8 },
+};
+var array = new Array2D<int>(grid);
+
+int value = array.GetValue(2, 1);     // 5
+bool hit = array.CheckValue(1, 1, 4); // true
+int missing = array.GetValue(9, 9);   // 0 (out of range returns default)
+
+Point2Int? near = array.GetNearValue(0, 0, 8, 4); // {X=2,Y=2}
+
+int[][] slice = array.GetDataAtBound(new Bounds2Int(1, 1, 3, 3));
+Console.WriteLine(array.ToPrintString(reverse: false));
+```
+
+#### Bit Masks and Bit Memory
+```csharp
+byte bit3 = BitMark.GetByteMark(3); // 0b00001000
+
+var pack = new BitFixedData(bitsPerValue: 4, valueLen: 8);
+pack.SetValue(0, 13);
+uint v = pack.GetValue(0);          // 13
+pack.SetBit(0, true);
+bool b0 = pack.GetBit(0);
+string bits = pack.GetStringBits();
 ```
 
 #### Mathematical Calculations
 ```csharp
-// Distance calculations
-var p1 = new Point2Int(0, 0);
-var p2 = new Point2Int(3, 4);
+float distance = MathUtil.Distance(0f, 0f, 3f, 4f);       // 5
+float distanceSquare = MathUtil.DistanceSquare(0f, 0f, 3f, 4f); // 25
 
-float distance = MathUtil.Distance(p1, p2); // 5.0
-float distanceSquared = MathUtil.DistanceSquared(p1, p2); // 25.0
-int manhattanDistance = MathUtil.ManhattanDistance(p1, p2); // 7
-int chebyshevDistance = MathUtil.ChebyshevDistance(p1, p2); // 4
+int clamped = MathUtil.Clamp(150, 0, 100);     // 100
+float clamped01 = MathUtil.Clamp01(1.5f);      // 1
+bool inside = MathUtil.Between(5, 0, 10);      // true
 
-// Interpolation calculations
-float interpolated = MathUtil.Lerp(0.0f, 100.0f, 0.5f); // 50.0
+bool odd = MathUtil.IsOdd(7);                  // true
+int even = MathUtil.FloorToEven(5.9f);         // 4
 
-// Value clamping
-int clamped = MathUtil.Clamp(150, 0, 100); // 100
-float clampedFloat = MathUtil.Clamp(75.5f, 0.0f, 100.0f); // 75.5
+int rem = (-5).Rem(3);                         // -2 (sign follows dividend)
+int mod = (-5).Mod(3);                         // 1 (sign follows divisor)
+
+int floored = 3.9f.FloorToInt();
 ```
 
 #### Complex Operation Combinations
 ```csharp
-// Create game map bounds
 var mapBounds = new Bounds2Int(0, 0, 1000, 1000);
-
-// Create player position
 var playerPos = new Point2Int(500, 500);
-
-// Create view range
 var viewBounds = Bounds2Int.NewCenterBound(playerPos, new Point2Int(100, 100));
-
-// Check if view is within map
 var visibleArea = mapBounds.Crop(viewBounds);
-
-// Get all points in view
 var visiblePoints = visibleArea.ToArray();
 
-// Calculate distance to map center
-var distanceToEdge = MathUtil.Distance(playerPos, mapBounds.Center);
+float distanceToCenter = MathUtil.Distance(
+    playerPos.X, playerPos.Y,
+    mapBounds.Center.X, mapBounds.Center.Y);
 
 Console.WriteLine($"Points in view: {visiblePoints.Length}");
-Console.WriteLine($"Distance to map center: {distanceToEdge}");
+Console.WriteLine($"Distance to map center: {distanceToCenter}");
 ```
 
 ### Design Features
 
-1. **Performance optimization**: Uses structs and MethodImpl attributes for performance optimization
-2. **Type safety**: Strong typing design, avoids type errors
-3. **Operator overloading**: Supports intuitive mathematical operations
-4. **Memory efficiency**: Structs avoid heap allocation, improving performance
-5. **Complete functionality**: Provides common mathematical and geometric operations
-6. **Easy to use**: Clean API design
+1. **Performance optimization**: Point and bounds operators use structs and `MethodImpl` inlining
+2. **Type safety**: Integer/float and closed/half-open interval types are kept separate
+3. **Operator overloading**: Intuitive point arithmetic and bounds scaling
+4. **Memory efficiency**: Geometry types are value types; `Array2D` wraps existing jagged arrays
+5. **Complete functionality**: Points, lines, bounds, intervals, bit packing, and common math
+6. **Easy to use**: Implicit conversions, extension methods, and compact constructors
 
 ### Notes
 
-1. **Value types**: All structs are value types and will be copied when passed
-2. **Bounds checking**: Check coordinate validity before use
-3. **Performance considerations**: Avoid unnecessary struct copying during heavy calculations
-4. **Precision issues**: Integer calculations avoid floating-point precision problems
-5. **Memory usage**: ToArray() method may cause large memory allocations 
+1. **Value types**: Structs are copied on pass; mutating a copy does not affect the original
+2. **Half-open bounds**: Upper bounds of `Bounds2Int` and `Range`/`RangeInt` are exclusive; `Contains(XMax, y)` is false
+3. **Null results**: `ToArray()`, `SliceAt` (when size is 0), and `GetDataAtBound` may return `null` for empty input
+4. **Array2D out of range**: `GetValue` returns `default(T)` instead of throwing
+5. **BitFixedData**: `bitsPerValue` must satisfy `0 <= bitsPerValue < 32`
+6. **IsSimilar**: The `epsilon` parameter is unused; comparison always uses machine epsilon
+7. **Memory usage**: `Bounds2Int.ToArray()` / `Add` / `Sub` may allocate large arrays

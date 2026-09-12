@@ -5,15 +5,11 @@
 ### 静态类 (Static Classes)
 
 #### DateTimeUtil
-日期时间工具类
+日期时间工具：Tick 常量、单位换算、当前时间戳、日历辅助与格式化。
 
 ```csharp
 /// <summary>
-/// 日期时间工具类
-/// 提供日期时间相关的工具方法和常量
-/// 
-/// 更多信息：
-///   TimeSpan
+/// 日期时间工具：Tick 常量、单位换算、当前时间戳、日历辅助与格式化。
 /// </summary>
 public static class DateTimeUtil
 {
@@ -93,7 +89,7 @@ public static class DateTimeUtil
     /// </summary>
     public const long TicksPerWeak = TicksPerDay * 7;
 
-    // 当前时间戳属性
+    // 当前时间戳属性（均基于 UTC）
     /// <summary>
     /// 1970.1.1的时间戳(Ticks)
     /// </summary>
@@ -163,85 +159,76 @@ public static class DateTimeUtil
     /// <summary>
     /// Tick数 转 纳秒数
     /// </summary>
-    /// <param name="ticks">Tick数</param>
-    /// <returns>纳秒数</returns>
+    /// <param name="ticks">待转换的 Tick 数。</param>
+    /// <returns>纳秒数。</returns>
     public static long Ticks2Nanos(long ticks);
 
     /// <summary>
-    /// Ticks to milliseconds
     /// Tick数 转 毫秒数
     /// </summary>
-    /// <param name="ticks">Tick数</param>
-    /// <returns>毫秒数</returns>
+    /// <param name="ticks">待转换的 Tick 数。</param>
+    /// <returns>毫秒数。</returns>
     public static long Ticks2Millis(long ticks);
 
     /// <summary>
-    /// Ticks to seconds
     /// Tick数 转 秒数
     /// </summary>
-    /// <param name="ticks">Tick数</param>
-    /// <returns>秒数</returns>
+    /// <param name="ticks">待转换的 Tick 数。</param>
+    /// <returns>秒数。</returns>
     public static long Ticks2Seconds(long ticks);
 
     /// <summary>
-    /// Ticks to minutes
     /// Tick数 转 分钟数
     /// </summary>
-    /// <param name="ticks">Tick数</param>
-    /// <returns>分钟数</returns>
+    /// <param name="ticks">待转换的 Tick 数。</param>
+    /// <returns>分钟数。</returns>
     public static long Ticks2Minutes(long ticks);
 
     /// <summary>
-    /// Ticks to hours
     /// Tick数 转 小时数
     /// </summary>
-    /// <param name="ticks">Tick数</param>
-    /// <returns>小时数</returns>
+    /// <param name="ticks">待转换的 Tick 数。</param>
+    /// <returns>小时数。</returns>
     public static long Ticks2Hours(long ticks);
 
     /// <summary>
-    /// Nanoseconds to ticks
     /// 纳秒数 转 Tick数
     /// </summary>
-    /// <param name="nanos">纳秒数</param>
-    /// <returns>Tick数</returns>
+    /// <param name="nanos">待转换的纳秒数。</param>
+    /// <returns>Tick 数。</returns>
     public static long Nanos2Ticks(long nanos);
 
     /// <summary>
-    /// Milliseconds to ticks
     /// 毫秒数 转 Tick数
     /// </summary>
     /// <param name="millisecond">毫秒数</param>
-    /// <returns>Tick数</returns>
+    /// <returns>Tick 数</returns>
     public static long Millis2Ticks(long millisecond);
 
     /// <summary>
-    /// Seconds to ticks
     /// 秒数 转 Tick数
     /// </summary>
     /// <param name="seconds">秒数</param>
-    /// <returns>Tick数</returns>
+    /// <returns>Tick 数</returns>
     public static long Seconds2Ticks(long seconds);
 
     /// <summary>
-    /// Minutes to ticks
     /// 分钟数 转 Tick数
     /// </summary>
     /// <param name="minutes">分钟数</param>
-    /// <returns>Tick数</returns>
+    /// <returns>Tick 数</returns>
     public static long Minutes2Ticks(long minutes);
 
     /// <summary>
-    /// Hours to ticks
     /// 小时数 转 Tick数
     /// </summary>
     /// <param name="hours">小时数</param>
-    /// <returns>Tick数</returns>
+    /// <returns>Tick 数</returns>
     public static long Hours2Ticks(long hours);
 
     // 日期计算方法
     /// <summary>
-    /// 获取指定月份的天数
+    /// 取每个月份的天数
     /// </summary>
     /// <param name="month">月份</param>
     /// <param name="year">年份</param>
@@ -249,228 +236,365 @@ public static class DateTimeUtil
     public static int GetMonthDay(int month, int year);
 
     /// <summary>
-    /// 检查是否为闰年
+    /// 判断是否闰年
     /// </summary>
     /// <param name="year">年份</param>
     /// <returns>是否为闰年</returns>
     public static bool CheckLeapYear(int year);
 
     /// <summary>
-    /// 获取两个日期之间的月份差
+    /// 计算两个时间点的月份差
     /// </summary>
-    /// <param name="start">开始日期</param>
-    /// <param name="end">结束日期</param>
+    /// <param name="start">开始时间</param>
+    /// <param name="end">结束时间</param>
     /// <returns>月份差</returns>
     public static int GetOffsetMonth(DateTime start, DateTime end);
 
     // 格式化方法
     /// <summary>
-    /// 格式化日期时间
+    /// 格式化时间
     /// </summary>
     /// <param name="dt">日期时间</param>
-    /// <param name="format">格式</param>
-    /// <param name="provider">格式提供者</param>
+    /// <param name="format">格式字符串</param>
+    /// <param name="provider">格式提供者；为 null 时使用不变区域性。</param>
     /// <returns>格式化后的字符串</returns>
     public static string FormatDateTime(DateTime dt, string format, IFormatProvider provider = null);
 
     /// <summary>
     /// 格式化时间戳
     /// </summary>
-    /// <param name="timestamp">时间戳</param>
-    /// <param name="format">格式</param>
-    /// <param name="provider">格式提供者</param>
-    /// <returns>格式化后的字符串</returns>
+    /// <param name="timestamp">自 0001.01.01 起的 Ticks</param>
+    /// <param name="format">格式字符串</param>
+    /// <param name="provider">格式提供者；为 null 时使用不变区域性。</param>
+    /// <returns>按 UTC 格式化后的字符串</returns>
     public static string FormatDateTime(long timestamp, string format, IFormatProvider provider = null);
 
     /// <summary>
-    /// 格式化本地时间戳
+    /// 格式化时间戳
     /// </summary>
-    /// <param name="timestamp">时间戳</param>
-    /// <param name="format">格式</param>
-    /// <param name="provider">格式提供者</param>
-    /// <returns>格式化后的字符串</returns>
+    /// <param name="timestamp">自 0001.01.01 起的 Ticks</param>
+    /// <param name="format">格式字符串</param>
+    /// <param name="provider">格式提供者；为 null 时使用不变区域性。</param>
+    /// <returns>转换为本地时间后的格式化字符串</returns>
     public static string FormatDateTimeLocal(long timestamp, string format, IFormatProvider provider = null);
 }
 ```
 
+### 类 (Classes)
+
 #### TimeSeries
-时间序列类
+时间序列：按名称追加时间片，并根据时间戳定位所属片段。
 
 ```csharp
 /// <summary>
-/// 时间序列类
-/// 用于处理时间序列数据
+/// 时间序列
 /// </summary>
 public class TimeSeries
 {
     /// <summary>
-    /// 构造函数
+    /// 构造一个时间序列对象
     /// </summary>
-    /// <param name="startTime">开始时间</param>
-    /// <param name="endTime">结束时间</param>
-    /// <param name="interval">时间间隔</param>
-    public TimeSeries(DateTime startTime, DateTime endTime, TimeSpan interval);
+    /// <param name="basestamp">定位前减去的基础时间戳。</param>
+    /// <param name="loop">定位时间戳时是否循环。</param>
+    public TimeSeries(long basestamp = 0, bool loop = false);
 
     /// <summary>
-    /// 开始时间
+    /// 设置基础时间戳
     /// </summary>
-    public DateTime StartTime { get; }
+    /// <param name="basestamp">用于定位时间片的基础时间戳。</param>
+    public void SetBasestamp(long basestamp);
 
     /// <summary>
-    /// 结束时间
+    /// 检查是否包含指定名称的时间片
     /// </summary>
-    public DateTime EndTime { get; }
+    /// <param name="name">要查找的时间片名称。</param>
+    /// <returns>存在同名时间片时返回 true。</returns>
+    public bool Contains(string name);
 
     /// <summary>
-    /// 时间间隔
+    /// 查找第一个指定名称的时间片
     /// </summary>
-    public TimeSpan Interval { get; }
+    /// <param name="name">要查找的时间片名称。</param>
+    /// <returns>首个匹配的索引，未找到时为 -1。</returns>
+    public int FindFirstSlice(string name);
 
     /// <summary>
-    /// 时间点数量
+    /// 查找最后一个指定名称的时间片
     /// </summary>
-    public int Count { get; }
+    /// <param name="name">要查找的时间片名称。</param>
+    /// <returns>最后一个匹配的索引，未找到时为 -1。</returns>
+    public int FindLastSlice(string name);
 
     /// <summary>
-    /// 获取指定索引的时间点
+    /// 根据时间戳定位时间片
     /// </summary>
-    /// <param name="index">索引</param>
-    /// <returns>时间点</returns>
-    public DateTime this[int index] { get; }
+    /// <param name="timestamp">绝对时间戳（相对序列基准）。</param>
+    /// <returns>包含该偏移的时间片名称，无匹配时为 null。</returns>
+    public string LocateTo(long timestamp);
 
     /// <summary>
-    /// 获取时间序列迭代器
+    /// 追加时间片
     /// </summary>
-    /// <returns>时间序列迭代器</returns>
-    public IEnumerator<DateTime> GetEnumerator();
-}
-```
-
-#### TimeSlice
-时间切片类
-
-```csharp
-/// <summary>
-/// 时间切片类
-/// 表示一个时间区间
-/// </summary>
-public struct TimeSlice
-{
-    /// <summary>
-    /// 开始时间
-    /// </summary>
-    public DateTime Start { get; set; }
+    /// <param name="name">时间片名称。</param>
+    /// <param name="duration">时长（Tick），无前导间隔。</param>
+    /// <returns>添加成功返回 true；名称为空或时长为负时返回 false。</returns>
+    public bool AddSlice(string name, long duration);
 
     /// <summary>
-    /// 结束时间
+    /// 追加时间片
     /// </summary>
-    public DateTime End { get; set; }
+    /// <param name="name">时间片名称。</param>
+    /// <param name="space">本片在序列布局中的前导间隔。</param>
+    /// <param name="duration">时长（Tick）。</param>
+    /// <returns>参数有效且添加成功时返回 true。</returns>
+    public bool AddSlice(string name, long space, long duration);
 
     /// <summary>
-    /// 构造函数
+    /// 移除时间片
     /// </summary>
-    /// <param name="start">开始时间</param>
-    /// <param name="end">结束时间</param>
-    public TimeSlice(DateTime start, DateTime end);
+    /// <param name="index">要移除的时间片索引。</param>
+    /// <param name="keepBlank">为 true 时，将下一片平移以保留空白时长。</param>
+    /// <returns>被移除片的名称；索引越界时为 null。</returns>
+    public string RemoveAt(int index, bool keepBlank = false);
 
     /// <summary>
-    /// 持续时间
+    /// 移除第一个时间片
     /// </summary>
-    public TimeSpan Duration { get; }
+    /// <param name="keepBlank">为 true 时，移除后平移下一片。</param>
+    /// <returns>被移除片的名称；序列为空时为 null。</returns>
+    public string RemoveFirst(bool keepBlank = false);
 
     /// <summary>
-    /// 是否包含指定时间
+    /// 移除最后一个时间片
     /// </summary>
-    /// <param name="time">时间</param>
-    /// <returns>是否包含</returns>
-    public bool Contains(DateTime time);
+    /// <returns>被移除片的名称；序列为空时为 null。</returns>
+    public string RemoveLast();
 
     /// <summary>
-    /// 是否与另一个时间切片重叠
+    /// 移除全部时间片
     /// </summary>
-    /// <param name="other">另一个时间切片</param>
-    /// <returns>是否重叠</returns>
-    public bool Overlaps(TimeSlice other);
-
-    /// <summary>
-    /// 获取交集
-    /// </summary>
-    /// <param name="other">另一个时间切片</param>
-    /// <returns>交集时间切片</returns>
-    public TimeSlice? Intersect(TimeSlice other);
-
-    /// <summary>
-    /// 获取并集
-    /// </summary>
-    /// <param name="other">另一个时间切片</param>
-    /// <returns>并集时间切片</returns>
-    public TimeSlice Union(TimeSlice other);
+    public void RemoveAll();
 }
 ```
 
 #### StampTimer
-时间戳计时器类
+可暂停/恢复的流逝时间计时器，支持手动调整流失时间，并可注入自定义 Tick 来源。
+
+默认时钟为 `DateTimeUtil.NowTicks1970`。
 
 ```csharp
 /// <summary>
-    /// 时间戳计时器类
-    /// 提供高精度的时间戳计时功能
+/// 可暂停/恢复的流逝时间计时器，支持手动调整流失时间，并可注入自定义 Tick 来源。
+/// </summary>
+public sealed class StampTimer
+{
+    /// <summary>
+    /// 获取当前Ticks函数代理
     /// </summary>
-    public class StampTimer
+    public delegate long NowTicksGetter();
+
+    /// <summary>
+    /// 自 Start 起流逝的时间（不含暂停时段）。
+    /// </summary>
+    public long LostTicks { get; }
+
+    /// <summary>
+    /// 流失的时间(毫秒)
+    /// </summary>
+    public long LostMilliseconds { get; }
+
+    /// <summary>
+    /// 全局流失的时间(Ticks)
+    /// </summary>
+    public long GlobalLostTicks { get; }
+
+    /// <summary>
+    /// 全局流失的时间(毫秒)
+    /// </summary>
+    public long GlobalLostMilliseconds { get; }
+
+    /// <summary>
+    /// 暂停累计占用的时间(Ticks)
+    /// </summary>
+    public long PauseTicks { get; }
+
+    /// <summary>
+    /// 暂停累计占用的时间(毫秒)
+    /// </summary>
+    public long PauseMilliseconds { get; }
+
+    /// <summary>
+    /// 是否暂停中
+    /// </summary>
+    public bool IsPause { get; }
+
+    /// <summary>
+    /// 创建基准流失时间为 0 的计时器。
+    /// </summary>
+    public StampTimer();
+
+    /// <summary>
+    /// 以指定的基准流失 Tick 数创建计时器。
+    /// </summary>
+    /// <param name="baseLostTicks">在 Start 之前计入的基准流失 Tick。</param>
+    public StampTimer(long baseLostTicks);
+
+    /// <summary>
+    /// 根据 DateTime 推导基准流失时间并创建计时器。
+    /// </summary>
+    /// <param name="baseLostDateTime">作为基准锚点的日期时间。</param>
+    public StampTimer(DateTime baseLostDateTime);
+
+    /// <summary>
+    /// 设置获取当前时间戳的函数
+    /// </summary>
+    /// <param name="getter">自定义 Tick 提供器；为 null 时使用 DateTimeUtil.NowTicks1970。</param>
+    public void SetNowTicksGetter(NowTicksGetter getter);
+
+    /// <summary>
+    /// 开始计时
+    /// </summary>
+    public void Start();
+
+    /// <summary>
+    /// 计时器结束
+    /// </summary>
+    public void Stop();
+
+    /// <summary>
+    /// 时间暂停
+    /// </summary>
+    public void Pause();
+
+    /// <summary>
+    /// 时间继续流动
+    /// </summary>
+    public void Continue();
+
+    /// <summary>
+    /// 增加流失时间
+    /// </summary>
+    /// <param name="lostTicks">根据当前状态追加到运行或暂停流失时间的 Tick 数。</param>
+    public void AddLost(long lostTicks);
+
+    /// <summary>
+    /// 增加运行流失时间
+    /// </summary>
+    /// <param name="lostTicks">计时器运行期间追加的流失 Tick 数。</param>
+    public void AddRunningLost(long lostTicks);
+
+    /// <summary>
+    /// 增加暂停运行时间
+    /// </summary>
+    /// <param name="lostTicks">计时器暂停期间追加的流失 Tick 数。</param>
+    public void AddPausingLost(long lostTicks);
+
+    /// <summary>
+    /// 生成一个时间戳对象
+    /// </summary>
+    /// <param name="initTicks">初始基准流失 Tick 数。</param>
+    /// <returns>新的 StampTimer 实例。</returns>
+    public static StampTimer GenTimer(long initTicks);
+
+    /// <summary>
+    /// 生成一个时间戳对象
+    /// </summary>
+    /// <returns>基准为 0 的新 StampTimer 实例。</returns>
+    public static StampTimer GenTimer();
+}
+```
+
+### 结构体 (Structs)
+
+#### TimeSlice
+时间轴上的时间片，包含起点、时长，并支持平移与缩放。起点与时长均为 `long` 时间戳（Tick），不是 `DateTime`。
+
+```csharp
+/// <summary>
+/// 时间轴上的时间片，包含起点、时长，并支持平移与缩放。
+/// </summary>
+public struct TimeSlice
+{
+    /// <summary>
+    /// 缩放时间片时的锚点位置。
+    /// </summary>
+    public enum ZoomAnchor
     {
-        private long m_StartTicks;
-        private long m_StopTicks;
-        private bool m_IsRunning;
+        /// <summary>锚定在起点。</summary>
+        Start,
 
-        /// <summary>
-        /// 是否正在运行
-        /// </summary>
-        public bool IsRunning => m_IsRunning;
+        /// <summary>锚定在中心。</summary>
+        Center,
 
-        /// <summary>
-        /// 开始计时
-        /// </summary>
-        public void Start();
-
-        /// <summary>
-        /// 停止计时
-        /// </summary>
-        public void Stop();
-
-        /// <summary>
-        /// 重置计时器
-        /// </summary>
-        public void Reset();
-
-        /// <summary>
-        /// 重启计时器
-        /// </summary>
-        public void Restart();
-
-        /// <summary>
-        /// 获取经过的毫秒数
-        /// </summary>
-        /// <returns>毫秒数</returns>
-        public long GetElapsedMilliseconds();
-
-        /// <summary>
-        /// 获取经过的微秒数
-        /// </summary>
-        /// <returns>微秒数</returns>
-        public long GetElapsedMicroseconds();
-
-        /// <summary>
-        /// 获取经过的纳秒数
-        /// </summary>
-        /// <returns>纳秒数</returns>
-        public long GetElapsedNanoseconds();
-
-        /// <summary>
-        /// 获取经过的时间间隔
-        /// </summary>
-        /// <returns>时间间隔</returns>
-        public TimeSpan GetElapsedTime();
+        /// <summary>锚定在终点。</summary>
+        End
     }
+
+    /// <summary>
+    /// 开始时间戳
+    /// </summary>
+    public long Start { get; }
+
+    /// <summary>
+    /// 结束时间戳
+    /// </summary>
+    public long End { get; }
+
+    /// <summary>
+    /// 时间长度
+    /// </summary>
+    public long Duration { get; }
+
+    /// <summary>
+    /// 检查时间戳是否在时间片内
+    /// </summary>
+    /// <param name="timestamp">待检测的时间戳。</param>
+    /// <param name="includeEnd">是否包含结束边界。</param>
+    /// <returns>时间戳落在片内时返回 true。</returns>
+    public bool Contains(long timestamp, bool includeEnd = false);
+
+    /// <summary>
+    /// 移动时间片
+    /// </summary>
+    /// <param name="offset">平移起点的 Tick 偏移量，时长不变。</param>
+    public void Move(long offset);
+
+    /// <summary>
+    /// 延长时间长度
+    /// </summary>
+    /// <param name="duration">追加到时长上的 Tick 数。</param>
+    public void Extend(long duration);
+
+    /// <summary>
+    /// 缩放时间片
+    /// </summary>
+    /// <param name="scale">缩放系数，1 表示不变。</param>
+    /// <param name="anchor">锚点 [0,1]：0 为终点，1 为起点，其余为插值。</param>
+    public void Zoom(float scale, float anchor);
+
+    /// <summary>
+    /// 缩放时间片
+    /// </summary>
+    /// <param name="scale">缩放系数，1 表示不变。</param>
+    /// <param name="anchor">固定锚点：起点、中心或终点。</param>
+    public void Zoom(float scale, ZoomAnchor anchor);
+
+    /// <summary>
+    /// 通过时间长度创建时间片
+    /// </summary>
+    /// <param name="start">开始时间戳。</param>
+    /// <param name="duration">时长（Tick）。</param>
+    /// <returns>新的时间片。</returns>
+    public static TimeSlice NewSliceWitDur(long start, long duration);
+
+    /// <summary>
+    /// 通过两个时间点创建时间片
+    /// </summary>
+    /// <param name="start">开始时间戳。</param>
+    /// <param name="end">结束时间戳。</param>
+    /// <returns>时长为 end - start 的新时间片。</returns>
+    public static TimeSlice NewSliceWithEnd(long start, long end);
+}
 ```
 
 ### 功能说明
@@ -478,54 +602,51 @@ public struct TimeSlice
 #### 时间单位转换
 
 **支持的时间单位**
-- **纳秒**：最小时间单位，1纳秒 = 10 Ticks
-- **微秒**：1微秒 = 10纳秒
-- **毫秒**：1毫秒 = 1000微秒
-- **秒**：1秒 = 1000毫秒
-- **分钟**：1分钟 = 60秒
-- **小时**：1小时 = 60分钟
-- **天**：1天 = 24小时
-- **周**：1周 = 7天
-- **月**：28/29/30/31天
-- **年**：365天（闰年366天）
+- **Tick**：.NET 基本时间单位，1 Tick = 100 纳秒
+- **纳秒**：`Ticks2Nanos` / `Nanos2Ticks`（1 Tick = 100 纳秒）
+- **微秒**：`TicksPerMicrosecond = 10`
+- **毫秒**：`TicksPerMilliSecond = 10_000`
+- **厘秒**：`TicksPerCentisecond = 100_000`
+- **秒**：`TicksPerSecond = 10_000_000`
+- **分钟 / 小时 / 天 / 周**：对应 `TicksPerMinute`、`TicksPerHour`、`TicksPerDay`、`TicksPerWeak`
+- **月**：28/29/30/31 天对应的 Tick 常量
+- **年**：365 天（闰年 366 天，`TicksPerYear2`）
 
 **转换方法**
-1. **Ticks转其他单位**：Ticks2Nanos, Ticks2Millis, Ticks2Seconds等
-2. **其他单位转Ticks**：Nanos2Ticks, Millis2Ticks, Seconds2Ticks等
-3. **双向转换**：支持所有时间单位的双向转换
+1. **Ticks 转其他单位**：`Ticks2Nanos`、`Ticks2Millis`、`Ticks2Seconds`、`Ticks2Minutes`、`Ticks2Hours`
+2. **其他单位转 Ticks**：`Nanos2Ticks`、`Millis2Ticks`、`Seconds2Ticks`、`Minutes2Ticks`、`Hours2Ticks`
 
 #### 时间戳系统
 
 **时间戳基准**
-- **Unix时间戳**：从1970年1月1日开始的秒数
-- **Ticks时间戳**：从0001年1月1日开始的Ticks数
-- **毫秒时间戳**：从基准时间开始的毫秒数
-- **纳秒时间戳**：从基准时间开始的纳秒数
+- **0001 基准**：自公元 0001-01-01 起的 Ticks / 纳秒 / 毫秒 / 秒 / 分钟 / 小时（`NowTicks`、`NowNanoseconds`、`NowMilliseconds`、`NowSeconds`、`NowMinutes`、`NowHours`）
+- **1970 基准（Unix）**：自 1970-01-01 UTC 起（`Ticks1970`、`NowTicks1970` 及对应的纳秒/毫秒/秒/分钟/小时属性）
 
-**当前时间戳**
-- **NowTicks**：距离0001.1.1的当前Ticks
-- **NowTicks1970**：距离1970.1.1的当前Ticks
-- **NowMilliseconds1970**：距离1970.1.1的当前毫秒数
-- **NowSeconds1970**：距离1970.1.1的当前秒数
+当前时间均取 `DateTime.UtcNow`。
+
+**格式化**
+- `FormatDateTime(DateTime, ...)`：按给定格式格式化 `DateTime`
+- `FormatDateTime(long, ...)`：将自 0001-01-01 起的 Ticks 视为 UTC `DateTime` 后格式化
+- `FormatDateTimeLocal(long, ...)`：同样以自 0001-01-01 的 Ticks 为输入，转换到本地时区后格式化
+- `format` 使用 .NET 标准/自定义日期时间格式字符串；`provider` 为 null 时使用不变区域性
 
 #### 日期计算
 
-**月份天数计算**
-- **GetMonthDay**：根据年月计算天数
-- **CheckLeapYear**：检查是否为闰年
-- **GetOffsetMonth**：计算两个日期间的月份差
+- **GetMonthDay**：按年月取该月天数（二月结合闰年）
+- **CheckLeapYear**：判断是否闰年
+- **GetOffsetMonth**：计算两个时间点的月份差
 
-**时间序列处理**
-- **TimeSeries**：处理时间序列数据
-- **TimeSlice**：表示时间区间
-- **StampTimer**：高精度计时器
+#### 时间序列与时间片
+
+- **TimeSeries**：由命名时间片组成的序列。`AddSlice` 追加片段（可选前导间隔 `space`），`LocateTo` 用时间戳定位所属片段名称；`loop` 为 true 时按序列总时长取模循环定位
+- **TimeSlice**：以 `long` 起点与时长表示区间，可通过 `NewSliceWitDur` / `NewSliceWithEnd` 创建，并支持 `Contains`、`Move`、`Extend`、`Zoom`
+- **StampTimer**：可暂停/继续的流逝计时器；`LostTicks` 不含暂停时段，`GlobalLostTicks` 含构造时的基准流失时间；可用 `SetNowTicksGetter` 注入自定义时钟
 
 ### 使用示例
 
 #### 时间单位转换
 ```csharp
-// 基本时间单位转换
-long ticks = 1000000; // 1秒的Ticks数
+long ticks = DateTimeUtil.TicksPerSecond; // 1 秒对应的 Ticks
 
 long nanoseconds = DateTimeUtil.Ticks2Nanos(ticks);
 long milliseconds = DateTimeUtil.Ticks2Millis(ticks);
@@ -540,14 +661,15 @@ Console.WriteLine($"秒: {seconds}");
 Console.WriteLine($"分钟: {minutes}");
 Console.WriteLine($"小时: {hours}");
 
-// 反向转换
 long backToTicks = DateTimeUtil.Nanos2Ticks(nanoseconds);
 Console.WriteLine($"转换回Ticks: {backToTicks}");
+
+long fromHours = DateTimeUtil.Hours2Ticks(2);
+long fromSeconds = DateTimeUtil.Seconds2Ticks(90);
 ```
 
 #### 时间戳操作
 ```csharp
-// 获取当前时间戳
 long currentTicks = DateTimeUtil.NowTicks;
 long currentTicks1970 = DateTimeUtil.NowTicks1970;
 long currentMilliseconds = DateTimeUtil.NowMilliseconds1970;
@@ -557,29 +679,27 @@ Console.WriteLine($"当前Ticks (0001基准): {currentTicks}");
 Console.WriteLine($"当前Ticks (1970基准): {currentTicks1970}");
 Console.WriteLine($"当前毫秒 (1970基准): {currentMilliseconds}");
 Console.WriteLine($"当前秒 (1970基准): {currentSeconds}");
+Console.WriteLine($"Unix epoch 的 Ticks: {DateTimeUtil.Ticks1970}");
 
-// 时间戳格式化
-string formattedTime = DateTimeUtil.FormatDateTime(currentMilliseconds, "yyyy-MM-dd HH:mm:ss");
+// timestamp 为自 0001.01.01 起的 Ticks
+string formattedTime = DateTimeUtil.FormatDateTime(currentTicks, "yyyy-MM-dd HH:mm:ss");
 Console.WriteLine($"格式化时间: {formattedTime}");
 ```
 
 #### 日期计算
 ```csharp
-// 月份天数计算
 int daysInFebruary2024 = DateTimeUtil.GetMonthDay(2, 2024);
 int daysInFebruary2023 = DateTimeUtil.GetMonthDay(2, 2023);
 
 Console.WriteLine($"2024年2月天数: {daysInFebruary2024}"); // 29 (闰年)
 Console.WriteLine($"2023年2月天数: {daysInFebruary2023}"); // 28
 
-// 闰年检查
 bool isLeap2024 = DateTimeUtil.CheckLeapYear(2024);
 bool isLeap2023 = DateTimeUtil.CheckLeapYear(2023);
 
 Console.WriteLine($"2024是闰年: {isLeap2024}"); // True
 Console.WriteLine($"2023是闰年: {isLeap2023}"); // False
 
-// 月份差计算
 DateTime startDate = new DateTime(2023, 1, 1);
 DateTime endDate = new DateTime(2024, 6, 15);
 int monthOffset = DateTimeUtil.GetOffsetMonth(startDate, endDate);
@@ -589,123 +709,113 @@ Console.WriteLine($"从 {startDate:yyyy-MM-dd} 到 {endDate:yyyy-MM-dd} 的月�
 
 #### 时间序列处理
 ```csharp
-// 创建时间序列
-DateTime startTime = new DateTime(2024, 1, 1);
-DateTime endTime = new DateTime(2024, 1, 31);
-TimeSpan interval = TimeSpan.FromDays(1);
+var series = new TimeSeries(basestamp: 0, loop: true);
 
-var timeSeries = new TimeSeries(startTime, endTime, interval);
+series.AddSlice("morning", DateTimeUtil.Hours2Ticks(8));
+series.AddSlice("work", DateTimeUtil.Hours2Ticks(8));
+series.AddSlice("evening", DateTimeUtil.Hours2Ticks(8));
 
-Console.WriteLine($"时间序列长度: {timeSeries.Count}");
-Console.WriteLine($"时间间隔: {interval}");
+Console.WriteLine(series.Contains("work"));          // True
+Console.WriteLine(series.FindFirstSlice("work"));    // 1
 
-// 遍历时间序列
-foreach (DateTime time in timeSeries)
-{
-    Console.WriteLine($"时间点: {time:yyyy-MM-dd}");
-}
+string name = series.LocateTo(DateTimeUtil.Hours2Ticks(10));
+Console.WriteLine($"10 小时处所属片段: {name}");     // work
+
+// 循环定位：超过序列总时长后取模
+string looped = series.LocateTo(DateTimeUtil.Hours2Ticks(26));
+Console.WriteLine($"26 小时处所属片段: {looped}");   // work
+
+series.SetBasestamp(DateTimeUtil.NowTicks1970);
+series.RemoveAt(0);
+series.RemoveLast();
+series.RemoveAll();
 ```
 
 #### 时间切片操作
 ```csharp
-// 创建时间切片
-var slice1 = new TimeSlice(
-    new DateTime(2024, 1, 1, 9, 0, 0),
-    new DateTime(2024, 1, 1, 17, 0, 0)
+var slice = TimeSlice.NewSliceWitDur(0, DateTimeUtil.Hours2Ticks(8));
+var slice2 = TimeSlice.NewSliceWithEnd(
+    DateTimeUtil.Hours2Ticks(4),
+    DateTimeUtil.Hours2Ticks(12)
 );
 
-var slice2 = new TimeSlice(
-    new DateTime(2024, 1, 1, 14, 0, 0),
-    new DateTime(2024, 1, 1, 18, 0, 0)
-);
+Console.WriteLine($"起点: {slice.Start}, 终点: {slice.End}, 时长: {slice.Duration}");
+Console.WriteLine(slice.Contains(DateTimeUtil.Hours2Ticks(3)));       // True
+Console.WriteLine(slice.Contains(slice.End));                        // False（默认不含结束边界）
+Console.WriteLine(slice.Contains(slice.End, includeEnd: true));      // True
 
-Console.WriteLine($"切片1: {slice1.Start:HH:mm} - {slice1.End:HH:mm}");
-Console.WriteLine($"切片2: {slice2.Start:HH:mm} - {slice2.End:HH:mm}");
-Console.WriteLine($"切片1持续时间: {slice1.Duration}");
-
-// 检查重叠
-bool overlaps = slice1.Overlaps(slice2);
-Console.WriteLine($"是否重叠: {overlaps}");
-
-// 获取交集
-var intersection = slice1.Intersect(slice2);
-if (intersection.HasValue)
-{
-    Console.WriteLine($"交集: {intersection.Value.Start:HH:mm} - {intersection.Value.End:HH:mm}");
-}
+slice.Move(DateTimeUtil.Hours2Ticks(1));
+slice.Extend(DateTimeUtil.Hours2Ticks(2));
+slice.Zoom(2f, TimeSlice.ZoomAnchor.Center);
+slice.Zoom(0.5f, 1f); // 锚点 1 = 起点
 ```
 
 #### 高精度计时器
 ```csharp
-// 创建计时器
 var timer = new StampTimer();
-
-// 开始计时
 timer.Start();
 
-// 执行一些操作
-Thread.Sleep(100); // 模拟耗时操作
+Thread.Sleep(100);
 
-// 停止计时
+timer.Pause();
+Console.WriteLine($"暂停中: {timer.IsPause}");
+Console.WriteLine($"已流失毫秒: {timer.LostMilliseconds}");
+Console.WriteLine($"暂停累计毫秒: {timer.PauseMilliseconds}");
+
+timer.Continue();
+Thread.Sleep(50);
 timer.Stop();
 
-// 获取计时结果
-long elapsedMs = timer.GetElapsedMilliseconds();
-long elapsedMicros = timer.GetElapsedMicroseconds();
-long elapsedNanos = timer.GetElapsedNanoseconds();
-TimeSpan elapsedTime = timer.GetElapsedTime();
+Console.WriteLine($"流失 Ticks: {timer.LostTicks}");
+Console.WriteLine($"流失毫秒: {timer.LostMilliseconds}");
+Console.WriteLine($"全局流失毫秒: {timer.GlobalLostMilliseconds}");
 
-Console.WriteLine($"经过时间:");
-Console.WriteLine($"  毫秒: {elapsedMs}");
-Console.WriteLine($"  微秒: {elapsedMicros}");
-Console.WriteLine($"  纳秒: {elapsedNanos}");
-Console.WriteLine($"  时间间隔: {elapsedTime}");
+// 手动补偿流失时间
+timer.AddLost(DateTimeUtil.TicksPerMilliSecond * 10);
+timer.AddRunningLost(DateTimeUtil.TicksPerMilliSecond);
+timer.AddPausingLost(DateTimeUtil.TicksPerMilliSecond);
 
-// 重启计时器
-timer.Restart();
-// ... 执行其他操作
-timer.Stop();
-Console.WriteLine($"重启后经过时间: {timer.GetElapsedMilliseconds()}ms");
+// 带基准流失时间 / 工厂方法 / 自定义时钟
+var withBase = new StampTimer(DateTimeUtil.TicksPerSecond);
+var fromFactory = StampTimer.GenTimer();
+fromFactory.SetNowTicksGetter(() => DateTimeUtil.NowTicks1970);
+fromFactory.Start();
 ```
 
 #### 时间格式化
 ```csharp
-// 格式化当前时间
-DateTime now = DateTime.Now;
+DateTime now = DateTime.UtcNow;
 string formatted1 = DateTimeUtil.FormatDateTime(now, "yyyy年MM月dd日 HH:mm:ss");
 string formatted2 = DateTimeUtil.FormatDateTime(now, "yyyy-MM-dd HH:mm:ss.fff");
 
 Console.WriteLine($"格式化1: {formatted1}");
 Console.WriteLine($"格式化2: {formatted2}");
 
-// 格式化时间戳
-long timestamp = DateTimeUtil.NowMilliseconds1970;
+long timestamp = DateTimeUtil.NowTicks; // 自 0001.01.01 的 Ticks
 string formattedTimestamp = DateTimeUtil.FormatDateTime(timestamp, "yyyy-MM-dd HH:mm:ss");
 string formattedLocal = DateTimeUtil.FormatDateTimeLocal(timestamp, "yyyy-MM-dd HH:mm:ss");
 
-Console.WriteLine($"时间戳格式化: {formattedTimestamp}");
+Console.WriteLine($"时间戳格式化(UTC): {formattedTimestamp}");
 Console.WriteLine($"本地时间格式化: {formattedLocal}");
 ```
 
 #### 性能测试
 ```csharp
-// 使用计时器进行性能测试
 var performanceTimer = new StampTimer();
 
-// 测试时间单位转换性能
 performanceTimer.Start();
 for (int i = 0; i < 1000000; i++)
 {
-    long ticks = i * 1000;
+    long ticks = i * 1000L;
     long ms = DateTimeUtil.Ticks2Millis(ticks);
-    long backToTicks = DateTimeUtil.Millis2Ticks(ms);
+    long backToTicks = DateTimeUtil.Nanos2Ticks(DateTimeUtil.Ticks2Nanos(ticks));
 }
 performanceTimer.Stop();
 
-Console.WriteLine($"100万次时间转换耗时: {performanceTimer.GetElapsedMilliseconds()}ms");
+Console.WriteLine($"100万次时间转换耗时: {performanceTimer.LostMilliseconds}ms");
 
-// 测试时间戳获取性能
-performanceTimer.Restart();
+performanceTimer = StampTimer.GenTimer();
+performanceTimer.Start();
 for (int i = 0; i < 100000; i++)
 {
     long ticks = DateTimeUtil.NowTicks;
@@ -713,23 +823,23 @@ for (int i = 0; i < 100000; i++)
 }
 performanceTimer.Stop();
 
-Console.WriteLine($"10万次时间戳获取耗时: {performanceTimer.GetElapsedMilliseconds()}ms");
+Console.WriteLine($"10万次时间戳获取耗时: {performanceTimer.LostMilliseconds}ms");
 ```
 
 ### 设计特点
 
-1. **高精度**：支持纳秒级精度
-2. **多基准**：支持Unix和Ticks两种时间基准
-3. **完整转换**：支持所有时间单位的双向转换
-4. **实用工具**：提供日期计算和格式化功能
-5. **性能优化**：使用常量避免重复计算
-6. **易于使用**：提供简洁的API接口
+1. **高精度**：以 Tick 为基本单位，并可换算到纳秒
+2. **双基准**：同时提供 0001-01-01 与 1970-01-01 UTC 两套当前时间戳
+3. **单位换算**：常用时间单位与 Ticks 的双向转换及对应常量
+4. **命名时间序列**：`TimeSeries` 按名称管理时间片，并支持循环定位
+5. **可变时间片**：`TimeSlice` 支持平移、延长与按锚点缩放
+6. **可暂停计时器**：`StampTimer` 区分运行流失与暂停占用，可注入自定义时钟
 
 ### 注意事项
 
-1. **精度考虑**：纳秒级操作可能受系统精度限制
-2. **时区处理**：注意UTC和本地时间的区别
-3. **性能影响**：频繁的时间戳获取可能影响性能
-4. **内存使用**：大量时间序列数据注意内存使用
-5. **线程安全**：多线程环境下的时间操作
-6. **基准时间**：注意不同时间基准的差异 
+1. **精度**：1 Tick = 100 纳秒；纳秒级读数受系统时钟精度限制
+2. **时区**：当前时间戳基于 UTC；`FormatDateTime(long)` 按 UTC 格式化，`FormatDateTimeLocal` 转为本地时区
+3. **时间戳单位**：`FormatDateTime(long)` / `FormatDateTimeLocal` 的参数是自 0001-01-01 起的 **Ticks**，不是毫秒 Unix 时间戳
+4. **TimeSlice 类型**：起点、终点、时长均为 `long`，不是 `DateTime`；它是可变结构体，注意拷贝语义
+5. **StampTimer 时钟**：默认使用 `DateTimeUtil.NowTicks1970`；`Stop` 内部调用 `Pause`
+6. **命名**：`TicksPerWeak` 表示一周的 Ticks；`NewSliceWitDur` 为源码中的工厂方法名

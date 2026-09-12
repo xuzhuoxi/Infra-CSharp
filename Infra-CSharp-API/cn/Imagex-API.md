@@ -2,7 +2,7 @@
 
 ## 概述
 
-Imagex模块提供了图像处理功能，包括图像接口、RGBA图像类、透明度处理以及图像过滤器等。
+Imagex 模块提供二维像素缓冲区与卷积滤波相关类型，包括图像接口、RGBA 图像、透明度通道，以及稀疏卷积核与滤波矩阵。
 
 ## 命名空间
 
@@ -14,7 +14,7 @@ Imagex模块提供了图像处理功能，包括图像接口、RGBA图像类、�
 
 ### IImage
 
-图像接口，定义了图像的基本操作。
+二维像素缓冲区的读写访问接口。
 
 ```csharp
 public interface IImage
@@ -28,7 +28,7 @@ public interface IImage
 Bounds2Int Bounds { get; }
 ```
 
-**描述：** Data range / 数据范围定义
+**描述：** 数据范围。
 
 **类型：** `Bounds2Int`
 
@@ -40,14 +40,14 @@ Bounds2Int Bounds { get; }
 uint At(int x, int y);
 ```
 
-**描述：** Get pixel value / 取像素值
+**描述：** 取像素值。
 
 **参数：**
-- `x` (int): X坐标
-- `y` (int): Y坐标
+- `x` (int): X 坐标
+- `y` (int): Y 坐标
 
 **返回值：**
-- `uint`: 像素值
+- `uint`: 打包为 uint 的像素颜色
 
 ##### Set(int x, int y, uint color)
 
@@ -55,18 +55,18 @@ uint At(int x, int y);
 void Set(int x, int y, uint color);
 ```
 
-**描述：** Set pixel value / 设置像素值
+**描述：** 设置像素值。
 
 **参数：**
-- `x` (int): X坐标
-- `y` (int): Y坐标
-- `color` (uint): 颜色值
+- `x` (int): X 坐标
+- `y` (int): Y 坐标
+- `color` (uint): 打包颜色值
 
 ---
 
 ### IAlpha
 
-透明度接口，定义了透明度处理的基本操作。
+逐像素透明度通道的读写访问接口。
 
 ```csharp
 public interface IAlpha
@@ -80,14 +80,14 @@ public interface IAlpha
 byte AlphaAt(int x, int y);
 ```
 
-**描述：** Get alpha value / 取透明度
+**描述：** 取透明度。
 
 **参数：**
-- `x` (int): X坐标
-- `y` (int): Y坐标
+- `x` (int): X 坐标
+- `y` (int): Y 坐标
 
 **返回值：**
-- `byte`: 透明度值
+- `byte`: 透明度，取值 0–255
 
 ##### SetAlpha(int x, int y, byte alpha)
 
@@ -95,12 +95,12 @@ byte AlphaAt(int x, int y);
 void SetAlpha(int x, int y, byte alpha);
 ```
 
-**描述：** Set alpha value / 设置透明度
+**描述：** 设置透明度。
 
 **参数：**
-- `x` (int): X坐标
-- `y` (int): Y坐标
-- `alpha` (byte): 透明度值
+- `x` (int): X 坐标
+- `y` (int): Y 坐标
+- `alpha` (byte): 透明度，取值 0–255
 
 ---
 
@@ -108,7 +108,7 @@ void SetAlpha(int x, int y, byte alpha);
 
 ### RGBA
 
-RGBA图像类，实现了IImage和IAlpha接口，提供32位RGBA图像处理功能。
+以字节数组存储的 RGBA 图像（每像素 R、G、B、A 各一字节）。实现 `ICloneable<RGBA>`、`IImage`、`IAlpha`。
 
 ```csharp
 public class RGBA : ICloneable<RGBA>, IImage, IAlpha
@@ -122,11 +122,11 @@ public class RGBA : ICloneable<RGBA>, IImage, IAlpha
 public RGBA(int width, int height)
 ```
 
-**描述：** 创建指定宽度和高度的RGBA图像
+**描述：** 在原点 (0, 0) 处创建指定宽高的图像。
 
 **参数：**
-- `width` (int): 图像宽度
-- `height` (int): 图像高度
+- `width` (int): 图像宽度（像素）
+- `height` (int): 图像高度（像素）
 
 ##### RGBA(Bounds2Int rect)
 
@@ -134,20 +134,20 @@ public RGBA(int width, int height)
 public RGBA(Bounds2Int rect)
 ```
 
-**描述：** 根据边界创建RGBA图像
+**描述：** 按给定边界矩形创建图像。
 
 **参数：**
-- `rect` (Bounds2Int): 图像边界
+- `rect` (Bounds2Int): 像素边界
 
 #### 属性
 
 ##### Bounds
 
 ```csharp
-public Bounds2Int Bounds => m_Rect;
+public Bounds2Int Bounds { get; }
 ```
 
-**描述：** 图像边界
+**描述：** 数据范围。
 
 #### 方法
 
@@ -157,10 +157,10 @@ public Bounds2Int Bounds => m_Rect;
 public RGBA Clone()
 ```
 
-**描述：** 克隆图像
+**描述：** 深拷贝像素数据及布局元数据。
 
 **返回值：**
-- `RGBA`: 克隆的图像对象
+- `RGBA`: 新的独立副本
 
 ##### At(int x, int y)
 
@@ -168,14 +168,14 @@ public RGBA Clone()
 public uint At(int x, int y)
 ```
 
-**描述：** 获取像素值
+**描述：** 取像素值（等价于 `RgbaAt`）。越界时返回 0。
 
 **参数：**
-- `x` (int): X坐标
-- `y` (int): Y坐标
+- `x` (int): X 坐标
+- `y` (int): Y 坐标
 
 **返回值：**
-- `uint`: 像素值
+- `uint`: 打包为 uint 的像素颜色
 
 ##### Set(int x, int y, uint color)
 
@@ -183,12 +183,12 @@ public uint At(int x, int y)
 public void Set(int x, int y, uint color)
 ```
 
-**描述：** 设置像素值
+**描述：** 设置像素值。越界时忽略。
 
 **参数：**
-- `x` (int): X坐标
-- `y` (int): Y坐标
-- `color` (uint): 颜色值
+- `x` (int): X 坐标
+- `y` (int): Y 坐标
+- `color` (uint): 打包颜色值
 
 ##### AlphaAt(int x, int y)
 
@@ -196,11 +196,11 @@ public void Set(int x, int y, uint color)
 public byte AlphaAt(int x, int y)
 ```
 
-**描述：** 获取透明度值
+**描述：** 取透明度。越界时返回 0。
 
 **参数：**
-- `x` (int): X坐标
-- `y` (int): Y坐标
+- `x` (int): X 坐标
+- `y` (int): Y 坐标
 
 **返回值：**
 - `byte`: 透明度值
@@ -211,11 +211,11 @@ public byte AlphaAt(int x, int y)
 public void SetAlpha(int x, int y, byte alpha)
 ```
 
-**描述：** 设置透明度值
+**描述：** 设置透明度。越界时忽略。
 
 **参数：**
-- `x` (int): X坐标
-- `y` (int): Y坐标
+- `x` (int): X 坐标
+- `y` (int): Y 坐标
 - `alpha` (byte): 透明度值
 
 ##### RgbaAt(int x, int y)
@@ -224,14 +224,14 @@ public void SetAlpha(int x, int y, byte alpha)
 public uint RgbaAt(int x, int y)
 ```
 
-**描述：** 获取RGBA像素值
+**描述：** 读取打包的 RGBA uint（R 在高字节，A 在低字节）。
 
 **参数：**
-- `x` (int): X坐标
-- `y` (int): Y坐标
+- `x` (int): X 坐标
+- `y` (int): Y 坐标
 
 **返回值：**
-- `uint`: RGBA像素值
+- `uint`: 打包颜色，越界返回 0
 
 ##### PixOffset(int x, int y)
 
@@ -239,14 +239,14 @@ public uint RgbaAt(int x, int y)
 public int PixOffset(int x, int y)
 ```
 
-**描述：** 计算像素在数组中的偏移量
+**描述：** 像素 (x, y) 在底层数组中 R 通道的字节偏移。不进行边界检查。
 
 **参数：**
-- `x` (int): X坐标
-- `y` (int): Y坐标
+- `x` (int): X 坐标
+- `y` (int): Y 坐标
 
 **返回值：**
-- `int`: 像素偏移量
+- `int`: 底层字节数组中的下标
 
 ---
 
@@ -254,7 +254,7 @@ public int PixOffset(int x, int y)
 
 ### FilterKernel
 
-向量核心过滤器类，提供图像过滤器的核心功能。
+以偏移/权重向量表示的稀疏卷积核。实现 `ICloneable<FilterKernel>`。
 
 ```csharp
 public class FilterKernel : ICloneable<FilterKernel>
@@ -262,21 +262,13 @@ public class FilterKernel : ICloneable<FilterKernel>
 
 #### 属性
 
-##### Vectors
-
-```csharp
-internal KernelVector[] Vectors;
-```
-
-**描述：** 核心向量数组
-
 ##### Len
 
 ```csharp
-public int Len => Vectors?.Length ?? 0;
+public int Len { get; }
 ```
 
-**描述：** 向量数量
+**描述：** 卷积核向量数量；未初始化时为 0。
 
 #### 方法
 
@@ -286,14 +278,14 @@ public int Len => Vectors?.Length ?? 0;
 public bool Less(int i, int j)
 ```
 
-**描述：** 比较两个向量的顺序
+**描述：** 下标 `i` 的向量是否排在下标 `j` 之前。
 
 **参数：**
-- `i` (int): 第一个向量索引
-- `j` (int): 第二个向量索引
+- `i` (int): 第一个下标
+- `j` (int): 第二个下标
 
 **返回值：**
-- `bool`: 比较结果
+- `bool`: 前者排序靠前则为 `true`
 
 ##### Less(KernelVector i, KernelVector j)
 
@@ -301,14 +293,14 @@ public bool Less(int i, int j)
 public bool Less(KernelVector i, KernelVector j)
 ```
 
-**描述：** 比较两个向量
+**描述：** `i` 是否排在 `j` 之前（先行后列）。
 
 **参数：**
 - `i` (KernelVector): 第一个向量
 - `j` (KernelVector): 第二个向量
 
 **返回值：**
-- `bool`: 比较结果
+- `bool`: 前者排序靠前则为 `true`
 
 ##### Swap(int i, int j)
 
@@ -316,11 +308,11 @@ public bool Less(KernelVector i, KernelVector j)
 public void Swap(int i, int j)
 ```
 
-**描述：** Swap data / 交换数据
+**描述：** 按下标交换两个向量。
 
 **参数：**
-- `i` (int): 第一个索引
-- `j` (int): 第二个索引
+- `i` (int): 第一个下标
+- `j` (int): 第二个下标
 
 ##### IndexOfValue(int value)
 
@@ -328,13 +320,13 @@ public void Swap(int i, int j)
 public int IndexOfValue(int value)
 ```
 
-**描述：** 查找指定值的索引
+**描述：** 查找权重等于 `value` 的第一个下标。
 
 **参数：**
-- `value` (int): 要查找的值
+- `value` (int): 要查找的权重
 
 **返回值：**
-- `int`: 值的索引，未找到返回-1
+- `int`: 下标，未找到返回 -1
 
 ##### Clone()
 
@@ -342,10 +334,10 @@ public int IndexOfValue(int value)
 public FilterKernel Clone()
 ```
 
-**描述：** 克隆过滤器核心
+**描述：** 浅拷贝向量数组。
 
 **返回值：**
-- `FilterKernel`: 克隆的对象
+- `FilterKernel`: 含拷贝向量的新卷积核
 
 ##### FlipUpDownSelf()
 
@@ -353,7 +345,7 @@ public FilterKernel Clone()
 public void FlipUpDownSelf()
 ```
 
-**描述：** Flip itself upside down / 上下翻转自身
+**描述：** 上下翻转自身。
 
 ##### FlipUuDown()
 
@@ -361,10 +353,10 @@ public void FlipUpDownSelf()
 public FilterKernel FlipUuDown()
 ```
 
-**描述：** Flip Upside down / 上下翻转
+**描述：** 上下翻转并返回新卷积核。
 
 **返回值：**
-- `FilterKernel`: 翻转后的过滤器核心
+- `FilterKernel`: 翻转后的副本
 
 ##### FlipLeftRightSelf()
 
@@ -372,7 +364,7 @@ public FilterKernel FlipUuDown()
 public void FlipLeftRightSelf()
 ```
 
-**描述：** Flips itself left and right / 左右翻转自身
+**描述：** 左右翻转自身。
 
 ##### FlipLeftRight()
 
@@ -380,10 +372,10 @@ public void FlipLeftRightSelf()
 public FilterKernel FlipLeftRight()
 ```
 
-**描述：** Flip left and right / 左右翻转
+**描述：** 左右翻转并返回新卷积核。
 
 **返回值：**
-- `FilterKernel`: 翻转后的过滤器核心
+- `FilterKernel`: 翻转后的副本
 
 ##### Rotate90Self(bool clockwise)
 
@@ -391,10 +383,10 @@ public FilterKernel FlipLeftRight()
 public void Rotate90Self(bool clockwise)
 ```
 
-**描述：** Rotate 90 degrees / 旋转90度
+**描述：** 原地旋转 90 度。
 
 **参数：**
-- `clockwise` (bool): 是否为顺时针
+- `clockwise` (bool): `true` 顺时针，`false` 逆时针
 
 ##### Rotate90(bool clockwise)
 
@@ -402,13 +394,13 @@ public void Rotate90Self(bool clockwise)
 public FilterKernel Rotate90(bool clockwise)
 ```
 
-**描述：** Rotate 90 degrees / 旋转90度
+**描述：** 旋转 90 度并返回新卷积核。
 
 **参数：**
-- `clockwise` (bool): 是否为顺时针
+- `clockwise` (bool): `true` 顺时针，`false` 逆时针
 
 **返回值：**
-- `FilterKernel`: 旋转后的过滤器核心
+- `FilterKernel`: 旋转后的副本
 
 ##### RotateSelf(bool clockwise, int count90)
 
@@ -416,11 +408,11 @@ public FilterKernel Rotate90(bool clockwise)
 public void RotateSelf(bool clockwise, int count90)
 ```
 
-**描述：** Rotate / 旋转
+**描述：** 原地按 90 度倍数旋转。
 
 **参数：**
-- `clockwise` (bool): 是否为顺时针
-- `count90` (int): 90度旋转次数
+- `clockwise` (bool): 每步 `true` 为顺时针
+- `count90` (int): 90° 步数（负值会归一化）
 
 ##### Rotate(bool clockwise, int count90)
 
@@ -428,14 +420,14 @@ public void RotateSelf(bool clockwise, int count90)
 public FilterKernel Rotate(bool clockwise, int count90)
 ```
 
-**描述：** Rotate / 旋转
+**描述：** 按 90 度倍数旋转并返回新卷积核。
 
 **参数：**
-- `clockwise` (bool): 是否为顺时针
-- `count90` (int): 90度旋转次数
+- `clockwise` (bool): 每步 `true` 为顺时针
+- `count90` (int): 90° 步数（负值会归一化）
 
 **返回值：**
-- `FilterKernel`: 旋转后的过滤器核心
+- `FilterKernel`: 旋转后的副本
 
 ##### Sort()
 
@@ -443,83 +435,202 @@ public FilterKernel Rotate(bool clockwise, int count90)
 public void Sort()
 ```
 
-**描述：** Sort / 排序
+**描述：** 按先行后列（Y 再 X）对向量排序。
 
 ---
 
 ### FilterMatrix
 
-过滤器矩阵类，提供图像过滤矩阵功能。
+图像卷积滤波矩阵（稀疏卷积核及倍率/偏移元数据）。实现 `ICloneable<FilterMatrix>`。
 
 ```csharp
-public class FilterMatrix
+public class FilterMatrix : ICloneable<FilterMatrix>
 ```
 
-#### 主要方法
+#### 属性
 
-##### Apply(IImage source, IImage target)
+##### Kernel
 
 ```csharp
-public void Apply(IImage source, IImage target)
+public FilterKernel Kernel { get; }
 ```
 
-**描述：** 应用过滤器到图像
+**描述：** 稀疏卷积核。
+
+##### KernelRadius
+
+```csharp
+public int KernelRadius { get; }
+```
+
+**描述：** 卷积核半径（像素半边长）。
+
+##### KernelSize
+
+```csharp
+public int KernelSize { get; }
+```
+
+**描述：** 卷积核边长（`2 * KernelRadius + 1`）。
+
+##### KernelScale
+
+```csharp
+public int KernelScale { get; }
+```
+
+**描述：** 卷积后的除数（权重之和应等于此值）。
+
+##### ResultOffset
+
+```csharp
+public int ResultOffset { get; }
+```
+
+**描述：** 滤波结果上加的常数偏移。
+
+##### IsScaleMatrix
+
+```csharp
+public bool IsScaleMatrix { get; }
+```
+
+**描述：** 是否为倍率滤波器。
+
+##### IsPixelUnsafe
+
+```csharp
+public bool IsPixelUnsafe { get; }
+```
+
+**描述：** 运算结果是否可能超出像素范围（非安全像素值）。当 `ResultOffset != 0` 或任一卷积权重小于 0 时为 `true`。
+
+#### 方法
+
+##### Clone()
+
+```csharp
+public FilterMatrix Clone()
+```
+
+**描述：** 深拷贝卷积核及元数据。
+
+**返回值：**
+- `FilterMatrix`: 新的独立副本
+
+##### FlipUpDown()
+
+```csharp
+public FilterMatrix FlipUpDown()
+```
+
+**描述：** 上下翻转。
+
+**返回值：**
+- `FilterMatrix`: 翻转并已排序卷积核的副本
+
+##### FlipLeftRight()
+
+```csharp
+public FilterMatrix FlipLeftRight()
+```
+
+**描述：** 左右翻转。
+
+**返回值：**
+- `FilterMatrix`: 翻转并已排序卷积核的副本
+
+##### Rotate(bool clockwise, int count90)
+
+```csharp
+public FilterMatrix Rotate(bool clockwise, int count90)
+```
+
+**描述：** 按 90 度倍数旋转。
 
 **参数：**
-- `source` (IImage): 源图像
-- `target` (IImage): 目标图像
+- `clockwise` (bool): 每步 `true` 为顺时针
+- `count90` (int): 90° 步数
+
+**返回值：**
+- `FilterMatrix`: 旋转并已排序卷积核的副本
+
+##### CheckValidity()
+
+```csharp
+public bool CheckValidity()
+```
+
+**描述：** 检查滤波模板有效性（半径、倍率及权重和）。
+
+**返回值：**
+- `bool`: 半径 ≥ 1、倍率 ≥ 0 且权重和等于 `KernelScale` 时为 `true`
 
 ---
 
 ### KernelVector
 
-核心向量类，表示过滤器核心中的向量。
+滤波器向量单元。按先行后列（先 Y 后 X）比较。
 
 ```csharp
-public class KernelVector
+public struct KernelVector : IComparable<KernelVector>
 ```
 
-#### 属性
+#### 字段
 
 ##### X
 
 ```csharp
-public int X { get; set; }
+public int X;
 ```
 
-**描述：** X坐标
+**描述：** 相对卷积核中心的 X 偏移。
 
 ##### Y
 
 ```csharp
-public int Y { get; set; }
+public int Y;
 ```
 
-**描述：** Y坐标
+**描述：** 相对卷积核中心的 Y 偏移。
 
 ##### Value
 
 ```csharp
-public int Value { get; set; }
+public int Value;
 ```
 
-**描述：** 向量值
+**描述：** 该偏移处的卷积权重。
 
 #### 方法
 
-##### Less(KernelVector other)
+##### CompareTo(KernelVector j)
 
 ```csharp
-public bool Less(KernelVector other)
+public int CompareTo(KernelVector j)
 ```
 
-**描述：** 比较两个向量
+**描述：** 按排序规则比较（先 Y 后 X）；相等时也不返回 0。
 
 **参数：**
-- `other` (KernelVector): 另一个向量
+- `j` (KernelVector): 另一向量
 
 **返回值：**
-- `bool`: 比较结果
+- `int`: 若本项排在前面返回 -1，否则 1
+
+##### Less(KernelVector j)
+
+```csharp
+public bool Less(KernelVector j)
+```
+
+**描述：** 本向量是否排在 `j` 之前（先行后列：先 Y 后 X）。
+
+**参数：**
+- `j` (KernelVector): 另一向量
+
+**返回值：**
+- `bool`: 排序意义下小于对方则为 `true`
 
 ---
 
@@ -528,13 +639,13 @@ public bool Less(KernelVector other)
 ### 基本图像操作
 
 ```csharp
-// 创建RGBA图像
+// 创建 RGBA 图像
 var image = new RGBA(256, 256);
 
-// 设置像素颜色
-uint redColor = 0xFF0000FF;    // 红色
-uint greenColor = 0xFF00FF00;  // 绿色
-uint blueColor = 0xFFFF0000;   // 蓝色
+// 设置像素颜色（打包格式 0xRRGGBBAA：R 在高字节，A 在低字节）
+uint redColor = 0xFF0000FF;    // 不透明红
+uint greenColor = 0x00FF00FF;  // 不透明绿
+uint blueColor = 0x0000FFFF;   // 不透明蓝
 
 image.Set(100, 100, redColor);
 image.Set(150, 150, greenColor);
@@ -551,8 +662,8 @@ byte alpha = image.AlphaAt(100, 100);
 ### 图像边界操作
 
 ```csharp
-// 创建带边界的图像
-var bounds = new Bounds2Int(10, 10, 100, 100);
+// 创建带边界的图像（Bounds2Int 为 xMin, yMin, xMax, yMax，最大角不含）
+var bounds = new Bounds2Int(10, 10, 110, 110);
 var image = new RGBA(bounds);
 
 // 检查边界
@@ -572,82 +683,78 @@ original.Set(50, 50, 0xFFFFFFFF); // 白色像素
 var cloned = original.Clone();
 
 // 修改克隆图像
-cloned.Set(50, 50, 0xFF000000); // 黑色像素
+cloned.Set(50, 50, 0x000000FF); // 不透明黑
 
 // 原始图像不受影响
 uint originalPixel = original.At(50, 50); // 仍然是白色
 uint clonedPixel = cloned.At(50, 50);     // 现在是黑色
 ```
 
+### 卷积核向量比较
+
+```csharp
+var v1 = new KernelVector { X = -1, Y = -1, Value = 1 };
+var v2 = new KernelVector { X = 0, Y = -1, Value = 2 };
+
+bool less = v1.Less(v2);       // true（同一行时 X 更小者靠前）
+int cmp = v1.CompareTo(v2);    // -1
+```
+
 ### 过滤器操作
 
 ```csharp
-// 创建过滤器核心
 var kernel = new FilterKernel();
-kernel.Vectors = new KernelVector[]
-{
-    new KernelVector { X = -1, Y = -1, Value = 1 },
-    new KernelVector { X = 0, Y = -1, Value = 2 },
-    new KernelVector { X = 1, Y = -1, Value = 1 },
-    new KernelVector { X = -1, Y = 0, Value = 2 },
-    new KernelVector { X = 0, Y = 0, Value = 4 },
-    new KernelVector { X = 1, Y = 0, Value = 2 },
-    new KernelVector { X = -1, Y = 1, Value = 1 },
-    new KernelVector { X = 0, Y = 1, Value = 2 },
-    new KernelVector { X = 1, Y = 1, Value = 1 }
-};
+Console.WriteLine(kernel.Len); // 未初始化时为 0
 
-// 翻转操作
-var flippedUpDown = kernel.FlipUuDown();
-var flippedLeftRight = kernel.FlipLeftRight();
+var clonedKernel = kernel.Clone();
 
-// 旋转操作
-var rotated90 = kernel.Rotate90(true);  // 顺时针旋转90度
-var rotated180 = kernel.Rotate(true, 2); // 顺时针旋转180度
+// 已填充卷积核上的几何变换（返回新实例，不修改原核）
+FilterKernel source = clonedKernel;
+var flippedUpDown = source.FlipUuDown();
+var flippedLeftRight = source.FlipLeftRight();
+var rotated90 = source.Rotate90(true);   // 顺时针旋转 90 度
+var rotated180 = source.Rotate(true, 2); // 顺时针旋转 180 度
 
-// 排序
-kernel.Sort();
+source.Sort();
 ```
 
-### 图像处理管道
+### 滤波矩阵变换
 
 ```csharp
-// 创建源图像和目标图像
-var sourceImage = new RGBA(512, 512);
-var targetImage = new RGBA(512, 512);
+FilterMatrix matrix = /* 已初始化的滤波矩阵 */;
 
-// 填充源图像
-for (int x = 0; x < 512; x++)
+if (matrix.CheckValidity())
 {
-    for (int y = 0; y < 512; y++)
-    {
-        uint color = (uint)((x + y) % 256) | 0xFF000000;
-        sourceImage.Set(x, y, color);
-    }
+    Console.WriteLine($"半径: {matrix.KernelRadius}, 边长: {matrix.KernelSize}");
+    Console.WriteLine($"倍率: {matrix.KernelScale}, 偏移: {matrix.ResultOffset}");
+    Console.WriteLine($"倍率滤波: {matrix.IsScaleMatrix}, 非安全像素: {matrix.IsPixelUnsafe}");
+
+    var flipped = matrix.FlipUpDown();
+    var mirrored = matrix.FlipLeftRight();
+    var rotated = matrix.Rotate(true, 1);
+
+    FilterKernel kernel = matrix.Kernel;
+    int n = kernel.Len;
 }
-
-// 创建过滤器矩阵
-var filterMatrix = new FilterMatrix();
-
-// 应用过滤器
-filterMatrix.Apply(sourceImage, targetImage);
 ```
 
 ---
 
 ## 注意事项
 
-1. **坐标系统：** 图像使用左上角为原点的坐标系统
-2. **颜色格式：** RGBA使用32位整数格式，格式为0xAARRGGBB
-3. **边界检查：** 所有像素操作都会进行边界检查，超出边界的操作会被忽略
-4. **内存管理：** 图像数据存储在字节数组中，注意内存使用
-5. **性能考虑：** 大量像素操作时注意性能，避免频繁的边界检查
-6. **透明度：** Alpha通道值范围是0-255，0表示完全透明，255表示完全不透明
+1. **坐标系统：** 像素坐标与 `Bounds` 一致；`RGBA(int, int)` 原点为 (0, 0)。`Bounds2Int` 的最大角为不含上界。
+2. **颜色格式：** 打包 uint 为 0xRRGGBBAA（R 在高字节，A 在低字节）。底层按每像素 4 字节（R、G、B、A）存储。
+3. **边界检查：** `At` / `RgbaAt` / `AlphaAt` 越界返回 0；`Set` / `SetAlpha` 越界忽略。`PixOffset` 不检查边界。
+4. **内存布局：** 行跨度为 `4 * 宽度` 字节；`PixOffset` 相对 `Bounds` 的最小角计算。
+5. **透明度：** Alpha 取值 0–255，0 为完全透明，255 为完全不透明。
+6. **卷积核数据：** `FilterKernel` 的向量数组为内部字段，无公开赋值入口；`Len` 在未初始化时为 0。
+7. **KernelVector 排序：** `CompareTo` 在键相等时也不返回 0（相等时返回 1）。
+8. **滤波矩阵：** `FilterMatrix` 提供卷积核元数据与几何变换，不包含对 `IImage` 的 Apply 接口。
 
 ---
 
 ## 依赖关系
 
-- `JLGames.Infra.Mathx`: 使用Bounds2Int等数学类型
-- `JLGames.Infra`: 使用ICloneable接口
-- `System`: 基础类型和数组操作 
+- `JLGames.Infra.Mathx`: 使用 `Bounds2Int` 等数学类型
+- `JLGames.Infra`: 使用 `ICloneable<T>` 接口
+- `System`: `IComparable<T>`、数组排序

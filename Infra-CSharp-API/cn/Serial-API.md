@@ -2,7 +2,7 @@
 
 ## 概述
 
-Serial模块提供了串行化管理器功能，用于按顺序启动和停止多个模块。该模块包含串行管理器接口、模块接口、状态枚举和事件定义。
+Serial 模块提供串行模块管理器：按注册顺序依次启动多个模块，停止时按逆序处理。模块通过 `IEventDispatcher` 派发完成事件，管理器据此推进到下一个模块。该模块包含串行管理器接口、模块接口、状态枚举和生命周期事件常量。
 
 ## 命名空间
 
@@ -14,7 +14,7 @@ Serial模块提供了串行化管理器功能，用于按顺序启动和停止�
 
 ### ISerialManager
 
-串行管理器接口，定义了串行化管理器的基本操作。
+串行模块管理器契约；注册模块并按注册顺序依次启动（停止时逆序）。
 
 ```csharp
 public interface ISerialManager
@@ -28,10 +28,10 @@ public interface ISerialManager
 void AppendModule(ISerialModule module);
 ```
 
-**描述：** Append module / 添加模块
+**描述：** 将模块追加到串行链末尾。
 
 **参数：**
-- `module` (ISerialModule): 要添加的串行模块
+- `module` (ISerialModule): 待注册的模块；为 null 时忽略。
 
 ##### StartManager(Callback endCall = null)
 
@@ -39,13 +39,13 @@ void AppendModule(ISerialModule module);
 bool StartManager(Callback endCall = null);
 ```
 
-**描述：** Manager start / 管理器启动
+**描述：** 按顺序启动所有已注册模块；全部启动完成后调用 `endCall`。
 
 **参数：**
-- `endCall` (Callback, 可选): 启动完成后的回调函数
+- `endCall` (`Callback`，可选): 管理器及全部模块启动完成后的可选回调。`Callback` 定义于 `JLGames.Infra`。
 
 **返回值：**
-- `bool`: 启动是否成功
+- `bool`: 从 `SerialStatus.Stopped` 状态成功发起启动时返回 `true`，否则返回 `false`。
 
 ##### StopManager(Callback endCall = null)
 
@@ -53,19 +53,21 @@ bool StartManager(Callback endCall = null);
 bool StopManager(Callback endCall = null);
 ```
 
-**描述：** Manager stop / 管理器停止
+**描述：** 按逆序停止所有已注册模块；全部停止完成后调用 `endCall`。
 
 **参数：**
-- `endCall` (Callback, 可选): 停止完成后的回调函数
+- `endCall` (`Callback`，可选): 管理器及全部模块停止完成后的可选回调。`Callback` 定义于 `JLGames.Infra`。
 
 **返回值：**
-- `bool`: 停止是否成功
+- `bool`: 从 `SerialStatus.Started` 状态成功发起停止时返回 `true`，否则返回 `false`。
 
 ---
 
 ### ISerialModule
 
-串行模块接口，继承自IEventDispatcher，定义了串行模块的基本操作。
+串行生命周期模块契约；支持启动/停止，并通过 `IEventDispatcher` 派发完成事件。继承自 `IEventDispatcher`（见 Event API）。
+
+`Startup` 或 `Shutdown` 完成后，应分别派发 `SerialEvents.EventOnModuleStarted` 或 `SerialEvents.EventOnModuleStopped`，以便 `SerialManager` 继续处理下一个模块。
 
 ```csharp
 public interface ISerialModule : IEventDispatcher
@@ -79,7 +81,7 @@ public interface ISerialModule : IEventDispatcher
 void Startup();
 ```
 
-**描述：** Start / 启动
+**描述：** 启动模块（可异步）；完成后派发 `SerialEvents.EventOnModuleStarted`。
 
 ##### Shutdown()
 
@@ -87,7 +89,7 @@ void Startup();
 void Shutdown();
 ```
 
-**描述：** Stop / 停止
+**描述：** 停止模块（可异步）；完成后派发 `SerialEvents.EventOnModuleStopped`。
 
 ---
 
@@ -95,18 +97,13 @@ void Shutdown();
 
 ### SerialManager
 
-串行管理器实现类，继承自EventDispatcher并实现ISerialManager接口。
+默认 `ISerialManager` 实现；按序驱动各模块并派发管理器生命周期事件。继承自 `EventDispatcher` 并实现 `ISerialManager`。
 
 ```csharp
 public sealed class SerialManager : EventDispatcher, ISerialManager
 ```
 
-#### 字段
-
-- `m_Modules` (List<ISerialModule>): 模块列表
-- `m_Status` (SerialStatus): 当前状态
-- `m_Index` (int): 当前处理的模块索引
-- `m_EndCall` (Callback): 结束回调
+公开成员与 `ISerialManager` 一致。管理器通过继承的 `EventDispatcher` 派发 `SerialEvents.EventOnManagerStarted` / `EventOnManagerStopped`，调用方可使用 `AddEventListener` 等事件 API 监听。
 
 #### 方法
 
@@ -116,10 +113,10 @@ public sealed class SerialManager : EventDispatcher, ISerialManager
 public void AppendModule(ISerialModule module)
 ```
 
-**描述：** 添加模块到管理器
+**描述：** 将模块追加到串行链末尾。`module` 为 null 时忽略。
 
 **参数：**
-- `module` (ISerialModule): 要添加的模块
+- `module` (ISerialModule): 待注册的模块；为 null 时忽略。
 
 ##### StartManager(Callback endCall = null)
 
@@ -127,13 +124,13 @@ public void AppendModule(ISerialModule module)
 public bool StartManager(Callback endCall = null)
 ```
 
-**描述：** 启动管理器，按顺序启动所有模块
+**描述：** 按顺序启动所有已注册模块；全部启动完成后调用 `endCall`，并派发 `SerialEvents.EventOnManagerStarted`。仅当当前状态为 `SerialStatus.Stopped` 时可以启动。
 
 **参数：**
-- `endCall` (Callback, 可选): 启动完成后的回调
+- `endCall` (`Callback`，可选): 管理器及全部模块启动完成后的可选回调。完成时调用 `Callback.Invoke()`。
 
 **返回值：**
-- `bool`: 启动是否成功
+- `bool`: 从 `SerialStatus.Stopped` 状态成功发起启动时返回 `true`，否则返回 `false`。
 
 ##### StopManager(Callback endCall = null)
 
@@ -141,57 +138,19 @@ public bool StartManager(Callback endCall = null)
 public bool StopManager(Callback endCall = null)
 ```
 
-**描述：** 停止管理器，按逆序停止所有模块
+**描述：** 按逆序停止所有已注册模块；全部停止完成后调用 `endCall`，并派发 `SerialEvents.EventOnManagerStopped`。仅当当前状态为 `SerialStatus.Started` 时可以停止。
 
 **参数：**
-- `endCall` (Callback, 可选): 停止完成后的回调
+- `endCall` (`Callback`，可选): 管理器及全部模块停止完成后的可选回调。完成时调用 `Callback.Invoke()`。
 
 **返回值：**
-- `bool`: 停止是否成功
-
-##### StartModule()
-
-```csharp
-private void StartModule()
-```
-
-**描述：** 启动当前索引的模块
-
-##### OnModuleStartup(EventData evd)
-
-```csharp
-private void OnModuleStartup(EventData evd)
-```
-
-**描述：** 模块启动完成事件处理
-
-**参数：**
-- `evd` (EventData): 事件数据
-
-##### StopModule()
-
-```csharp
-private void StopModule()
-```
-
-**描述：** 停止当前索引的模块
-
-##### OnModuleShutdown(EventData evd)
-
-```csharp
-private void OnModuleShutdown(EventData evd)
-```
-
-**描述：** 模块停止完成事件处理
-
-**参数：**
-- `evd` (EventData): 事件数据
+- `bool`: 从 `SerialStatus.Started` 状态成功发起停止时返回 `true`，否则返回 `false`。
 
 ---
 
 ### SerialEvents
 
-串行事件常量定义类。
+串行模块与管理器生命周期相关的事件类型常量。
 
 ```csharp
 public static class SerialEvents
@@ -205,7 +164,7 @@ public static class SerialEvents
 public const string EventOnModuleStarted = "SerialModule:EventOnObserverStarted";
 ```
 
-**描述：** Serial module start finish event / 串行模块启动完成事件
+**描述：** 模块在 `ISerialModule.Startup` 完成后派发。
 
 ##### EventOnModuleStopped
 
@@ -213,7 +172,7 @@ public const string EventOnModuleStarted = "SerialModule:EventOnObserverStarted"
 public const string EventOnModuleStopped = "SerialModule:EventOnObserverStopped";
 ```
 
-**描述：** Serial module stop finish event / 串行模块停止完成事件
+**描述：** 模块在 `ISerialModule.Shutdown` 完成后派发。
 
 ##### EventOnManagerStarted
 
@@ -221,7 +180,7 @@ public const string EventOnModuleStopped = "SerialModule:EventOnObserverStopped"
 public const string EventOnManagerStarted = "SerialManager:EventOnManagerStarted";
 ```
 
-**描述：** Serial manger start finish event / 串行管理器启动完成事件
+**描述：** `SerialManager` 在所有模块启动完成后派发。
 
 ##### EventOnManagerStopped
 
@@ -229,7 +188,7 @@ public const string EventOnManagerStarted = "SerialManager:EventOnManagerStarted
 public const string EventOnManagerStopped = "SerialManager:EventOnManagerStopped";
 ```
 
-**描述：** Serial manger stop finish event / 串行管理器停止完成事件
+**描述：** `SerialManager` 在所有模块停止完成后派发。
 
 ---
 
@@ -237,7 +196,7 @@ public const string EventOnManagerStopped = "SerialManager:EventOnManagerStopped
 
 ### SerialStatus
 
-串行管理器状态枚举。
+`SerialManager` 的生命周期状态。
 
 ```csharp
 public enum SerialStatus
@@ -251,7 +210,7 @@ public enum SerialStatus
 Stopped
 ```
 
-**描述：** 停止完成
+**描述：** 全部模块已停止；可发起启动。
 
 ##### Starting
 
@@ -259,7 +218,7 @@ Stopped
 Starting
 ```
 
-**描述：** 启动进行中
+**描述：** 启动进行中（模块按序启动）。
 
 ##### Started
 
@@ -267,7 +226,7 @@ Starting
 Started
 ```
 
-**描述：** 启动完成
+**描述：** 全部模块已启动；可发起停止。
 
 ##### Stopping
 
@@ -275,7 +234,7 @@ Started
 Stopping
 ```
 
-**描述：** 停止进行中
+**描述：** 停止进行中（模块按逆序停止）。
 
 ---
 
@@ -284,86 +243,85 @@ Stopping
 ### 基本用法
 
 ```csharp
-// 创建串行管理器
+using JLGames.Infra;
+using JLGames.Infra.Event;
+using JLGames.Infra.Serial;
+
 var serialManager = new SerialManager();
 
-// 添加模块
-serialManager.AppendModule(new MyModule1());
-serialManager.AppendModule(new MyModule2());
-serialManager.AppendModule(new MyModule3());
+serialManager.AddEventListener(SerialEvents.EventOnManagerStarted, evd =>
+{
+    Console.WriteLine("管理器启动完成事件");
+});
+serialManager.AddEventListener(SerialEvents.EventOnManagerStopped, evd =>
+{
+    Console.WriteLine("管理器停止完成事件");
+});
 
-// 启动管理器
-serialManager.StartManager(() => {
+serialManager.AppendModule(new MyModule("模块1"));
+serialManager.AppendModule(new MyModule("模块2"));
+serialManager.AppendModule(new MyModule("模块3"));
+
+bool started = serialManager.StartManager(new Callback(args =>
+{
     Console.WriteLine("所有模块启动完成");
-});
+}));
 
-// 停止管理器
-serialManager.StopManager(() => {
+bool stopped = serialManager.StopManager(new Callback(args =>
+{
     Console.WriteLine("所有模块停止完成");
-});
+}));
 ```
+
+`StartManager` 仅在状态为 `Stopped` 时返回 `true`；`StopManager` 仅在状态为 `Started` 时返回 `true`。若在启动尚未完成时调用 `StopManager`，将返回 `false`。
 
 ### 自定义模块实现
 
+模块需实现 `ISerialModule`。推荐继承 `EventDispatcher`，以便复用事件派发能力：
+
 ```csharp
-public class MyModule : ISerialModule
+using JLGames.Infra.Event;
+using JLGames.Infra.Serial;
+
+public class MyModule : EventDispatcher, ISerialModule
 {
-    private EventDispatcher m_EventDispatcher = new EventDispatcher();
+    private readonly string m_Name;
+
+    public MyModule(string name)
+    {
+        m_Name = name;
+    }
 
     public void Startup()
     {
-        // 启动逻辑
-        Console.WriteLine("模块启动中...");
-        
-        // 启动完成后发送事件
-        m_EventDispatcher.DispatchEvent(SerialEvents.EventOnModuleStarted, null);
+        Console.WriteLine($"{m_Name} 启动中...");
+        DispatchEvent(SerialEvents.EventOnModuleStarted, null);
     }
 
     public void Shutdown()
     {
-        // 停止逻辑
-        Console.WriteLine("模块停止中...");
-        
-        // 停止完成后发送事件
-        m_EventDispatcher.DispatchEvent(SerialEvents.EventOnModuleStopped, null);
-    }
-
-    // IEventDispatcher 接口实现
-    public void AddEventListener(string eventName, EventListener listener)
-    {
-        m_EventDispatcher.AddEventListener(eventName, listener);
-    }
-
-    public void RemoveEventListener(string eventName, EventListener listener)
-    {
-        m_EventDispatcher.RemoveEventListener(eventName, listener);
-    }
-
-    public void OnceEventListener(string eventName, EventListener listener)
-    {
-        m_EventDispatcher.OnceEventListener(eventName, listener);
-    }
-
-    public void DispatchEvent(string eventName, EventData eventData)
-    {
-        m_EventDispatcher.DispatchEvent(eventName, eventData);
+        Console.WriteLine($"{m_Name} 停止中...");
+        DispatchEvent(SerialEvents.EventOnModuleStopped, null);
     }
 }
 ```
+
+若启动/停止是异步的，应在真正完成后再派发对应事件，而不是在方法返回时立即派发。管理器通过 `OnceEventListener` 等待上述事件后才会处理下一个模块。
 
 ---
 
 ## 注意事项
 
-1. **串行执行：** SerialManager会按照添加顺序串行启动模块，按照逆序串行停止模块
-2. **事件驱动：** 模块必须通过发送相应事件来通知启动/停止完成
-3. **状态管理：** 管理器会维护当前状态，防止重复启动或停止
-4. **错误处理：** 如果模块启动或停止失败，整个流程会中断
-5. **回调支持：** 支持在启动/停止完成后执行回调函数
+1. **串行执行：** `SerialManager` 按添加顺序依次启动模块，按逆序依次停止模块。未注册模块（空列表）时，启动/停止会立即完成并触发回调与管理器事件。
+2. **事件驱动：** 模块必须在 `Startup` / `Shutdown` 完成后分别派发 `EventOnModuleStarted` / `EventOnModuleStopped`，否则串行链会停在当前模块。
+3. **状态约束：** 仅能从 `Stopped` 发起启动、从 `Started` 发起停止；其它状态调用对应方法会返回 `false`。
+4. **空模块：** `AppendModule(null)` 会被忽略。
+5. **回调：** 完成时调用 `Callback.Invoke()`（使用构造时绑定的参数）。`endCall` 可为 null。
+6. **注册时机：** 应在调用 `StartManager` 之前完成 `AppendModule`。
 
 ---
 
 ## 依赖关系
 
-- `JLGames.Infra.Event`: 依赖事件系统
-- `System.Collections.Generic`: 使用List集合 
+- `JLGames.Infra`: 使用 `Callback`
+- `JLGames.Infra.Event`: 依赖事件系统（`IEventDispatcher`、`EventDispatcher`）

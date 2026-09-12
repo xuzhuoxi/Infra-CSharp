@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Xml module provides XML serialization and deserialization utility classes, supporting conversion between objects and XML strings.
+The Xml module provides XML serialization helpers based on `XmlSerializer`, supporting conversion between objects and XML strings.
 
 ## Namespace
 
@@ -14,10 +14,10 @@ The Xml module provides XML serialization and deserialization utility classes, s
 
 ### XmlUtils
 
-XML utility class that provides serialization and deserialization functionality between objects and XML strings.
+XML serialization helpers based on `XmlSerializer`.
 
 ```csharp
-public class XmlUtils
+public static class XmlUtils
 ```
 
 #### Static Methods
@@ -28,16 +28,13 @@ public class XmlUtils
 public static string ToXml(object obj)
 ```
 
-**Description:** Serialize to xml string
+**Description:** Serialize an object to an XML string.
 
 **Parameters:**
-- `obj` (object): Object to serialize
+- `obj` (object): Object to serialize; returns an empty string when null.
 
 **Return Value:**
-- `string`: Serialized XML string
-
-**Exceptions:**
-- `Exception`: Exceptions that may be thrown during serialization
+- `string`: XML text, or an empty string if `obj` is null.
 
 **Example:**
 ```csharp
@@ -54,6 +51,8 @@ string xml = XmlUtils.ToXml(person);
 //           <Name>John</Name>
 //           <Age>25</Age>
 //         </Person>
+
+string empty = XmlUtils.ToXml(null); // ""
 ```
 
 ##### FromXml<T>(string xml)
@@ -62,19 +61,16 @@ string xml = XmlUtils.ToXml(person);
 public static T FromXml<T>(string xml)
 ```
 
-**Description:** Deserialize from xml string to object
+**Description:** Deserialize an XML string to an instance of `T`.
 
 **Parameters:**
-- `xml` (string): XML string
+- `xml` (string): XML text; returns default when null or empty.
 
 **Type Parameters:**
-- `T`: Target type
+- `T`: Target type (must be concrete and XML-serializable).
 
 **Return Value:**
-- `T`: Deserialized object
-
-**Exceptions:**
-- `Exception`: Exceptions that may be thrown during deserialization
+- `T`: Deserialized instance, or `default(T)` when `xml` is null or empty.
 
 **Example:**
 ```csharp
@@ -86,6 +82,8 @@ string xml = @"<?xml version=""1.0"" encoding=""utf-16""?>
 
 var person = XmlUtils.FromXml<Person>(xml);
 // Result: person.Name = "John", person.Age = 25
+
+Person missing = XmlUtils.FromXml<Person>(null); // null
 ```
 
 ##### FromXml(string xml, System.Type type)
@@ -94,19 +92,18 @@ var person = XmlUtils.FromXml<Person>(xml);
 public static object FromXml(string xml, System.Type type)
 ```
 
-**Description:** Deserialize from xml string to object
+**Description:** Deserialize an XML string to an instance of the specified type.
 
 **Parameters:**
-- `xml` (string): XML string
-- `type` (System.Type): Target type
+- `xml` (string): XML text; returns null when null or empty.
+- `type` (System.Type): Target type (must be concrete and XML-serializable).
 
 **Return Value:**
-- `object`: Deserialized object
+- `object`: Deserialized instance, or null when `xml` is null or empty.
 
 **Exceptions:**
-- `ArgumentNullException`: Thrown when type parameter is null
-- `ArgumentException`: Thrown when type is abstract
-- `Exception`: Exceptions that may be thrown during deserialization
+- `ArgumentNullException`: `type` is null.
+- `ArgumentException`: `type` is abstract and cannot be instantiated.
 
 **Example:**
 ```csharp
@@ -118,6 +115,8 @@ string xml = @"<?xml version=""1.0"" encoding=""utf-16""?>
 
 var person = XmlUtils.FromXml(xml, typeof(Person)) as Person;
 // Result: person.Name = "John", person.Age = 25
+
+object missing = XmlUtils.FromXml("", typeof(Person)); // null
 ```
 
 ---
@@ -127,8 +126,7 @@ var person = XmlUtils.FromXml(xml, typeof(Person)) as Person;
 ### Basic Serialization and Deserialization
 
 ```csharp
-// Define data class
-[Serializable]
+// Define a data class (parameterless constructor required; public properties/fields are serialized)
 public class User
 {
     public string Name { get; set; }
@@ -159,7 +157,6 @@ Console.WriteLine($"Email: {deserializedUser.Email}");
 ### Complex Object Serialization
 
 ```csharp
-[Serializable]
 public class Order
 {
     public int OrderId { get; set; }
@@ -168,7 +165,6 @@ public class Order
     public decimal TotalAmount { get; set; }
 }
 
-[Serializable]
 public class Customer
 {
     public string Name { get; set; }
@@ -176,7 +172,6 @@ public class Customer
     public string Phone { get; set; }
 }
 
-[Serializable]
 public class OrderItem
 {
     public string ProductName { get; set; }
@@ -225,9 +220,19 @@ catch (Exception ex)
 
 try
 {
-    // Try to serialize non-serializable object
-    var nonSerializableObject = new { Name = "Test" };
-    string xml = XmlUtils.ToXml(nonSerializableObject);
+    // Abstract types cannot be instantiated
+    object result = XmlUtils.FromXml("<Root />", typeof(Stream));
+}
+catch (ArgumentException ex)
+{
+    Console.WriteLine($"Invalid type: {ex.Message}");
+}
+
+try
+{
+    // Anonymous types are not supported by XmlSerializer
+    var anonymous = new { Name = "Test" };
+    string xml = XmlUtils.ToXml(anonymous);
 }
 catch (Exception ex)
 {
@@ -239,19 +244,20 @@ catch (Exception ex)
 
 ## Considerations
 
-1. **Serialization Attributes:** Classes to be serialized must be marked with `[Serializable]` attribute, or use attributes supported by `XmlSerializer`
-2. **Public Properties:** Only public properties will be serialized, private fields will not be serialized
-3. **Parameterless Constructor:** Classes for deserialization must have a parameterless constructor
-4. **Abstract Types:** Cannot deserialize to abstract types
-5. **Exception Handling:** Serialization and deserialization processes may throw exceptions, it is recommended to use try-catch handling
-6. **Performance Considerations:** For large amounts of data, XML serialization may affect performance, consider using other serialization methods
-7. **Encoding Issues:** Uses UTF-16 encoding by default, pay attention to Chinese character processing
+1. **Implementation:** Built on `System.Xml.Serialization.XmlSerializer`. The target type must be concrete and XML-serializable.
+2. **Public Members:** Public properties and public fields are serialized; private members are not.
+3. **Parameterless Constructor:** Types used for deserialization must have a parameterless constructor.
+4. **Null / Empty Input:** `ToXml(null)` returns an empty string. `FromXml` returns `null` / `default(T)` when the XML is null or empty, without throwing.
+5. **Abstract Types:** Cannot deserialize to abstract types. Throws `ArgumentNullException` when `type` is null, and `ArgumentException` when `type` is abstract.
+6. **Exception Handling:** Serialization/deserialization failures are written to the console and then rethrown; use try-catch around these calls.
+7. **Performance:** A new `XmlSerializer` is created on every call; consider the cost for large payloads or high-frequency use.
+8. **Encoding:** Output goes through `StringWriter`, so the XML declaration defaults to UTF-16.
 
 ---
 
 ## Dependencies
 
 - `System`: Basic types
-- `System.IO`: File stream operations
+- `System.IO`: String readers/writers
 - `System.Text`: String building
-- `System.Xml.Serialization`: XML serialization functionality 
+- `System.Xml.Serialization`: XML serialization

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Core module provides the core interfaces and base classes of the Infra framework, including cloning interfaces and callback mechanisms.
+The Core module provides the Infra framework's core interfaces and base types: `ICloneable<T>` for creating a copy of type `T`, and `Callback` for wrapping a delegate with optional bound arguments for deferred invocation (e.g. service completion callbacks).
 
 ## Namespace
 
@@ -10,15 +10,18 @@ The Core module provides the core interfaces and base classes of the Infra frame
 
 ---
 
-## 接口
+## Interfaces
 
 ### ICloneable<T>
 
-Generic cloning interface that defines basic operations for object cloning.
+Supports creating a copy of type `T`. `T` is covariant (`out T`) and is typically the implementing type.
 
 ```csharp
 public interface ICloneable<out T>
 ```
+
+**Type Parameters:**
+- `T`: Type of the clone result (typically the implementing type)
 
 #### Methods
 
@@ -28,10 +31,10 @@ public interface ICloneable<out T>
 T Clone();
 ```
 
-**Description:** Clone object
+**Description:** Creates a copy of the current instance.
 
 **Return Value:**
-- `T`: Cloned object
+- `T`: A new instance; semantics (deep vs shallow) are defined by the implementer
 
 **Example:**
 ```csharp
@@ -57,11 +60,11 @@ var cloned = original.Clone();
 
 ---
 
-## 类
+## Classes
 
 ### Callback
 
-Generic callback context class that provides encapsulation and management of function callbacks.
+Wraps a delegate with optional bound arguments for deferred invocation (e.g. service completion callbacks).
 
 ```csharp
 public class Callback
@@ -75,38 +78,20 @@ public class Callback
 public delegate void Func(params object[] args);
 ```
 
-**Description:** Callback function delegate
+**Description:** Callback delegate signature; receives invocation arguments.
 
 **Parameters:**
-- `args` (object[]): Variable parameter array
-
-#### Fields
-
-##### m_Func
-
-```csharp
-private Func m_Func;
-```
-
-**Description:** Callback function
-
-##### m_Args
-
-```csharp
-private object[] m_Args;
-```
-
-**Description:** Callback parameters
+- `args` (`object[]`): Arguments passed to `Invoke` or `Apply`
 
 #### Properties
 
 ##### IsNone
 
 ```csharp
-public bool IsNone => m_Func == null;
+public bool IsNone { get; }
 ```
 
-**Description:** Whether it's an empty callback
+**Description:** True when no delegate is bound (`Clear` was called or the constructor received `null`).
 
 #### Constructors
 
@@ -116,11 +101,11 @@ public bool IsNone => m_Func == null;
 public Callback(Func func, params object[] args)
 ```
 
-**Description:** Create callback object
+**Description:** Creates a callback with a delegate and optional arguments for `Invoke`.
 
 **Parameters:**
-- `func` (Func): Callback function
-- `args` (object[]): Callback parameters
+- `func` (`Func`): Delegate to invoke; may be `null`
+- `args` (`object[]`): Bound arguments used by `Invoke`; ignored by `Apply`
 
 #### Methods
 
@@ -130,10 +115,10 @@ public Callback(Func func, params object[] args)
 public void SetFunc(Func func)
 ```
 
-**Description:** Set callback function
+**Description:** Replaces the bound delegate.
 
 **Parameters:**
-- `func` (Func): Callback function
+- `func` (`Func`): New delegate; may be `null`
 
 ##### SetArgs(params object[] args)
 
@@ -141,10 +126,10 @@ public void SetFunc(Func func)
 public void SetArgs(params object[] args)
 ```
 
-**Description:** Set callback parameters
+**Description:** Replaces bound arguments used by `Invoke`.
 
 **Parameters:**
-- `args` (object[]): Callback parameters
+- `args` (`object[]`): New argument array
 
 ##### Apply(params object[] args)
 
@@ -152,10 +137,10 @@ public void SetArgs(params object[] args)
 public void Apply(params object[] args)
 ```
 
-**Description:** Apply callback function using passed parameters
+**Description:** Invokes the delegate with the given arguments (does not use bound args from construction).
 
 **Parameters:**
-- `args` (object[]): Parameters to use
+- `args` (`object[]`): Arguments passed to the delegate
 
 ##### Invoke()
 
@@ -163,7 +148,7 @@ public void Apply(params object[] args)
 public void Invoke()
 ```
 
-**Description:** Invoke callback function using stored parameters
+**Description:** Invokes the delegate with bound arguments from the constructor or `SetArgs`.
 
 ##### Clear()
 
@@ -171,7 +156,7 @@ public void Invoke()
 public void Clear()
 ```
 
-**Description:** Clear callback function and parameters
+**Description:** Clears the delegate and bound arguments; `IsNone` becomes `true`.
 
 ---
 
@@ -180,7 +165,7 @@ public void Clear()
 ### ICloneable Interface Usage
 
 ```csharp
-// Implement ICloneable interface
+// Implement ICloneable
 public class Person : ICloneable<Person>
 {
     public string Name { get; set; }
@@ -189,11 +174,12 @@ public class Person : ICloneable<Person>
 
     public Person Clone()
     {
+        // Deep vs shallow copy is defined by the implementer; this copy clones the list
         var clone = new Person
         {
             Name = this.Name,
             Age = this.Age,
-            Hobbies = new List<string>(this.Hobbies) // Deep copy list
+            Hobbies = new List<string>(this.Hobbies)
         };
         return clone;
     }
@@ -211,7 +197,7 @@ var cloned = original.Clone();
 cloned.Name = "Li Si";
 cloned.Hobbies.Add("Running");
 
-// Original object is not affected
+// Original object is not affected (list was deep-copied)
 Console.WriteLine(original.Name); // Output: Zhang San
 Console.WriteLine(original.Hobbies.Count); // Output: 2
 ```
@@ -229,16 +215,16 @@ void MyCallback(params object[] args)
     }
 }
 
-// Create callback object
+// Create callback (bound arguments are used only by Invoke)
 var callback = new Callback(MyCallback, "Parameter1", 42, true);
 
-// Check if empty
+// Check whether a delegate is bound
 if (!callback.IsNone)
 {
     Console.WriteLine("Callback object is not empty");
 }
 
-// Invoke callback
+// Invoke with bound arguments
 callback.Invoke();
 // Output:
 // Callback called, parameter count: 3
@@ -246,7 +232,7 @@ callback.Invoke();
 // Parameter 1: 42
 // Parameter 2: True
 
-// Use Apply method to pass new parameters
+// Apply uses call-time arguments and ignores bound args
 callback.Apply("NewParameter1", "NewParameter2");
 // Output:
 // Callback called, parameter count: 2
@@ -257,13 +243,12 @@ callback.Apply("NewParameter1", "NewParameter2");
 ### Dynamic Callback Setting
 
 ```csharp
-// Create empty callback
+// Constructor received null: no delegate is bound
 var callback = new Callback(null);
 
-// Check if empty
 Console.WriteLine(callback.IsNone); // Output: True
 
-// Set callback function
+// Replace the bound delegate
 callback.SetFunc((params object[] args) => {
     Console.WriteLine("Dynamically set callback function");
     foreach (var arg in args)
@@ -272,10 +257,9 @@ callback.SetFunc((params object[] args) => {
     }
 });
 
-// Set parameters
+// Replace bound arguments used by Invoke
 callback.SetArgs("DynamicParameter1", "DynamicParameter2");
 
-// Invoke callback
 callback.Invoke();
 // Output:
 // Dynamically set callback function
@@ -292,15 +276,15 @@ var callback = new Callback((params object[] args) => {
 
 Console.WriteLine(callback.IsNone); // Output: False
 
-// Clear callback
+// Clear the delegate and bound arguments
 callback.Clear();
 
 Console.WriteLine(callback.IsNone); // Output: True
 
-// Try to invoke cleared callback
+// Check IsNone before calling; Invoke/Apply after Clear throws NullReferenceException
 try
 {
-    callback.Invoke(); // Will throw NullReferenceException
+    callback.Invoke();
 }
 catch (NullReferenceException)
 {
@@ -311,7 +295,6 @@ catch (NullReferenceException)
 ### Application in Event System
 
 ```csharp
-// Use Callback in event system
 public class EventSystem
 {
     private Dictionary<string, Callback> events = new Dictionary<string, Callback>();
@@ -323,7 +306,7 @@ public class EventSystem
 
     public void TriggerEvent(string eventName, params object[] args)
     {
-        if (events.TryGetValue(eventName, out var callback))
+        if (events.TryGetValue(eventName, out var callback) && !callback.IsNone)
         {
             if (args.Length > 0)
             {
@@ -337,15 +320,12 @@ public class EventSystem
     }
 }
 
-// Usage example
 var eventSystem = new EventSystem();
 
-// Register event
 eventSystem.RegisterEvent("userLogin", (params object[] args) => {
     Console.WriteLine($"User login event: {args[0]}");
 }, "Default User");
 
-// Trigger event
 eventSystem.TriggerEvent("userLogin", "Zhang San");
 // Output: User login event: Zhang San
 
@@ -358,29 +338,28 @@ eventSystem.TriggerEvent("userLogin");
 ## Notes
 
 1. **ICloneable interface:**
-   - Uses covariant generic parameter `out T`, supports upcasting
-   - Recommend implementing deep copy to avoid reference type sharing
-   - Clone operation should create completely independent object copies
+   - Uses covariant generic parameter `out T`, which supports upcasting
+   - Clone semantics (deep vs shallow) are defined by the implementer
+   - Implementers that need independent copies of reference-type members should deep-copy them
 
 2. **Callback class:**
-   - Supports dynamic setting of callbacks and parameters
-   - Use `IsNone` property to check if callback is valid
-   - Check if callback is empty before invoking
-   - `Apply` method uses passed parameters, `Invoke` method uses stored parameters
-   - Invoking after clearing callback will throw exception
+   - Use `SetFunc` / `SetArgs` to replace the bound delegate and arguments
+   - Use `IsNone` to check whether a delegate is bound
+   - `Apply` uses call-time arguments and ignores bound args; `Invoke` uses arguments from the constructor or `SetArgs`
+   - After `Clear`, `IsNone` is `true`; calling `Invoke`/`Apply` without checking throws
 
 3. **Performance considerations:**
    - Pay attention to memory management when using many callbacks
    - Avoid time-consuming operations in callbacks
-   - Clear unused callback objects promptly
+   - Call `Clear` on unused callbacks promptly
 
 4. **Thread safety:**
    - Current implementation is not thread-safe
-   - Additional synchronization mechanisms needed in multi-threaded environments
+   - Additional synchronization is needed in multi-threaded environments
 
 ---
 
 ## Dependencies
 
 - `System`: Basic types
-- `System.Collections.Generic`: Generic collections (used in examples) 
+- `System.Collections.Generic`: Generic collections (used in examples)

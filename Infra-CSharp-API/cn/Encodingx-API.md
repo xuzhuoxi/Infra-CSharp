@@ -2,7 +2,7 @@
 
 ## 概述
 
-Encodingx模块提供了Base64编码和解码功能，支持标准Base64、URL安全的Base64以及无填充的Base64编码格式。
+Encodingx 模块提供 Base64 编码与解码，覆盖标准、无填充、URL 安全以及无填充 URL 安全四种变体。字符串与文本均按 UTF-8 处理；具体变体规则由 `IBase64Encoding` 的实现类决定，也可通过 `Base64Utils` 静态方法直接调用。
 
 ## 命名空间
 
@@ -14,7 +14,7 @@ Encodingx模块提供了Base64编码和解码功能，支持标准Base64、URL�
 
 ### IBase64Encoding
 
-Base64编码接口，定义了Base64编码和解码的基本操作。
+Base64 编解码抽象；具体变体规则由实现类决定。
 
 ```csharp
 public interface IBase64Encoding
@@ -28,13 +28,13 @@ public interface IBase64Encoding
 string EncodeToString(byte[] input);
 ```
 
-**描述：** 编码
+**描述：** 将二进制数据编码为 Base64 字符串。
 
 **参数：**
-- `input` (byte[]): 要编码的字节数组
+- `input` (byte[]): 待编码的字节数组
 
 **返回值：**
-- `string`: 编码后的字符串
+- `string`: Base64 字符串
 
 ##### EncodeToString(string input)
 
@@ -42,13 +42,13 @@ string EncodeToString(byte[] input);
 string EncodeToString(string input);
 ```
 
-**描述：** 编码
+**描述：** 将 UTF-8 文本编码为 Base64 字符串。
 
 **参数：**
-- `input` (string): 要编码的字符串
+- `input` (string): 待编码的文本
 
 **返回值：**
-- `string`: 编码后的字符串
+- `string`: Base64 字符串
 
 ##### EncodeToBytes(byte[] input)
 
@@ -56,13 +56,13 @@ string EncodeToString(string input);
 byte[] EncodeToBytes(byte[] input);
 ```
 
-**描述：** 编码
+**描述：** 将二进制数据编码为 Base64 字符串的 UTF-8 字节形式。
 
 **参数：**
-- `input` (byte[]): 要编码的字节数组
+- `input` (byte[]): 待编码的字节数组
 
 **返回值：**
-- `byte[]`: 编码后的字节数组
+- `byte[]`: Base64 字符串的 UTF-8 字节
 
 ##### EncodeToBytes(string input)
 
@@ -70,13 +70,13 @@ byte[] EncodeToBytes(byte[] input);
 byte[] EncodeToBytes(string input);
 ```
 
-**描述：** 编码
+**描述：** 将 UTF-8 文本编码为 Base64 字符串的 UTF-8 字节形式。
 
 **参数：**
-- `input` (string): 要编码的字符串
+- `input` (string): 待编码的文本
 
 **返回值：**
-- `byte[]`: 编码后的字节数组
+- `byte[]`: Base64 字符串的 UTF-8 字节
 
 #### 解码方法
 
@@ -86,10 +86,10 @@ byte[] EncodeToBytes(string input);
 byte[] DecodeBytesFrom(byte[] input);
 ```
 
-**描述：** 解码
+**描述：** 将 Base64 字符串的 UTF-8 字节解码为二进制数据。
 
 **参数：**
-- `input` (byte[]): 要解码的字节数组
+- `input` (byte[]): Base64 字符串的 UTF-8 字节
 
 **返回值：**
 - `byte[]`: 解码后的字节数组
@@ -100,10 +100,10 @@ byte[] DecodeBytesFrom(byte[] input);
 byte[] DecodeBytesFrom(string input);
 ```
 
-**描述：** 解码
+**描述：** 将 Base64 字符串解码为二进制数据。
 
 **参数：**
-- `input` (string): 要解码的字符串
+- `input` (string): Base64 字符串
 
 **返回值：**
 - `byte[]`: 解码后的字节数组
@@ -114,13 +114,13 @@ byte[] DecodeBytesFrom(string input);
 string DecodeStringFrom(byte[] input);
 ```
 
-**描述：** 解码
+**描述：** 将 Base64 字符串的 UTF-8 字节解码为 UTF-8 文本。
 
 **参数：**
-- `input` (byte[]): 要解码的字节数组
+- `input` (byte[]): Base64 字符串的 UTF-8 字节
 
 **返回值：**
-- `string`: 解码后的字符串
+- `string`: 解码后的 UTF-8 文本
 
 ##### DecodeStringFrom(string input)
 
@@ -128,27 +128,27 @@ string DecodeStringFrom(byte[] input);
 string DecodeStringFrom(string input);
 ```
 
-**描述：** 解码
+**描述：** 将 Base64 字符串解码为 UTF-8 文本。
 
 **参数：**
-- `input` (string): 要解码的字符串
+- `input` (string): Base64 字符串
 
 **返回值：**
-- `string`: 解码后的字符串
+- `string`: 解码后的 UTF-8 文本
 
 ---
 
 ## 实现类
 
+四个实现类均实现 `IBase64Encoding`，并委托给 `Base64Utils` 中对应的静态方法。公开成员与接口一致，无额外成员。
+
 ### Base64StdEncoding
 
-标准Base64编码实现类。
+标准 Base64（RFC 4648）：使用 `+`/`/` 及填充符 `=`。
 
 ```csharp
 public sealed class Base64StdEncoding : IBase64Encoding
 ```
-
-**描述：** 使用标准Base64编码格式，包含填充字符（=）
 
 **示例：**
 ```csharp
@@ -159,13 +159,11 @@ string encoded = encoder.EncodeToString("Hello World");
 
 ### Base64RawStdEncoding
 
-无填充标准Base64编码实现类。
+无填充标准 Base64：字母表与标准 Base64 相同，省略填充符 `=`。
 
 ```csharp
 public sealed class Base64RawStdEncoding : IBase64Encoding
 ```
-
-**描述：** 使用标准Base64编码格式，但不包含填充字符（=）
 
 **示例：**
 ```csharp
@@ -176,13 +174,11 @@ string encoded = encoder.EncodeToString("Hello World");
 
 ### Base64UrlEncoding
 
-URL安全Base64编码实现类。
+URL 安全 Base64：以 `-`/`_` 替代 `+`/`/`，保留填充符 `=`。
 
 ```csharp
 public sealed class Base64UrlEncoding : IBase64Encoding
 ```
-
-**描述：** 使用URL安全的Base64编码格式，将+和/替换为-和_，保留填充字符
 
 **示例：**
 ```csharp
@@ -193,13 +189,11 @@ string encoded = encoder.EncodeToString("Hello World");
 
 ### Base64RawUrlEncoding
 
-无填充URL安全Base64编码实现类。
+无填充 URL 安全 Base64：使用 URL 安全字母表，省略填充符 `=`。
 
 ```csharp
 public sealed class Base64RawUrlEncoding : IBase64Encoding
 ```
-
-**描述：** 使用URL安全的Base64编码格式，将+和/替换为-和_，不包含填充字符
 
 **示例：**
 ```csharp
@@ -214,13 +208,13 @@ string encoded = encoder.EncodeToString("Hello World");
 
 ### Base64Utils
 
-Base64编码工具类，提供静态方法进行Base64编码和解码操作。
+标准、无填充、URL 安全及无填充 URL 安全等多种 Base64 变体的静态工具方法。
 
 ```csharp
 public static class Base64Utils
 ```
 
-#### 标准Base64编码方法
+#### 标准 Base64 编码方法
 
 ##### EncodeToStdString(byte[] input)
 
@@ -228,13 +222,13 @@ public static class Base64Utils
 public static string EncodeToStdString(byte[] input)
 ```
 
-**描述：** 按标准Base64编码
+**描述：** 按标准 Base64（RFC 4648）编码字节数组。
 
 **参数：**
-- `input` (byte[]): 要编码的字节数组
+- `input` (byte[]): 待编码的字节数组
 
 **返回值：**
-- `string`: 编码后的字符串
+- `string`: Base64 字符串
 
 ##### EncodeToStdString(string input)
 
@@ -242,13 +236,13 @@ public static string EncodeToStdString(byte[] input)
 public static string EncodeToStdString(string input)
 ```
 
-**描述：** 按标准Base64编码，先把字符串按UTF8编码处理为字符数组
+**描述：** 将 UTF-8 文本按标准 Base64（RFC 4648）编码。
 
 **参数：**
-- `input` (string): 要编码的字符串
+- `input` (string): 待编码的文本
 
 **返回值：**
-- `string`: 编码后的字符串
+- `string`: Base64 字符串
 
 ##### EncodeToStdBytes(byte[] input)
 
@@ -256,13 +250,13 @@ public static string EncodeToStdString(string input)
 public static byte[] EncodeToStdBytes(byte[] input)
 ```
 
-**描述：** 按标准Base64编码
+**描述：** 按标准 Base64 编码字节数组，并返回结果字符串的 UTF-8 字节。
 
 **参数：**
-- `input` (byte[]): 要编码的字节数组
+- `input` (byte[]): 待编码的字节数组
 
 **返回值：**
-- `byte[]`: 编码后的字节数组
+- `byte[]`: Base64 字符串的 UTF-8 字节
 
 ##### EncodeToStdBytes(string input)
 
@@ -270,15 +264,15 @@ public static byte[] EncodeToStdBytes(byte[] input)
 public static byte[] EncodeToStdBytes(string input)
 ```
 
-**描述：** 按标准Base64编码
+**描述：** 将 UTF-8 文本按标准 Base64 编码，并返回结果字符串的 UTF-8 字节。
 
 **参数：**
-- `input` (string): 要编码的字符串
+- `input` (string): 待编码的文本
 
 **返回值：**
-- `byte[]`: 编码后的字节数组
+- `byte[]`: Base64 字符串的 UTF-8 字节
 
-#### 标准Base64解码方法
+#### 标准 Base64 解码方法
 
 ##### DecodeBytesFromStd(string input)
 
@@ -286,10 +280,10 @@ public static byte[] EncodeToStdBytes(string input)
 public static byte[] DecodeBytesFromStd(string input)
 ```
 
-**描述：** 按标准Base64解码
+**描述：** 将标准 Base64 字符串解码为字节数组。
 
 **参数：**
-- `input` (string): 要解码的字符串
+- `input` (string): Base64 字符串
 
 **返回值：**
 - `byte[]`: 解码后的字节数组
@@ -300,10 +294,10 @@ public static byte[] DecodeBytesFromStd(string input)
 public static byte[] DecodeBytesFromStd(byte[] input)
 ```
 
-**描述：** 按标准Base64解码
+**描述：** 将标准 Base64 字符串的 UTF-8 字节解码为字节数组。
 
 **参数：**
-- `input` (byte[]): 要解码的字节数组
+- `input` (byte[]): Base64 字符串的 UTF-8 字节
 
 **返回值：**
 - `byte[]`: 解码后的字节数组
@@ -314,13 +308,13 @@ public static byte[] DecodeBytesFromStd(byte[] input)
 public static string DecodeStringFromStd(string input)
 ```
 
-**描述：** 按标准Base64解码
+**描述：** 将标准 Base64 字符串解码为 UTF-8 文本。
 
 **参数：**
-- `input` (string): 要解码的字符串
+- `input` (string): Base64 字符串
 
 **返回值：**
-- `string`: 解码后的字符串
+- `string`: 解码后的 UTF-8 文本
 
 ##### DecodeStringFromStd(byte[] input)
 
@@ -328,15 +322,15 @@ public static string DecodeStringFromStd(string input)
 public static string DecodeStringFromStd(byte[] input)
 ```
 
-**描述：** 按标准Base64解码
+**描述：** 将标准 Base64 字符串的 UTF-8 字节解码为 UTF-8 文本。
 
 **参数：**
-- `input` (byte[]): 要解码的字节数组
+- `input` (byte[]): Base64 字符串的 UTF-8 字节
 
 **返回值：**
-- `string`: 解码后的字符串
+- `string`: 解码后的 UTF-8 文本
 
-#### 无填充标准Base64编码方法
+#### 无填充标准 Base64 编码方法
 
 ##### EncodeToRawStdString(byte[] input)
 
@@ -344,13 +338,13 @@ public static string DecodeStringFromStd(byte[] input)
 public static string EncodeToRawStdString(byte[] input)
 ```
 
-**描述：** 1. 按标准Base64编码 2. 删除填充
+**描述：** 按标准 Base64 编码并去除填充符 `=`。
 
 **参数：**
-- `input` (byte[]): 要编码的字节数组
+- `input` (byte[]): 待编码的字节数组
 
 **返回值：**
-- `string`: 编码后的字符串
+- `string`: 无填充的 Base64 字符串
 
 ##### EncodeToRawStdString(string input)
 
@@ -358,13 +352,13 @@ public static string EncodeToRawStdString(byte[] input)
 public static string EncodeToRawStdString(string input)
 ```
 
-**描述：** 1. 按标准Base64编码 2. 删除填充
+**描述：** 将 UTF-8 文本按标准 Base64 编码并去除填充符 `=`。
 
 **参数：**
-- `input` (string): 要编码的字符串
+- `input` (string): 待编码的文本
 
 **返回值：**
-- `string`: 编码后的字符串
+- `string`: 无填充的 Base64 字符串
 
 ##### EncodeStrToRawStdBytes(byte[] input)
 
@@ -372,13 +366,13 @@ public static string EncodeToRawStdString(string input)
 public static byte[] EncodeStrToRawStdBytes(byte[] input)
 ```
 
-**描述：** 1. 按标准Base64编码 2. 删除填充
+**描述：** 按无填充标准 Base64 编码，并返回结果字符串的 UTF-8 字节。
 
 **参数：**
-- `input` (byte[]): 要编码的字节数组
+- `input` (byte[]): 待编码的字节数组
 
 **返回值：**
-- `byte[]`: 编码后的字节数组
+- `byte[]`: Base64 字符串的 UTF-8 字节
 
 ##### EncodeStrToRawStdBytes(string input)
 
@@ -386,15 +380,15 @@ public static byte[] EncodeStrToRawStdBytes(byte[] input)
 public static byte[] EncodeStrToRawStdBytes(string input)
 ```
 
-**描述：** 1. 按标准Base64编码 2. 删除填充
+**描述：** 将 UTF-8 文本按无填充标准 Base64 编码，并返回结果字符串的 UTF-8 字节。
 
 **参数：**
-- `input` (string): 要编码的字符串
+- `input` (string): 待编码的文本
 
 **返回值：**
-- `byte[]`: 编码后的字节数组
+- `byte[]`: Base64 字符串的 UTF-8 字节
 
-#### 无填充标准Base64解码方法
+#### 无填充标准 Base64 解码方法
 
 ##### DecodeBytesFromRawStd(string input)
 
@@ -402,10 +396,10 @@ public static byte[] EncodeStrToRawStdBytes(string input)
 public static byte[] DecodeBytesFromRawStd(string input)
 ```
 
-**描述：** 1. 补充填充 2. 按标准Base64解码
+**描述：** 补全填充符后，将无填充标准 Base64 解码为字节数组。
 
 **参数：**
-- `input` (string): 要解码的字符串
+- `input` (string): 无填充的 Base64 字符串
 
 **返回值：**
 - `byte[]`: 解码后的字节数组
@@ -416,10 +410,10 @@ public static byte[] DecodeBytesFromRawStd(string input)
 public static byte[] DecodeBytesFromRawStd(byte[] input)
 ```
 
-**描述：** 1. 补充填充 2. 按标准Base64解码
+**描述：** 补全填充符后，将无填充标准 Base64 的 UTF-8 字节解码为字节数组。
 
 **参数：**
-- `input` (byte[]): 要解码的字节数组
+- `input` (byte[]): Base64 字符串的 UTF-8 字节
 
 **返回值：**
 - `byte[]`: 解码后的字节数组
@@ -430,13 +424,13 @@ public static byte[] DecodeBytesFromRawStd(byte[] input)
 public static string DecodeStringFromRawStd(string input)
 ```
 
-**描述：** 1. 补充填充 2. 按标准Base64解码
+**描述：** 补全填充符后，将无填充标准 Base64 解码为 UTF-8 文本。
 
 **参数：**
-- `input` (string): 要解码的字符串
+- `input` (string): 无填充的 Base64 字符串
 
 **返回值：**
-- `string`: 解码后的字符串
+- `string`: 解码后的 UTF-8 文本
 
 ##### DecodeStringFromRawStd(byte[] input)
 
@@ -444,15 +438,15 @@ public static string DecodeStringFromRawStd(string input)
 public static string DecodeStringFromRawStd(byte[] input)
 ```
 
-**描述：** 1. 补充填充 2. 按标准Base64解码
+**描述：** 补全填充符后，将无填充标准 Base64 的 UTF-8 字节解码为 UTF-8 文本。
 
 **参数：**
-- `input` (byte[]): 要解码的字节数组
+- `input` (byte[]): Base64 字符串的 UTF-8 字节
 
 **返回值：**
-- `string`: 解码后的字符串
+- `string`: 解码后的 UTF-8 文本
 
-#### URL安全Base64编码方法
+#### URL 安全 Base64 编码方法
 
 ##### EncodeToUrlString(byte[] input)
 
@@ -460,13 +454,13 @@ public static string DecodeStringFromRawStd(byte[] input)
 public static string EncodeToUrlString(byte[] input)
 ```
 
-**描述：** 1. 按标准Base64编码 2. 替换为 URL 安全字符（保留填充）
+**描述：** 按标准 Base64 编码后映射为 URL 安全字符（保留填充符）。
 
 **参数：**
-- `input` (byte[]): 要编码的字节数组
+- `input` (byte[]): 待编码的字节数组
 
 **返回值：**
-- `string`: 编码后的字符串
+- `string`: URL 安全 Base64 字符串
 
 ##### EncodeToUrlString(string input)
 
@@ -474,13 +468,13 @@ public static string EncodeToUrlString(byte[] input)
 public static string EncodeToUrlString(string input)
 ```
 
-**描述：** 1. 按标准Base64编码 2. 替换为 URL 安全字符（保留填充）
+**描述：** 将 UTF-8 文本按 URL 安全 Base64 编码（保留填充符）。
 
 **参数：**
-- `input` (string): 要编码的字符串
+- `input` (string): 待编码的文本
 
 **返回值：**
-- `string`: 编码后的字符串
+- `string`: URL 安全 Base64 字符串
 
 ##### EncodeToUrlBytes(byte[] input)
 
@@ -488,13 +482,13 @@ public static string EncodeToUrlString(string input)
 public static byte[] EncodeToUrlBytes(byte[] input)
 ```
 
-**描述：** 1. 按标准Base64编码 2. 替换为 URL 安全字符（保留填充）
+**描述：** 按 URL 安全 Base64 编码，并返回结果字符串的 UTF-8 字节。
 
 **参数：**
-- `input` (byte[]): 要编码的字节数组
+- `input` (byte[]): 待编码的字节数组
 
 **返回值：**
-- `byte[]`: 编码后的字节数组
+- `byte[]`: Base64 字符串的 UTF-8 字节
 
 ##### EncodeToUrlBytes(string input)
 
@@ -502,15 +496,15 @@ public static byte[] EncodeToUrlBytes(byte[] input)
 public static byte[] EncodeToUrlBytes(string input)
 ```
 
-**描述：** 1. 按标准Base64编码 2. 替换为 URL 安全字符（保留填充）
+**描述：** 将 UTF-8 文本按 URL 安全 Base64 编码，并返回结果字符串的 UTF-8 字节。
 
 **参数：**
-- `input` (string): 要编码的字符串
+- `input` (string): 待编码的文本
 
 **返回值：**
-- `byte[]`: 编码后的字节数组
+- `byte[]`: Base64 字符串的 UTF-8 字节
 
-#### URL安全Base64解码方法
+#### URL 安全 Base64 解码方法
 
 ##### DecodeBytesFromUrl(string input)
 
@@ -518,10 +512,10 @@ public static byte[] EncodeToUrlBytes(string input)
 public static byte[] DecodeBytesFromUrl(string input)
 ```
 
-**描述：** 1. 替换为 URL 安全字符 2. 按标准Base64解码
+**描述：** 将 URL 安全字符映射回标准字母表后，解码 Base64 为字节数组。
 
 **参数：**
-- `input` (string): 要解码的字符串
+- `input` (string): URL 安全 Base64 字符串
 
 **返回值：**
 - `byte[]`: 解码后的字节数组
@@ -532,10 +526,10 @@ public static byte[] DecodeBytesFromUrl(string input)
 public static byte[] DecodeBytesFromUrl(byte[] input)
 ```
 
-**描述：** 1. 替换为 URL 安全字符 2. 按标准Base64解码
+**描述：** 将 URL 安全字符映射回标准字母表后，将 Base64 的 UTF-8 字节解码为字节数组。
 
 **参数：**
-- `input` (byte[]): 要解码的字节数组
+- `input` (byte[]): URL 安全 Base64 字符串的 UTF-8 字节
 
 **返回值：**
 - `byte[]`: 解码后的字节数组
@@ -546,13 +540,13 @@ public static byte[] DecodeBytesFromUrl(byte[] input)
 public static string DecodeStringFromUrl(string input)
 ```
 
-**描述：** 1. 替换为 URL 安全字符 2. 按标准Base64解码
+**描述：** 将 URL 安全字符映射回标准字母表后，解码 Base64 为 UTF-8 文本。
 
 **参数：**
-- `input` (string): 要解码的字符串
+- `input` (string): URL 安全 Base64 字符串
 
 **返回值：**
-- `string`: 解码后的字符串
+- `string`: 解码后的 UTF-8 文本
 
 ##### DecodeStringFromUrl(byte[] input)
 
@@ -560,15 +554,15 @@ public static string DecodeStringFromUrl(string input)
 public static string DecodeStringFromUrl(byte[] input)
 ```
 
-**描述：** 1. 替换为 URL 安全字符 2. 按标准Base64解码
+**描述：** 将 URL 安全字符映射回标准字母表后，将 Base64 的 UTF-8 字节解码为 UTF-8 文本。
 
 **参数：**
-- `input` (byte[]): 要解码的字节数组
+- `input` (byte[]): URL 安全 Base64 字符串的 UTF-8 字节
 
 **返回值：**
-- `string`: 解码后的字符串
+- `string`: 解码后的 UTF-8 文本
 
-#### 无填充URL安全Base64编码方法
+#### 无填充 URL 安全 Base64 编码方法
 
 ##### EncodeToRawUrlString(byte[] input)
 
@@ -576,13 +570,13 @@ public static string DecodeStringFromUrl(byte[] input)
 public static string EncodeToRawUrlString(byte[] input)
 ```
 
-**描述：** 1. 按标准Base64编码 2. 替换为 URL 安全字符 3. 删除填充
+**描述：** 按标准 Base64 编码、去除填充符后映射为 URL 安全字符。
 
 **参数：**
-- `input` (byte[]): 要编码的字节数组
+- `input` (byte[]): 待编码的字节数组
 
 **返回值：**
-- `string`: 编码后的字符串
+- `string`: 无填充的 URL 安全 Base64 字符串
 
 ##### EncodeToRawUrlString(string input)
 
@@ -590,13 +584,13 @@ public static string EncodeToRawUrlString(byte[] input)
 public static string EncodeToRawUrlString(string input)
 ```
 
-**描述：** 1. 按标准Base64编码 2. 替换为 URL 安全字符 3. 删除填充
+**描述：** 将 UTF-8 文本按无填充 URL 安全 Base64 编码。
 
 **参数：**
-- `input` (string): 要编码的字符串
+- `input` (string): 待编码的文本
 
 **返回值：**
-- `string`: 编码后的字符串
+- `string`: 无填充的 URL 安全 Base64 字符串
 
 ##### EncodeToRawUrlBytes(byte[] input)
 
@@ -604,13 +598,13 @@ public static string EncodeToRawUrlString(string input)
 public static byte[] EncodeToRawUrlBytes(byte[] input)
 ```
 
-**描述：** 1. 按标准Base64编码 2. 替换为 URL 安全字符 3. 删除填充
+**描述：** 按无填充 URL 安全 Base64 编码，并返回结果字符串的 UTF-8 字节。
 
 **参数：**
-- `input` (byte[]): 要编码的字节数组
+- `input` (byte[]): 待编码的字节数组
 
 **返回值：**
-- `byte[]`: 编码后的字节数组
+- `byte[]`: Base64 字符串的 UTF-8 字节
 
 ##### EncodeToRawUrlBytes(string input)
 
@@ -618,15 +612,15 @@ public static byte[] EncodeToRawUrlBytes(byte[] input)
 public static byte[] EncodeToRawUrlBytes(string input)
 ```
 
-**描述：** 1. 按标准Base64编码 2. 替换为 URL 安全字符 3. 删除填充
+**描述：** 将 UTF-8 文本按无填充 URL 安全 Base64 编码，并返回结果字符串的 UTF-8 字节。
 
 **参数：**
-- `input` (string): 要编码的字符串
+- `input` (string): 待编码的文本
 
 **返回值：**
-- `byte[]`: 编码后的字节数组
+- `byte[]`: Base64 字符串的 UTF-8 字节
 
-#### 无填充URL安全Base64解码方法
+#### 无填充 URL 安全 Base64 解码方法
 
 ##### DecodeBytesFromRawUrl(string input)
 
@@ -634,10 +628,10 @@ public static byte[] EncodeToRawUrlBytes(string input)
 public static byte[] DecodeBytesFromRawUrl(string input)
 ```
 
-**描述：** 1. 补充填充 2. 替换为 URL 安全字符 3. 按标准Base64解码
+**描述：** 将 URL 安全字符映射回标准字母表、补全填充符后解码为字节数组。
 
 **参数：**
-- `input` (string): 要解码的字符串
+- `input` (string): 无填充的 URL 安全 Base64 字符串
 
 **返回值：**
 - `byte[]`: 解码后的字节数组
@@ -648,10 +642,10 @@ public static byte[] DecodeBytesFromRawUrl(string input)
 public static byte[] DecodeBytesFromRawUrl(byte[] input)
 ```
 
-**描述：** 1. 补充填充 2. 替换为 URL 安全字符 3. 按标准Base64解码
+**描述：** 将 URL 安全字符映射回标准字母表、补全填充符后，将 Base64 的 UTF-8 字节解码为字节数组。
 
 **参数：**
-- `input` (byte[]): 要解码的字节数组
+- `input` (byte[]): URL 安全 Base64 字符串的 UTF-8 字节
 
 **返回值：**
 - `byte[]`: 解码后的字节数组
@@ -662,13 +656,13 @@ public static byte[] DecodeBytesFromRawUrl(byte[] input)
 public static string DecodeStringFromRawUrl(string input)
 ```
 
-**描述：** 1. 补充填充 2. 替换为 URL 安全字符 3. 按标准Base64解码
+**描述：** 将 URL 安全字符映射回标准字母表、补全填充符后解码为 UTF-8 文本。
 
 **参数：**
-- `input` (string): 要解码的字符串
+- `input` (string): 无填充的 URL 安全 Base64 字符串
 
 **返回值：**
-- `string`: 解码后的字符串
+- `string`: 解码后的 UTF-8 文本
 
 ##### DecodeStringFromRawUrl(byte[] input)
 
@@ -676,13 +670,13 @@ public static string DecodeStringFromRawUrl(string input)
 public static string DecodeStringFromRawUrl(byte[] input)
 ```
 
-**描述：** 1. 补充填充 2. 替换为 URL 安全字符 3. 按标准Base64解码
+**描述：** 将 URL 安全字符映射回标准字母表、补全填充符后，将 Base64 的 UTF-8 字节解码为 UTF-8 文本。
 
 **参数：**
-- `input` (byte[]): 要解码的字节数组
+- `input` (byte[]): URL 安全 Base64 字符串的 UTF-8 字节
 
 **返回值：**
-- `string`: 解码后的字符串
+- `string`: 解码后的 UTF-8 文本
 
 ---
 
@@ -691,38 +685,43 @@ public static string DecodeStringFromRawUrl(byte[] input)
 ### 使用接口实现
 
 ```csharp
-// 标准Base64编码
+// 标准 Base64 编码
 IBase64Encoding stdEncoder = new Base64StdEncoding();
 string encoded = stdEncoder.EncodeToString("Hello World");
 string decoded = stdEncoder.DecodeStringFrom(encoded);
 
-// URL安全Base64编码
+// URL 安全 Base64 编码
 IBase64Encoding urlEncoder = new Base64UrlEncoding();
 string urlEncoded = urlEncoder.EncodeToString("Hello World");
 string urlDecoded = urlEncoder.DecodeStringFrom(urlEncoded);
 
-// 无填充Base64编码
+// 无填充标准 Base64 编码
 IBase64Encoding rawEncoder = new Base64RawStdEncoding();
 string rawEncoded = rawEncoder.EncodeToString("Hello World");
 string rawDecoded = rawEncoder.DecodeStringFrom(rawEncoded);
+
+// 无填充 URL 安全 Base64 编码
+IBase64Encoding rawUrlEncoder = new Base64RawUrlEncoding();
+string rawUrlEncoded = rawUrlEncoder.EncodeToString("Hello World");
+string rawUrlDecoded = rawUrlEncoder.DecodeStringFrom(rawUrlEncoded);
 ```
 
 ### 使用工具类
 
 ```csharp
-// 标准Base64编码
+// 标准 Base64 编码
 string stdEncoded = Base64Utils.EncodeToStdString("Hello World");
 string stdDecoded = Base64Utils.DecodeStringFromStd(stdEncoded);
 
-// 无填充标准Base64编码
+// 无填充标准 Base64 编码
 string rawStdEncoded = Base64Utils.EncodeToRawStdString("Hello World");
 string rawStdDecoded = Base64Utils.DecodeStringFromRawStd(rawStdEncoded);
 
-// URL安全Base64编码
+// URL 安全 Base64 编码
 string urlEncoded = Base64Utils.EncodeToUrlString("Hello World");
 string urlDecoded = Base64Utils.DecodeStringFromUrl(urlEncoded);
 
-// 无填充URL安全Base64编码
+// 无填充 URL 安全 Base64 编码
 string rawUrlEncoded = Base64Utils.EncodeToRawUrlString("Hello World");
 string rawUrlDecoded = Base64Utils.DecodeStringFromRawUrl(rawUrlEncoded);
 ```
@@ -732,7 +731,7 @@ string rawUrlDecoded = Base64Utils.DecodeStringFromRawUrl(rawUrlEncoded);
 ```csharp
 byte[] data = Encoding.UTF8.GetBytes("Hello World");
 
-// 编码为字节数组
+// 编码为字节数组（结果为 Base64 字符串的 UTF-8 字节）
 byte[] encodedBytes = Base64Utils.EncodeToStdBytes(data);
 byte[] decodedBytes = Base64Utils.DecodeBytesFromStd(encodedBytes);
 
@@ -744,39 +743,40 @@ string result = Encoding.UTF8.GetString(decodedBytes);
 ### 不同编码格式对比
 
 ```csharp
-string original = "Hello World!";
+byte[] data = { 0xFB, 0xFF };
 
-// 标准Base64（带填充）
-string std = Base64Utils.EncodeToStdString(original);
-// 结果: "SGVsbG8gV29ybGQh"
+// 标准 Base64（带填充）
+string std = Base64Utils.EncodeToStdString(data);
+// 结果: "+/8="
 
-// 无填充标准Base64
-string rawStd = Base64Utils.EncodeToRawStdString(original);
-// 结果: "SGVsbG8gV29ybGQh"
+// 无填充标准 Base64
+string rawStd = Base64Utils.EncodeToRawStdString(data);
+// 结果: "+/8"
 
-// URL安全Base64（带填充）
-string url = Base64Utils.EncodeToUrlString(original);
-// 结果: "SGVsbG8gV29ybGQh"
+// URL 安全 Base64（带填充）
+string url = Base64Utils.EncodeToUrlString(data);
+// 结果: "-_8="
 
-// 无填充URL安全Base64
-string rawUrl = Base64Utils.EncodeToRawUrlString(original);
-// 结果: "SGVsbG8gV29ybGQh"
+// 无填充 URL 安全 Base64
+string rawUrl = Base64Utils.EncodeToRawUrlString(data);
+// 结果: "-_8"
 ```
 
 ---
 
 ## 注意事项
 
-1. **编码格式：** 标准Base64使用A-Z、a-z、0-9、+、/字符，URL安全版本将+和/替换为-和_
-2. **填充字符：** 标准格式使用=作为填充，无填充版本会删除填充字符
-3. **解码兼容性：** 无填充版本在解码时会自动补充填充字符
-4. **字符编码：** 字符串编码默认使用UTF-8编码
-5. **性能考虑：** 对于大量数据，建议使用字节数组方法而不是字符串方法
-6. **错误处理：** 解码无效的Base64字符串会抛出异常，注意异常处理
+1. **编码格式：** 标准 Base64 使用 A-Z、a-z、0-9、`+`、`/`；URL 安全版本将 `+` 和 `/` 替换为 `-` 和 `_`
+2. **填充字符：** 标准与 URL 安全格式使用 `=` 作为填充；无填充版本编码时删除填充，解码时按长度补全
+3. **解码兼容性：** `DecodeBytesFromRawStd` / `DecodeBytesFromRawUrl` 会按 `length % 4` 补 `=` 或 `==`；URL 安全解码会先把 `-`/`_` 映射回 `+`/`/`
+4. **字符编码：** 字符串入参按 UTF-8 转为字节后再编码；解码得到的文本同样按 UTF-8 解释
+5. **EncodeToBytes：** 返回的是 Base64 **字符串** 的 UTF-8 字节，不是原始二进制的另一种封装
+6. **方法命名：** 无填充标准变体编码到字节的方法名为 `EncodeStrToRawStdBytes`（`byte[]` 与 `string` 均为此名）
+7. **错误处理：** 无效 Base64 输入会由 `Convert.FromBase64String` 抛出异常，调用方需自行处理
 
 ---
 
 ## 依赖关系
 
-- `System`: 基础类型
-- `System.Text`: 字符串编码功能 
+- `System`：基础类型（含 `Convert`）
+- `System.Text`：UTF-8 字符串编解码

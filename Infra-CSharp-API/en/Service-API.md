@@ -14,14 +14,14 @@ Service base interface
 public interface IService
 {
     /// <summary>
-    /// Service name
+    /// Unique service name; set from ServiceConfig.AddConfig.
     /// </summary>
     string ServiceName { get; set; }
 }
 ```
 
 #### IInitService
-Service initialization interface
+Service initialization interface. Only when the current interface is implemented and configured into ServiceConfig will the Init method run during the initialization process.
 
 ```csharp
 /// <summary>
@@ -37,53 +37,56 @@ public interface IInitService : IService, IEventDispatcher
     bool IsInited { get; }
 
     /// <summary>
-    /// Initialize base data
+    /// Initialize the service; dispatch ServiceEvents.OnServiceInited with IService.ServiceName when done.
     /// </summary>
     void Init();
 }
 ```
 
 #### ILoadDataService
-Load data processing interface
+Load persisted or external data for a service. Invoked sequentially by `ServiceManager.LoadServicesData` for each registered implementation.
 
 ```csharp
 /// <summary>
-/// Load data processing interface
+/// Load persisted or external data for a service.
+/// Invoked sequentially by ServiceManager.LoadServicesData for each registered implementation.
 /// </summary>
 public interface ILoadDataService : IEventDispatcher
 {
     /// <summary>
-    /// Load Data
+    /// Load data; dispatch ServiceEvents.OnServiceDataLoaded with the service name when done.
     /// </summary>
     void LoadData();
 }
 ```
 
 #### ISaveDataService
-Save data processing interface
+Persist service data. Invoked sequentially by `ServiceManager.SaveServicesData` for each registered implementation.
 
 ```csharp
 /// <summary>
-/// Save data processing interface
+/// Persist service data.
+/// Invoked sequentially by ServiceManager.SaveServicesData for each registered implementation.
 /// </summary>
 public interface ISaveDataService : IEventDispatcher
 {
     /// <summary>
-    /// Save data
+    /// Save data; dispatch ServiceEvents.OnServiceDataSaved with the service name when done.
     /// </summary>
     void SaveData();
 }
 ```
 
 #### IInitDataService
-Initialize data service interface
+Data initialization phase for a service. Only when implemented and registered in ServiceConfig does InitData run after all IInitService instances complete during startup.
 
 ```csharp
 /// <summary>
-/// Initialize data service interface
-/// Used for the data initialization phase of services
+/// Data initialization phase for a service.
+/// Only when implemented and registered in ServiceConfig,
+/// InitData runs after all IInitService instances complete during startup.
 /// </summary>
-public interface IInitDataService : IEventDispatcher
+public interface IInitDataService : IService, IEventDispatcher
 {
     /// <summary>
     /// Whether data initialization has been completed
@@ -91,81 +94,85 @@ public interface IInitDataService : IEventDispatcher
     bool IsDataInited { get; }
 
     /// <summary>
-    /// Initialize data
+    /// Initialize runtime data; dispatch ServiceEvents.OnServiceDataInited with IService.ServiceName when done.
     /// </summary>
     void InitData();
 }
 ```
 
 #### IArgumentService
-Argument service interface
+Receives constructor-style arguments before initialization. Invoked by ServiceManager for each entry in ServiceConfig during `ServiceManager.StartInitalization`.
 
 ```csharp
 /// <summary>
-/// Argument service interface
-/// Used for receiving external parameter injection
+/// Receives constructor-style arguments before initialization.
+/// Invoked by ServiceManager for each entry in ServiceConfig during ServiceManager.StartInitalization.
 /// </summary>
 public interface IArgumentService
 {
     /// <summary>
-    /// Inject arguments
+    /// Inject data.
     /// </summary>
-    /// <param name="args">Argument data</param>
-    void InjectArgument(object args);
+    /// <param name="args">Arguments from ServiceInfo.Args; may be null or empty.</param>
+    void InjectArgument(object[] args);
 }
 ```
 
 #### IAwakableService
-Awakable service interface
+Early activation hook before `IInitService.Init`. Invoked synchronously by ServiceManager during startup; must not use async.
 
 ```csharp
 /// <summary>
-/// Awakable service interface
-/// Used for the service awakening phase
+/// Early activation hook before IInitService.Init.
+/// Invoked synchronously by ServiceManager during startup; must not use async.
 /// </summary>
 public interface IAwakableService
 {
     /// <summary>
     /// Awake service
+    /// Async is not allowed
     /// </summary>
     void Awake();
 }
 ```
 
 #### IClearService
-Clear service interface
+Resets a service to its pre-init state (listeners, flags, timers, etc.). Called on each service by `ServiceManager.ClearServices`.
 
 ```csharp
 /// <summary>
-/// Clear service interface
-/// Used for the service cleanup phase
+/// Resets a service to its pre-init state (listeners, flags, timers, etc.).
+/// Called on each service by ServiceManager.ClearServices.
 /// </summary>
 public interface IClearService
 {
     /// <summary>
-    /// Clear service
+    /// reset
+    /// Clear events, clear timers, etc.
     /// </summary>
     void Clear();
 }
 ```
 
 #### IProgressingService
-Progress service interface
+Reports granular init progress; replaces the default one-step count per IInitService / IInitDataService. Increment progress and dispatch `ServiceEvents.OnServiceProcessing` from the service implementation.
 
 ```csharp
 /// <summary>
-/// Progress service interface
-/// Used for services that support progress reporting
+/// Reports granular init progress; replaces the default one-step count per IInitService / IInitDataService.
+/// Increment progress and dispatch ServiceEvents.OnServiceProcessing from the service implementation.
 /// </summary>
-public interface IProgressingService
+public interface IProgressingService : IEventDispatcher
 {
     /// <summary>
-    /// Total progress length
+    /// Total progress
+    /// [0,int.Max)
     /// </summary>
     uint ProgressingLen { get; }
 
     /// <summary>
-    /// Current progress
+    /// Current amount of progress
+    /// [0,Total]
     /// </summary>
     uint ProgressingCurrent { get; }
 }
@@ -174,20 +181,16 @@ public interface IProgressingService
 ### Classes
 
 #### ServiceManager
-Service manager class
+Orchestrates service injection, activation, initialization, and load/save; reports aggregate progress via events.
+
+Step-by-step Init / InitData / Load / Save is implemented by internal `ServiceHandler` and its derived types (`ServiceInitHandler`, `ServiceInitDataHandler`, `ServiceLoadDataHandler`, `ServiceSaveDataHandler`). Those types are `internal` and are not part of the public API.
 
 ```csharp
 /// <summary>
-/// Service manager
-/// Responsible for service lifecycle management, including initialization, data loading, saving, etc.
+/// Orchestrates service injection, activation, initialization, and load/save; reports aggregate progress via events.
 /// </summary>
 public sealed class ServiceManager : EventDispatcher
 {
-    /// <summary>
-    /// Callback after all initialization is complete, including Init function and InitData function
-    /// </summary>
-    private Callback m_FinishCall;
-
     /// <summary>
     /// Processing percentage
     /// </summary>
@@ -204,7 +207,7 @@ public sealed class ServiceManager : EventDispatcher
     public uint ProcessingFinished { get; }
 
     /// <summary>
-    /// Cleanup event listener
+    /// cleanup event listener
     /// </summary>
     public void ClearEvents();
 
@@ -214,338 +217,531 @@ public sealed class ServiceManager : EventDispatcher
     public void ClearServices();
 
     /// <summary>
-    /// Service data loading
+    /// service data loading
     /// </summary>
-    /// <param name="endCall"></param>
+    /// <param name="endCall">Invoked when all configured load-data services finish.</param>
     public void LoadServicesData(Callback endCall);
 
     /// <summary>
     /// Service data storage
     /// </summary>
-    /// <param name="endCall"></param>
+    /// <param name="endCall">Invoked when all configured save-data services finish.</param>
     public void SaveServicesData(Callback endCall);
 
     /// <summary>
     /// Initialize the configured service
-    /// If it has been initialized once, try to execute the callback directly
     /// </summary>
-    /// <param name="endCall"></param>
+    /// <param name="endCall">Invoked after Init and InitData complete for all services.</param>
     public void StartInitalization(Callback endCall);
 
     /// <summary>
-    /// Singleton instance
+    /// Global service manager singleton.
     /// </summary>
     public static ServiceManager Shared { get; }
 
     /// <summary>
-    /// Configuration accessor
+    /// Shorthand for ServiceConfig.Shared.
     /// </summary>
     public static ServiceConfig Config { get; }
 }
 ```
 
+`StartInitalization` reads the current snapshot from `ServiceConfig.Shared.ServiceInfos` and runs argument injection, activation, Init, then InitData. The method name matches source spelling (`StartInitalization`, missing an `i`). `endCall` is `JLGames.Infra.Callback`, not a delegate; construct it with `new Callback(...)`.
+
 #### ServiceInfo
-Service information class
+Describes one registered service: name, implementation instance, and optional constructor arguments. Implements `ICloneable<ServiceInfo>`.
 
 ```csharp
 /// <summary>
-/// Service information class
-/// Contains service configuration information and instances
+/// Describes one registered service: name, implementation instance, and optional constructor arguments.
 /// </summary>
-public class ServiceInfo
+public class ServiceInfo : ICloneable<ServiceInfo>
 {
     /// <summary>
-    /// Service name
+    /// Unique service name.
     /// </summary>
-    public string ServiceName { get; set; }
+    public string ServiceName { get; }
 
     /// <summary>
-    /// Service implementation
+    /// Service implementation as IService.
     /// </summary>
-    public object ServiceImpl { get; set; }
+    public IService ServiceImpl { get; }
 
     /// <summary>
-    /// Argument data
+    /// Arguments passed to IArgumentService.InjectArgument when applicable.
     /// </summary>
-    public object Args { get; set; }
+    public object[] Args { get; }
 
     /// <summary>
-    /// Whether it is an initialization service
-    /// </summary>
-    public bool IsInitService { get; }
-
-    /// <summary>
-    /// Whether it is a data initialization service
-    /// </summary>
-    public bool IsInitDataService { get; }
-
-    /// <summary>
-    /// Whether it is an argument service
-    /// </summary>
-    public bool IsArgumentService { get; }
-
-    /// <summary>
-    /// Whether it is an awakable service
+    /// Whether the implementation implements IAwakableService.
     /// </summary>
     public bool IsAwakableService { get; }
 
     /// <summary>
-    /// Whether it is a progress service
+    /// Whether the implementation implements IInitService.
+    /// </summary>
+    public bool IsInitService { get; }
+
+    /// <summary>
+    /// Whether the implementation implements IArgumentService.
+    /// </summary>
+    public bool IsArgumentService { get; }
+
+    /// <summary>
+    /// Whether the implementation implements IProgressingService.
     /// </summary>
     public bool IsProgressingService { get; }
 
     /// <summary>
-    /// Get service implementation
+    /// Whether the implementation implements IInitDataService.
     /// </summary>
-    /// <typeparam name="T">Service type</typeparam>
-    /// <returns>Service instance</returns>
+    public bool IsInitDataService { get; }
+
+    /// <summary>
+    /// Whether the implementation implements ILoadDataService.
+    /// </summary>
+    public bool IsLoadDataService { get; }
+
+    /// <summary>
+    /// Whether the implementation implements ISaveDataService.
+    /// </summary>
+    public bool IsSaveDataService { get; }
+
+    /// <summary>
+    /// Check the interface state of the implementing object
+    /// </summary>
+    /// <typeparam name="T">Interface or base type to test.</typeparam>
+    /// <returns>True if the implementation instance is assignable to T.</returns>
+    public bool CheckServiceImpl<T>() where T : class;
+
+    /// <summary>
+    /// Get the implementation object of the service
+    /// </summary>
+    /// <typeparam name="T">Expected implementation type.</typeparam>
+    /// <returns>Cast instance, or null if incompatible.</returns>
     public T GetServiceImpl<T>() where T : class;
+
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="serviceName">Unique service name.</param>
+    /// <param name="serviceImpl">Service implementation instance.</param>
+    /// <param name="args">Optional arguments for IArgumentService.</param>
+    public ServiceInfo(string serviceName, IService serviceImpl, params object[] args);
+
+    /// <summary>
+    /// Clone
+    /// </summary>
+    /// <returns>A shallow copy sharing the same implementation reference.</returns>
+    public ServiceInfo Clone();
+
+    public override string ToString();
 }
 ```
 
+All properties are read-only; create instances via the constructor. `Clone()` shares the same implementation reference.
+
 #### ServiceConfig
-Service configuration class
+Registry of configured services; used by ServiceManager during startup. The constructor is private; access only through the `Shared` singleton.
 
 ```csharp
 /// <summary>
-/// Service configuration class
-/// Manages service configuration information
+/// Registry of configured services; used by ServiceManager during startup.
 /// </summary>
 public class ServiceConfig
 {
     /// <summary>
-    /// Service information array
+    /// Total number of configured services
     /// </summary>
-    public ServiceInfo[] ServiceInfos { get; set; }
+    public int ServiceSize { get; }
 
     /// <summary>
-    /// Singleton instance
+    /// Get all service configuration list
+    /// </summary>
+    public ServiceInfo[] ServiceInfos { get; }
+
+    /// <summary>
+    /// Add a service to the end of the configuration list
+    /// </summary>
+    /// <param name="sc">Service entry to append.</param>
+    /// <param name="ignoreSame">When false, throws if ServiceInfo.ServiceName already exists.</param>
+    /// <exception cref="Exception">Thrown when ignoreSame is false and the service name is duplicate.</exception>
+    public void AddConfig(ServiceInfo sc, bool ignoreSame = true);
+
+    /// <summary>
+    /// Get the specified server implementation object
+    /// </summary>
+    /// <param name="serviceName">Unique service name.</param>
+    /// <returns>Implementation instance, or null if not found.</returns>
+    public IService GetServiceImpl(string serviceName);
+
+    /// <summary>
+    /// Take the specified server implementation object and use generics to reduce the amount of code writing
+    /// </summary>
+    /// <param name="serviceName">Unique service name.</param>
+    /// <typeparam name="T">Expected implementation type.</typeparam>
+    /// <returns>Cast implementation, or null if missing or incompatible.</returns>
+    public T GetServiceImpl<T>(string serviceName) where T : class;
+
+    /// <summary>
+    /// Check service existence
+    /// </summary>
+    /// <param name="serviceName">Unique service name.</param>
+    /// <returns>True if a service with this name is registered.</returns>
+    public bool ContainsService(string serviceName);
+
+    /// <summary>
+    /// Get a specified service configuration information
+    /// </summary>
+    /// <param name="serviceName">Unique service name.</param>
+    /// <returns>Configuration entry, or null if not found.</returns>
+    public ServiceInfo GetServiceInfo(string serviceName);
+
+    /// <summary>
+    /// Global service configuration singleton.
     /// </summary>
     public static ServiceConfig Shared { get; }
 }
 ```
 
+`AddConfig` writes `sc.ServiceName` onto `sc.ServiceImpl.ServiceName`. `ignoreSame` defaults to `true` (duplicate names are allowed); when `false` and the name already exists, it throws `Exception` with a message like `重复的ServiceName:{name}`. `ServiceInfos` returns a snapshot array of the internal list and is not assignable.
+
 #### ServiceBase
-Service base class
+Abstract base for services: lifecycle flags, progress reporting, and event dispatch. Extends `EventDispatcher` and implements `IService` and `IClearService`. It does not itself implement phase interfaces such as `IInitService` / `IInitDataService` / `IProgressingService`; subclasses declare those as needed.
 
 ```csharp
 /// <summary>
-/// Service base class
-/// Provides basic service functionality implementation
+/// Abstract base for services: lifecycle flags, progress reporting, and event dispatch.
 /// </summary>
-public abstract class ServiceBase : IService
+public abstract class ServiceBase : EventDispatcher, IService, IClearService
 {
-    /// <summary>
-    /// Service name
-    /// </summary>
+    protected delegate void ProcessingCall();
+
+    /// <inheritdoc />
     public string ServiceName { get; set; }
+
+    protected bool m_Inited = false;
+    protected bool m_DataInited = false;
+
+    /// <summary>
+    /// Whether IInitService.Init has completed for this service.
+    /// </summary>
+    public bool IsInited { get; }
+
+    /// <summary>
+    /// Whether IInitDataService.InitData has completed for this service.
+    /// </summary>
+    public bool IsDataInited { get; }
+
+    protected uint m_ProgressingLen = 1;
+    protected uint m_ProgressingCurrent = 0;
+
+    /// <summary>
+    /// Total progress steps when implementing IProgressingService.
+    /// </summary>
+    public uint ProgressingLen { get; }
+
+    /// <summary>
+    /// Completed progress steps; used with ProgressingLen.
+    /// </summary>
+    public uint ProgressingCurrent { get; }
+
+    /// <inheritdoc />
+    public virtual void Clear();
+
+    /// <summary>
+    /// Increments progress, dispatches OnServiceProcessing, then invokes call.
+    /// </summary>
+    protected virtual void InvokdProcessing(ProcessingCall call);
+
+    /// <summary>
+    /// Marks init complete and dispatches OnServiceInited (data is ServiceName).
+    /// </summary>
+    protected virtual void InvokeInited();
+
+    /// <summary>
+    /// Marks data init complete and dispatches OnServiceDataInited (data is ServiceName).
+    /// </summary>
+    protected virtual void InvokeDataInited();
+
+    /// <summary>
+    /// Dispatches OnServiceDataLoaded (data is ServiceName).
+    /// </summary>
+    protected virtual void InvokeDataLoaded();
+
+    /// <summary>
+    /// Dispatches OnServiceDataSaved (data is ServiceName).
+    /// </summary>
+    protected virtual void InvokeDataSaved();
 }
 ```
+
+`InvokdProcessing` matches source spelling (missing an `e`). Subclasses should call these helpers when a phase finishes; otherwise ServiceManager waits indefinitely for the completion event.
 
 ### Events
 
 #### ServiceEvents
-Service event constants
+Service event constants. Note: `OnServiceProcessing` uses a period (`.`) in its string value; all other constants use a colon (`:`).
 
 ```csharp
 /// <summary>
-/// Service event constants
-/// Defines various events in the service lifecycle
+/// service event
 /// </summary>
 public static class ServiceEvents
 {
     /// <summary>
-    /// Service injection event
+    /// A single service initializes the progress update event, which is dispatched by the service instance.
+    /// The service instance must be an implementation class of the IProgressingService interface
     /// </summary>
-    public const string OnServiceInjected = "OnServiceInjected";
+    public const string OnServiceProcessing = "ServiceEvents.OnServiceProcessing";
 
     /// <summary>
-    /// All services injection completed event
+    /// Service initialization process progress update
     /// </summary>
-    public const string OnServiceAllInjected = "OnServiceAllInjected";
+    public const string OnInitializationProcessing = "ServiceEvents:OnInitializationProcessing";
 
     /// <summary>
-    /// Service awakening event
+    /// Service initialization process completed
     /// </summary>
-    public const string OnServiceAwaked = "OnServiceAwaked";
+    public const string OnInitializationFinish = "ServiceEvents:OnInitializationFinish";
 
     /// <summary>
-    /// All services awakening completed event
+    /// Service argument injection result event, dispatched by ServiceManager.
+    /// Succ=true when the service implements the IArgumentService interface.
+    /// Event data format: ServiceResultData
     /// </summary>
-    public const string OnServiceAllAwaked = "OnServiceAllAwaked";
+    public const string OnServiceInjected = "ServiceEvents:OnServiceInjected";
 
     /// <summary>
-    /// Service initialization event
+    /// All service argument injection completion event
+    /// Event data format: null
     /// </summary>
-    public const string OnServiceInited = "OnServiceInited";
+    public const string OnServiceAllInjected = "ServiceEvents:OnServiceAllInjected";
 
     /// <summary>
-    /// All services initialization completed event
+    /// Service activation result event, dispatched by ServiceManager.
+    /// Succ=true when the service implements the IAwakableService interface.
+    /// Event data format: ServiceResultData
     /// </summary>
-    public const string OnServiceAllInited = "OnServiceAllInited";
+    public const string OnServiceAwaked = "ServiceEvents:OnServiceAwaked";
 
     /// <summary>
-    /// Service data initialization event
+    /// All service activation completion event
+    /// Event data format: null
     /// </summary>
-    public const string OnServiceDataInited = "OnServiceDataInited";
+    public const string OnServiceAllAwaked = "ServiceEvents:OnServiceAllAwaked";
 
     /// <summary>
-    /// All service data initialization completion event
+    /// Single service initialization start event, dispatched by ServiceManager
+    /// Event data format: ServiceResultData
     /// </summary>
-    public const string OnServiceDataAllInited = "OnServiceDataAllInited";
+    public const string OnServiceInitStart = "ServiceEvents:OnServiceInitStart";
 
     /// <summary>
-    /// Service processing progress event
+    /// A single service initialization complete event, which are dispatched by the service instance.
+    /// Re-dispatched after being captured by ServiceManager.
+    /// Event data format: service name string
     /// </summary>
-    public const string OnServiceProcessing = "OnServiceProcessing";
+    public const string OnServiceInited = "ServiceEvents:OnServiceInited";
 
     /// <summary>
-    /// Initialization progress event
+    /// All service initialization complete event
+    /// Event data: null
     /// </summary>
-    public const string OnInitializationProcessing = "OnInitializationProcessing";
+    public const string OnServiceAllInited = "ServiceEvents:OnServiceAllInited";
 
     /// <summary>
-    /// Initialization completion event
+    /// Single service data initialization start event, dispatched by ServiceManager
+    /// Event data format: ServiceResultData
     /// </summary>
-    public const string OnInitializationFinish = "OnInitializationFinish";
+    public const string OnServiceDataInitStart = "ServiceEvents:OnServiceDataInitStart";
+
+    /// <summary>
+    /// A single service data initialization complete event, which are dispatched by the service instance.
+    /// Re-dispatched after being captured by ServiceManager.
+    /// Event data format: service name string
+    /// </summary>
+    public const string OnServiceDataInited = "ServiceEvents:OnServiceDataInited";
+
+    /// <summary>
+    /// All service data initialization complete event
+    /// Event data: null
+    /// </summary>
+    public const string OnServiceDataAllInited = "ServiceEvents:OnServiceDataAllInited";
+
+    /// <summary>
+    /// A single data service load data start event, dispatched by ServiceManager
+    /// Succ=true when the service implements the ILoadDataService interface.
+    /// Event data format: ServiceResultData
+    /// </summary>
+    public const string OnServiceDataLoadStart = "ServiceEvents:OnServiceDataLoadStart";
+
+    /// <summary>
+    /// A single data service load data completion event, which are dispatched by the service instance.
+    /// Re-dispatched after being captured by ServiceManager.
+    /// Event data format: service name string
+    /// </summary>
+    public const string OnServiceDataLoaded = "ServiceEvents:OnServiceDataLoaded";
+
+    /// <summary>
+    /// All data service loading data completion event
+    /// Event data: null
+    /// </summary>
+    public const string OnServiceDataAllLoaded = "ServiceEvents:OnServiceDataAllLoaded";
+
+    /// <summary>
+    /// A single data service save data start event, dispatched by ServiceManager
+    /// Succ=true when the service implements the ISaveDataService interface.
+    /// Event data format: ServiceResultData
+    /// </summary>
+    public const string OnServiceDataSaveStart = "ServiceEvents:OnServiceDataSaveStart";
+
+    /// <summary>
+    /// A single data service saves data completion events, which are dispatched by the service instance.
+    /// Re-dispatched after being captured by ServiceManager.
+    /// Event data format: service name string
+    /// </summary>
+    public const string OnServiceDataSaved = "ServiceEvents:OnServiceDataSaved";
+
+    /// <summary>
+    /// All data services save data complete event
+    /// Event data: null
+    /// </summary>
+    public const string OnServiceDataAllSaved = "ServiceEvents:OnServiceDataAllSaved";
 }
 ```
 
 ### Data Classes
 
 #### ServiceResultData
-Service result data
+Payload for per-service result events (inject, awake, init start, load/save start, etc.). This is a struct with public fields, not properties.
 
 ```csharp
 /// <summary>
-/// Service result data
-/// Used for event passing of service execution results
+/// Payload for per-service result events data structure (inject, awake, init start, load/save start, etc.).
 /// </summary>
-public class ServiceResultData
+public struct ServiceResultData
 {
     /// <summary>
-    /// Service name
+    /// Affected service name.
     /// </summary>
-    public string ServiceName { get; set; }
+    public string ServiceName;
 
     /// <summary>
-    /// Whether successful
+    /// Whether the service implements the capability required for that step (see event docs in ServiceEvents).
     /// </summary>
-    public bool Succ { get; set; }
+    public bool Succ;
 }
 ```
+
+`Succ` means the service implements the interface required for that step (for example `IArgumentService` during injection), not that business logic succeeded.
 
 ### Function Description
 
 #### Service Lifecycle
 
-**Initialization Phase**
-1. **Argument Injection**: Services implementing IArgumentService interface receive external parameters
-2. **Service Awakening**: Services implementing IAwakableService interface perform awakening operations
-3. **Service Initialization**: Services implementing IInitService interface perform initialization
-4. **Data Initialization**: Services implementing IInitDataService interface perform data initialization
+**Initialization Phase** (`StartInitalization`)
+1. **Argument Injection**: For each configured entry, if it implements `IArgumentService`, call `InjectArgument(info.Args)` and dispatch `OnServiceInjected`; then dispatch `OnServiceAllInjected`.
+2. **Service Activation**: For each configured entry, if it implements `IAwakableService`, call `Awake()` synchronously and dispatch `OnServiceAwaked`; then dispatch `OnServiceAllAwaked`. Async is not allowed.
+3. **Service Initialization**: Process entries in configuration order. Dispatch `OnServiceInitStart` for each; if it implements `IInitService`, call `Init()` and wait for that service to dispatch `OnServiceInited`. Then dispatch `OnServiceAllInited`.
+4. **Data Initialization**: After all Init work finishes, process entries in configuration order. Dispatch `OnServiceDataInitStart` for each; if it implements `IInitDataService`, call `InitData()` and wait for `OnServiceDataInited`. Then dispatch `OnServiceDataAllInited`, invoke `endCall`, and finally dispatch `OnInitializationFinish`.
 
 **Runtime Phase**
-- Services run normally, handling business logic
-- Supports data loading and saving operations
+- `LoadServicesData`: calls `ILoadDataService.LoadData()` in configuration order and waits for `OnServiceDataLoaded`; dispatches `OnServiceDataLoadStart` / `OnServiceDataLoaded` / `OnServiceDataAllLoaded`.
+- `SaveServicesData`: calls `ISaveDataService.SaveData()` in configuration order and waits for `OnServiceDataSaved`; dispatches `OnServiceDataSaveStart` / `OnServiceDataSaved` / `OnServiceDataAllSaved`.
 
 **Cleanup Phase**
-- Services implementing IClearService interface perform cleanup operations
-- Release resources and event listeners
+- `ClearServices` first removes listeners on the manager, then calls `Clear()` on each `IClearService` in **reverse** configuration order.
+- `ClearEvents` only removes listeners on ServiceManager itself.
+
+Entries that do not implement a given interface are skipped, but start events are still dispatched with `ServiceResultData.Succ` set to `false`.
 
 #### Progress Management
 
-Supports progress reporting through IProgressingService interface:
-- **ProgressingLen**: Total progress length
-- **ProgressingCurrent**: Current progress
-- ServiceManager automatically calculates overall progress percentage
+Supports granular progress through `IProgressingService`:
+- **ProgressingLen**: total progress
+- **ProgressingCurrent**: current amount of progress
+- When a service implements `IProgressingService`, those fields are used for its contribution; otherwise each `IInitService` / `IInitDataService` counts as 1 step (gated by `IsInited` / `IsDataInited` for the current value).
+- ServiceManager updates `ProcessingFinished` on `OnServiceProcessing`, `OnServiceInited`, and `OnServiceDataInited`, then dispatches `OnInitializationProcessing`.
+- `ProcessingPercentage` returns `1` when finished count reaches total length; otherwise `ProcessingFinished / ProcessingLen`.
 
 #### Event-Driven
 
-Service system based on event-driven architecture:
-- Each lifecycle phase has corresponding events
+The service system is event-driven:
+- Each lifecycle phase has corresponding start/complete events
+- Per-service completion events for Init / InitData / Load / Save must be dispatched by the service instance; ServiceManager captures and re-dispatches them
 - Supports progress reporting and status notifications
-- Facilitates monitoring and debugging
 
 ### Usage Examples
 
 #### Basic Service Implementation
 ```csharp
-// Implement a basic service
 public class MyService : ServiceBase, IInitService, ILoadDataService, ISaveDataService
 {
-    public bool IsInited { get; private set; }
-
     public void Init()
     {
         Console.WriteLine($"Initialize service: {ServiceName}");
-        IsInited = true;
+        InvokeInited();
     }
 
     public void LoadData()
     {
         Console.WriteLine($"Load data: {ServiceName}");
+        InvokeDataLoaded();
     }
 
     public void SaveData()
     {
         Console.WriteLine($"Save data: {ServiceName}");
+        InvokeDataSaved();
     }
 }
 ```
 
+If you do not inherit `ServiceBase`, you must `DispatchEvent` the matching completion event yourself (for example `ServiceEvents.OnServiceInited` with the service name); otherwise the pipeline does not continue.
+
 #### Service Configuration
 ```csharp
-// Configure services
 var serviceConfig = ServiceConfig.Shared;
-serviceConfig.ServiceInfos = new ServiceInfo[]
-{
-    new ServiceInfo
-    {
-        ServiceName = "UserService",
-        ServiceImpl = new UserService(),
-        Args = new { database = "userdb" }
-    },
-    new ServiceInfo
-    {
-        ServiceName = "ConfigService",
-        ServiceImpl = new ConfigService()
-    }
-};
+serviceConfig.AddConfig(new ServiceInfo("UserService", new UserService(), "userdb"));
+serviceConfig.AddConfig(new ServiceInfo("ConfigService", new ConfigService()));
+
+var user = serviceConfig.GetServiceImpl<UserService>("UserService");
 ```
+
+`ServiceInfos` is read-only and cannot be assigned. Register services with `AddConfig`, which writes the service name back onto the implementation instance's `ServiceName`.
 
 #### Service Manager Usage
 ```csharp
-// Get service manager
 var serviceManager = ServiceManager.Shared;
 
-// Listen to initialization progress
-serviceManager.AddEventListener(ServiceEvents.OnInitializationProcessing, (evd) => {
+serviceManager.AddEventListener(ServiceEvents.OnInitializationProcessing, evd =>
+{
     Console.WriteLine($"Initialization progress: {serviceManager.ProcessingPercentage:P}");
 });
 
-// Listen to initialization completion
-serviceManager.AddEventListener(ServiceEvents.OnInitializationFinish, (evd) => {
+serviceManager.AddEventListener(ServiceEvents.OnInitializationFinish, evd =>
+{
     Console.WriteLine("All services initialization completed!");
 });
 
-// Start initialization
-serviceManager.StartInitalization(() => {
+serviceManager.StartInitalization(new Callback(_ =>
+{
     Console.WriteLine("Initialization callback executed");
-});
+}));
 ```
 
 #### Data Operations
 ```csharp
-// Load service data
-serviceManager.LoadServicesData(() => {
+serviceManager.LoadServicesData(new Callback(_ =>
+{
     Console.WriteLine("Data loading completed");
-});
+}));
 
-// Save service data
-serviceManager.SaveServicesData(() => {
+serviceManager.SaveServicesData(new Callback(_ =>
+{
     Console.WriteLine("Data saving completed");
-});
+}));
 ```
 
 #### Argument Service Example
@@ -554,52 +750,53 @@ public class DatabaseService : ServiceBase, IArgumentService
 {
     private string connectionString;
 
-    public void InjectArgument(object args)
+    public void InjectArgument(object[] args)
     {
-        var config = args as dynamic;
-        connectionString = config?.connectionString;
+        connectionString = args != null && args.Length > 0 ? args[0] as string : null;
         Console.WriteLine($"Inject database connection: {connectionString}");
     }
 }
+
+ServiceConfig.Shared.AddConfig(
+    new ServiceInfo("DatabaseService", new DatabaseService(), "Server=.;Database=app"));
 ```
 
 #### Progress Service Example
 ```csharp
-public class FileProcessService : ServiceBase, IProgressingService
+public class FileProcessService : ServiceBase, IInitService, IProgressingService
 {
-    private uint totalFiles = 100;
-    private uint processedFiles = 0;
-
-    public uint ProgressingLen => totalFiles;
-    public uint ProgressingCurrent => processedFiles;
-
-    public void ProcessFiles()
+    public FileProcessService()
     {
-        for (int i = 0; i < totalFiles; i++)
+        m_ProgressingLen = 100;
+    }
+
+    public void Init()
+    {
+        for (uint i = 0; i < m_ProgressingLen; i++)
         {
-            // Process file
-            processedFiles++;
-            
-            // Report progress
-            DispatchEvent(ServiceEvents.OnServiceProcessing, null);
+            InvokdProcessing(null);
         }
+        InvokeInited();
     }
 }
 ```
 
+`InvokdProcessing` increments `m_ProgressingCurrent` and dispatches `OnServiceProcessing` (data is `ServiceName`). When implementing `IProgressingService`, still dispatch the matching Init / InitData completion event when that phase finishes.
+
 ### Design Features
 
-1. **Lifecycle Management**: Complete service lifecycle management
-2. **Event-Driven**: Event-based status notifications and progress reporting
-3. **Interface Separation**: Different functionalities separated through interfaces for easy implementation
-4. **Configuration-Driven**: Service management through configuration, supports parameter injection
-5. **Progress Support**: Built-in progress reporting mechanism
-6. **Singleton Pattern**: ServiceManager provides global access point
+1. **Lifecycle Management**: Full lifecycle (inject → awake → Init → InitData, plus Load / Save / Clear)
+2. **Event-Driven**: Status notifications and progress reporting via events; phase completion depends on services dispatching their own completion events
+3. **Interface Separation**: Capabilities are split across interfaces so implementations can opt in
+4. **Configuration-Driven**: Register services through `ServiceConfig.AddConfig`, with optional argument injection
+5. **Progress Support**: Built-in progress reporting
+6. **Singleton Pattern**: `ServiceManager.Shared` and `ServiceConfig.Shared` provide global access points
 
 ### Notes
 
-1. **Initialization Order**: Services initialize according to configuration order
-2. **Event Listening**: Clean up unnecessary event listeners in time
-3. **Exception Handling**: Service initialization failures need to be handled properly
-4. **Resource Management**: Ensure services properly clean up resources
-5. **Thread Safety**: Additional synchronization mechanisms required in multi-threaded environments 
+1. **Initialization Order**: Services are processed in `ServiceConfig` registration order; cleanup calls `IClearService.Clear` in reverse order
+2. **Completion Events**: `Init` / `InitData` / `LoadData` / `SaveData` must dispatch the matching completion event, or later services will not start
+3. **Event Listening**: Remove unused listeners (`ClearEvents` / `ClearServices` / the service's own `Clear`)
+4. **Resource Management**: Ensure services clean up resources; `ServiceBase.Clear` removes listeners and resets `IsInited` / `IsDataInited`
+5. **Thread Safety**: Additional synchronization is required in multi-threaded environments; `IAwakableService.Awake` must not be async
+6. **Callback**: The callback type for `StartInitalization` / `LoadServicesData` / `SaveServicesData` is the `Callback` class, not a parameterless lambda

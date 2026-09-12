@@ -5,38 +5,33 @@
 ### 接口 (Interfaces)
 
 #### IUnarchive
-解压接口
+归档解压契约；支持参数配置、单文件/批量解压及进度事件。继承 `IEventDispatcher`。
 
 ```csharp
 /// <summary>
-/// 解压接口
-/// 提供归档文件的解压功能
+/// 归档解压契约；支持参数配置、单文件/批量解压及进度事件。
 /// </summary>
 public interface IUnarchive : IEventDispatcher
 {
     /// <summary>
-    /// Set parameters
     /// 设置参数
     /// </summary>
     /// <param name="params">解压参数</param>
     void SetUnarchiveParams(UnarchiveParams @params);
 
     /// <summary>
-    /// Set the unxip storage directory path
     /// 设置解压存储目录路径
     /// </summary>
     /// <param name="dstPath">目标路径</param>
     void SetDstPath(string dstPath);
 
     /// <summary>
-    /// Extract a single archive
     /// 解压单个归档文件
     /// </summary>
     /// <param name="srcFilePath">源文件路径</param>
     void UnarchiveFile(string srcFilePath);
 
     /// <summary>
-    /// Extract a single archive
     /// 解压单个归档文件
     /// </summary>
     /// <param name="srcFilePath">源文件路径</param>
@@ -46,7 +41,6 @@ public interface IUnarchive : IEventDispatcher
     void UnarchiveFile(string srcFilePath, string dstDir, bool @override, Encoding encoding);
 
     /// <summary>
-    /// Extract a single archive
     /// 解压单个归档文件
     /// </summary>
     /// <param name="srcFilePath">源文件路径</param>
@@ -54,14 +48,12 @@ public interface IUnarchive : IEventDispatcher
     void UnarchiveFile(string srcFilePath, UnarchiveParams @params);
 
     /// <summary>
-    /// Extract multiple archives
     /// 解压多个归档文件
     /// </summary>
     /// <param name="srcFilePaths">源文件路径集合</param>
     void UnarchiveFiles(IEnumerable<string> srcFilePaths);
 
     /// <summary>
-    /// Extract multiple archives
     /// 解压多个归档文件
     /// </summary>
     /// <param name="srcFilePaths">源文件路径集合</param>
@@ -71,7 +63,6 @@ public interface IUnarchive : IEventDispatcher
     void UnarchiveFiles(IEnumerable<string> srcFilePaths, string dstDir, bool @override, Encoding encoding);
 
     /// <summary>
-    /// Extract multiple archives
     /// 解压多个归档文件
     /// </summary>
     /// <param name="srcFilePaths">源文件路径集合</param>
@@ -83,12 +74,11 @@ public interface IUnarchive : IEventDispatcher
 ### 类 (Classes)
 
 #### UnarchiveParams
-解压参数类
+归档解压参数（目标目录、是否覆盖、条目名编码）。
 
 ```csharp
 /// <summary>
-/// 解压参数类
-/// 定义解压操作的各项参数
+/// 归档解压参数（目标目录、是否覆盖、条目名编码）。
 /// </summary>
 public class UnarchiveParams
 {
@@ -97,28 +87,28 @@ public class UnarchiveParams
     private readonly Encoding m_Encoding;
 
     /// <summary>
-    /// 目标路径
+    /// 解压输出目录。
     /// </summary>
-    public string DstPath => m_DstPath;
+    public string DstPath { get; }
 
     /// <summary>
-    /// 是否覆盖
+    /// 是否覆盖目标路径下已存在的文件。
     /// </summary>
-    public bool Override => m_Override;
+    public bool Override { get; }
 
     /// <summary>
-    /// 编码格式
+    /// 读取归档内条目名称时使用的编码。
     /// </summary>
-    public Encoding Encoding => m_Encoding;
+    public Encoding Encoding { get; }
 
     /// <summary>
-    /// 构造函数
+    /// 使用默认覆盖策略（true）与 UTF-8 编码创建参数。
     /// </summary>
     /// <param name="dstPath">目标路径</param>
     public UnarchiveParams(string dstPath);
 
     /// <summary>
-    /// 构造函数
+    /// 使用指定的目标目录、覆盖策略与编码创建参数。
     /// </summary>
     /// <param name="dstPath">目标路径</param>
     /// <param name="override">是否覆盖</param>
@@ -126,7 +116,7 @@ public class UnarchiveParams
     public UnarchiveParams(string dstPath, bool @override, Encoding encoding);
 
     /// <summary>
-    /// 设置目标路径
+    /// 更新解压输出目录路径。
     /// </summary>
     /// <param name="path">新路径</param>
     public void SetDstPath(string path);
@@ -134,70 +124,129 @@ public class UnarchiveParams
 ```
 
 #### Unzip
-解压实现类
+ZIP 归档解压实现；按条目与整包分发 `UnarchiveEvents` 事件。继承 `EventDispatcher`，实现 `IUnarchive`。
 
 ```csharp
 /// <summary>
-/// 解压实现类
-/// 提供ZIP等归档文件的解压功能
+/// ZIP 归档解压实现；按条目与整包分发 <see cref="UnarchiveEvents"/> 事件。
 /// </summary>
-public class Unzip : IUnarchive
+public class Unzip : EventDispatcher, IUnarchive
 {
-    // 具体实现需要进一步分析文件内容
+    /// <summary>
+    /// 设置参数
+    /// </summary>
+    /// <param name="params">解压参数</param>
+    public void SetUnarchiveParams(UnarchiveParams @params);
+
+    /// <summary>
+    /// 设置解压存储目录路径
+    /// </summary>
+    /// <param name="dstPath">目标路径</param>
+    public void SetDstPath(string dstPath);
+
+    /// <summary>
+    /// 使用已设置的参数解压单个归档文件。
+    /// </summary>
+    /// <param name="srcFilePath">源文件路径</param>
+    public void UnarchiveFile(string srcFilePath);
+
+    /// <summary>
+    /// 解压单个归档文件
+    /// </summary>
+    /// <param name="srcFilePath">源文件路径</param>
+    /// <param name="dstDir">目标目录</param>
+    /// <param name="override">是否覆盖</param>
+    /// <param name="encoding">编码格式</param>
+    public void UnarchiveFile(string srcFilePath, string dstDir, bool @override, Encoding encoding);
+
+    /// <summary>
+    /// 解压单个归档文件
+    /// </summary>
+    /// <param name="srcFilePath">源文件路径</param>
+    /// <param name="params">解压参数</param>
+    public void UnarchiveFile(string srcFilePath, UnarchiveParams @params);
+
+    /// <summary>
+    /// 使用已设置的参数解压多个归档文件。
+    /// </summary>
+    /// <param name="srcFilePaths">源文件路径集合</param>
+    public void UnarchiveFiles(IEnumerable<string> srcFilePaths);
+
+    /// <summary>
+    /// 解压多个归档文件
+    /// </summary>
+    /// <param name="srcFilePaths">源文件路径集合</param>
+    /// <param name="dstDir">目标目录</param>
+    /// <param name="override">是否覆盖</param>
+    /// <param name="encoding">编码格式</param>
+    public void UnarchiveFiles(IEnumerable<string> srcFilePaths, string dstDir, bool @override, Encoding encoding);
+
+    /// <summary>
+    /// 解压多个归档文件
+    /// </summary>
+    /// <param name="srcFilePaths">源文件路径集合</param>
+    /// <param name="params">解压参数</param>
+    public void UnarchiveFiles(IEnumerable<string> srcFilePaths, UnarchiveParams @params);
 }
 ```
 
+`SetDstPath`：若尚未设置参数，会以该路径创建 `UnarchiveParams`（默认覆盖、UTF-8）；若已有参数，则只更新目标目录。
+
+`UnarchiveFile`：源文件不存在时直接返回；目标目录不存在时会创建。条目已存在且 `Override` 为 `false` 时跳过并记入忽略列表。每解压一个条目分发 `EventUnarchiveEntry`，整包处理完成后分发 `EventUnarchive`。
+
 #### ArchiveUtil
-归档工具类
+无需订阅事件的 ZIP 归档解压静态工具。内部创建 `Unzip` 并设置参数后执行解压。
 
 ```csharp
 /// <summary>
-/// 归档工具类
-/// 提供归档文件操作的静态工具方法
+/// 无需订阅事件的 ZIP 归档解压静态工具。
 /// </summary>
 public static class ArchiveUtil
 {
     /// <summary>
-    /// 解压ZIP文件
+    /// 解压单个归档
     /// </summary>
-    /// <param name="zipPath">ZIP文件路径</param>
-    /// <param name="extractPath">解压路径</param>
-    /// <param name="overwrite">是否覆盖</param>
-    public static void ExtractZip(string zipPath, string extractPath, bool overwrite = true);
+    /// <param name="srcFilePath">源文件路径</param>
+    /// <param name="dstDir">目标目录</param>
+    /// <param name="override">是否覆盖</param>
+    /// <param name="encoding">编码格式</param>
+    public static void UnzipFile(string srcFilePath, string dstDir, bool @override, Encoding encoding);
 
     /// <summary>
-    /// 创建ZIP文件
+    /// 解压单个归档
     /// </summary>
-    /// <param name="zipPath">ZIP文件路径</param>
-    /// <param name="sourcePath">源文件路径</param>
-    /// <param name="compressionLevel">压缩级别</param>
-    public static void CreateZip(string zipPath, string sourcePath, int compressionLevel = 6);
+    /// <param name="srcFilePath">源文件路径</param>
+    /// <param name="dstDir">目标目录</param>
+    public static void UnzipFile(string srcFilePath, string dstDir);
 
     /// <summary>
-    /// 检查文件是否为ZIP格式
+    /// 解压多个归档
     /// </summary>
-    /// <param name="filePath">文件路径</param>
-    /// <returns>是否为ZIP格式</returns>
-    public static bool IsZipFile(string filePath);
+    /// <param name="srcFilePaths">源文件路径集合</param>
+    /// <param name="dstDir">目标目录</param>
+    /// <param name="override">是否覆盖</param>
+    /// <param name="encoding">编码格式</param>
+    public static void UnzipFiles(IEnumerable<string> srcFilePaths, string dstDir, bool @override, Encoding encoding);
 
     /// <summary>
-    /// 获取ZIP文件中的文件列表
+    /// 解压多个归档
     /// </summary>
-    /// <param name="zipPath">ZIP文件路径</param>
-    /// <returns>文件列表</returns>
-    public static string[] GetZipFileList(string zipPath);
+    /// <param name="srcFilePaths">源文件路径集合</param>
+    /// <param name="dstDir">目标目录</param>
+    public static void UnzipFiles(IEnumerable<string> srcFilePaths, string dstDir);
 }
 ```
+
+两参数重载等价于 `@override = true`、`encoding = Encoding.UTF8`。
 
 ### 事件数据类 (Event Data Classes)
 
 #### UnarchiveEventData
-解压事件数据类
+单个归档文件全部处理完成时的事件数据。
 
 ```csharp
 /// <summary>
-/// 解压事件数据类
-/// 包含解压操作的详细信息
+/// 单个归档文件全部处理完成时的事件数据。
 /// </summary>
 public sealed class UnarchiveEventData
 {
@@ -206,25 +255,22 @@ public sealed class UnarchiveEventData
     private readonly string[] m_IgnoreFiles;
 
     /// <summary>
-    /// Archive file path
     /// 归档文件路径
     /// </summary>
-    public string ArchiveFilePath => m_ArchiveFilePath;
+    public string ArchiveFilePath { get; }
 
     /// <summary>
-    /// Unarchive the HeaderName corresponding to the generated file
     /// 解除归档生成的文件对应的HeaderName
     /// </summary>
-    public string[] Files => m_Files;
+    public string[] Files { get; }
 
     /// <summary>
-    /// Unarchive the HeaderName corresponding to the ignored file
     /// 解除归档忽略的文件对应的HeaderName
     /// </summary>
-    public string[] IgnoreFiles => m_IgnoreFiles;
+    public string[] IgnoreFiles { get; }
 
     /// <summary>
-    /// 构造函数
+    /// 为单个归档创建解压完成事件数据。
     /// </summary>
     /// <param name="archiveFilePath">归档文件路径</param>
     /// <param name="files">解压的文件列表</param>
@@ -232,20 +278,18 @@ public sealed class UnarchiveEventData
     public UnarchiveEventData(string archiveFilePath, string[] files, string[] ignoreFiles);
 
     /// <summary>
-    /// 字符串表示
+    /// 返回包含路径与条目数量的简要诊断字符串。
     /// </summary>
-    /// <returns>事件数据字符串</returns>
     public override string ToString();
 }
 ```
 
 #### UnarchiveEntryEventData
-解压条目事件数据类
+归档内单个条目解压（或跳过）时的事件数据。当前实现仅在成功解压条目时分发该事件。
 
 ```csharp
 /// <summary>
-/// 解压条目事件数据类
-/// 包含单个文件解压的详细信息
+/// 归档内单个条目解压（或跳过）时的事件数据。
 /// </summary>
 public sealed class UnarchiveEntryEventData
 {
@@ -253,28 +297,25 @@ public sealed class UnarchiveEntryEventData
     private readonly string m_EntryHeaderName;
 
     /// <summary>
-    /// Archive file path
     /// 归档文件路径
     /// </summary>
-    public string ArchiveFilePath => m_ArchiveFilePath;
+    public string ArchiveFilePath { get; }
 
     /// <summary>
-    /// Unarchive the HeaderName corresponding to the generated file
     /// 解除归档生成的文件对应的HeaderName
     /// </summary>
-    public string EntryHeaderName => m_EntryHeaderName;
+    public string EntryHeaderName { get; }
 
     /// <summary>
-    /// 构造函数
+    /// 创建单条目解压事件数据。
     /// </summary>
     /// <param name="archiveFilePath">归档文件路径</param>
     /// <param name="entryHeaderName">条目头名称</param>
     public UnarchiveEntryEventData(string archiveFilePath, string entryHeaderName);
 
     /// <summary>
-    /// 字符串表示
+    /// 返回包含归档路径与条目名的简要诊断字符串。
     /// </summary>
-    /// <returns>事件数据字符串</returns>
     public override string ToString();
 }
 ```
@@ -282,23 +323,20 @@ public sealed class UnarchiveEntryEventData
 ### 静态类 (Static Classes)
 
 #### UnarchiveEvents
-解压事件常量
+归档解压过程中分发的事件名常量。
 
 ```csharp
 /// <summary>
-/// 解压事件常量
-/// 定义解压过程中触发的事件类型
+/// 归档解压过程中分发的事件名常量。
 /// </summary>
 public static class UnarchiveEvents
 {
     /// <summary>
-    /// Archive decompression complete single file complete event
     /// 归档解压完成单个文件完成事件
     /// </summary>
     public const string EventUnarchiveEntry = "UnarchiveEvent.EventUnarchiveEntry";
 
     /// <summary>
-    /// Archive decompression complete event
     /// 归档解压完成事件
     /// </summary>
     public const string EventUnarchive = "UnarchiveEvent.EventUnarchive";
@@ -310,33 +348,33 @@ public static class UnarchiveEvents
 #### 解压功能特性
 
 **基本功能**
-- **单文件解压**：支持解压单个归档文件
-- **批量解压**：支持同时解压多个归档文件
-- **参数配置**：支持自定义解压参数
-- **事件通知**：提供解压进度和完成事件
+- **单文件解压**：支持解压单个 ZIP 归档文件
+- **批量解压**：支持依次解压多个归档文件
+- **参数配置**：通过 `UnarchiveParams` 或方法参数指定目标目录、覆盖策略与编码
+- **事件通知**：`Unzip` 按条目与整包分发解压事件（`ArchiveUtil` 不订阅事件）
 
 **高级功能**
-1. **编码支持**：支持多种字符编码格式
-2. **覆盖控制**：可选择是否覆盖已存在的文件
-3. **路径管理**：灵活的目标路径设置
-4. **错误处理**：完善的异常处理机制
+1. **编码支持**：`Encoding` 用于读取归档内条目名称
+2. **覆盖控制**：`Override` 为 `false` 时跳过已存在文件，并记入 `IgnoreFiles`
+3. **路径管理**：`SetDstPath` 可在已有参数上更新目标目录，或在未设置参数时创建默认参数
+4. **静默跳过**：源文件不存在时 `UnarchiveFile` 直接返回，不抛出异常
 
 #### 事件驱动架构
 
 **事件类型**
-- **EventUnarchiveEntry**：单个文件解压完成事件
-- **EventUnarchive**：整个归档解压完成事件
+- **EventUnarchiveEntry**：单个条目解压完成事件
+- **EventUnarchive**：整个归档处理完成事件
 
 **事件数据**
-- **UnarchiveEventData**：包含解压文件列表和忽略文件列表
-- **UnarchiveEntryEventData**：包含单个文件的解压信息
+- **UnarchiveEventData**：包含已解压条目列表与忽略条目列表
+- **UnarchiveEntryEventData**：包含单个条目的归档路径与条目名
 
 #### 参数管理
 
 **UnarchiveParams**
-- **DstPath**：解压目标路径
-- **Override**：是否覆盖现有文件
-- **Encoding**：文件编码格式
+- **DstPath**：解压输出目录
+- **Override**：是否覆盖目标路径下已存在的文件（单参数构造时默认为 `true`）
+- **Encoding**：读取归档内条目名称时使用的编码（单参数构造时默认为 `Encoding.UTF8`）
 
 ### 使用示例
 
@@ -364,12 +402,12 @@ unarchive.UnarchiveFile("archive.zip", "extract_folder", true, Encoding.UTF8);
 
 #### 使用参数配置
 ```csharp
-// 创建解压参数
-var params = new UnarchiveParams("output_folder", true, Encoding.UTF8);
+// 创建解压参数（覆盖 + UTF-8）
+var unarchiveParams = new UnarchiveParams("output_folder", true, Encoding.UTF8);
 
 // 设置解压器参数
 var unarchive = new Unzip();
-unarchive.SetUnarchiveParams(params);
+unarchive.SetUnarchiveParams(unarchiveParams);
 
 // 解压文件
 unarchive.UnarchiveFile("archive.zip");
@@ -393,23 +431,22 @@ unarchive.UnarchiveFiles(fileList, "batch_output", true, Encoding.UTF8);
 
 #### 使用工具类
 ```csharp
-// 检查是否为ZIP文件
-bool isZip = ArchiveUtil.IsZipFile("file.zip");
-Console.WriteLine($"是否为ZIP文件: {isZip}");
+// 解压单个 ZIP（默认覆盖、UTF-8）
+ArchiveUtil.UnzipFile("archive.zip", "extract_folder");
 
-// 获取ZIP文件列表
-string[] fileList = ArchiveUtil.GetZipFileList("archive.zip");
-Console.WriteLine("ZIP文件内容:");
-foreach (var file in fileList)
+// 解压单个 ZIP（指定覆盖与编码）
+ArchiveUtil.UnzipFile("archive.zip", "extract_folder", true, Encoding.UTF8);
+
+// 批量解压（默认覆盖、UTF-8）
+var fileList = new List<string>
 {
-    Console.WriteLine($"  {file}");
-}
+    "archive1.zip",
+    "archive2.zip"
+};
+ArchiveUtil.UnzipFiles(fileList, "batch_output");
 
-// 解压ZIP文件
-ArchiveUtil.ExtractZip("archive.zip", "extract_folder", true);
-
-// 创建ZIP文件
-ArchiveUtil.CreateZip("new_archive.zip", "source_folder", 6);
+// 批量解压（指定覆盖与编码）
+ArchiveUtil.UnzipFiles(fileList, "batch_output", false, Encoding.GetEncoding("GBK"));
 ```
 
 #### 高级解压配置
@@ -462,18 +499,18 @@ catch (Exception ex)
 
 ### 设计特点
 
-1. **事件驱动**：基于事件的通知机制
-2. **参数化配置**：灵活的参数设置
-3. **批量处理**：支持批量解压操作
-4. **编码支持**：支持多种字符编码
-5. **错误处理**：完善的异常处理
-6. **工具类支持**：提供静态工具方法
+1. **事件驱动**：`Unzip` 基于 `EventDispatcher` 分发条目与整包完成事件
+2. **参数化配置**：通过 `UnarchiveParams` 设置目标目录、覆盖策略与条目名编码
+3. **批量处理**：支持按路径集合依次解压
+4. **编码支持**：`Encoding` 用于读取 ZIP 条目名称
+5. **覆盖与忽略**：不覆盖时将已存在条目记入 `IgnoreFiles`
+6. **工具类支持**：`ArchiveUtil` 提供无需订阅事件的静态解压方法
 
 ### 注意事项
 
 1. **文件权限**：确保有足够的文件读写权限
 2. **磁盘空间**：解压前检查目标磁盘空间
-3. **编码问题**：注意文件名的编码格式
+3. **编码问题**：`Encoding` 作用于 ZIP 条目名称，而非文件内容
 4. **覆盖风险**：使用覆盖模式时注意数据安全
-5. **内存使用**：大文件解压时注意内存使用
-6. **事件监听**：及时清理不需要的事件监听器 
+5. **源文件缺失**：源路径不存在时静默返回，不会抛出异常
+6. **事件监听**：`ArchiveUtil` 不对外暴露事件；使用 `Unzip` 时及时清理不需要的事件监听器

@@ -2,11 +2,16 @@
 
 ## Overview
 
-The Languages module provides Lua scripting language interpreter functionality, including Lua syntax parsing, execution engine, standard library support, etc.
+The Languages module provides an embedded Lua interpreter: parse Lua source, execute it against a `LuaTable` environment, and register a set of standard libraries. The implementation is based on the third-party Lua Interpreter library (MIT) and follows Lua 5.1-style syntax.
+
+All entry points on `LuaInterpreter` are static. There are no instance methods named `Execute` or `ExecuteFile`.
 
 ## Namespace
 
-`JLGames.Infra.Languages.Lua`
+- `JLGames.Infra.Languages.Lua` — interpreter, value types, parser, and extras
+- `JLGames.Infra.Languages.Lua.Library` — standard-library registration types
+
+Some identifiers keep the original library spelling, such as `Enviroment` and `GetEorrorMessages`. Call sites must use those exact names.
 
 ---
 
@@ -14,7 +19,7 @@ The Languages module provides Lua scripting language interpreter functionality, 
 
 ### LuaInterpreter
 
-Main Lua interpreter class that provides Lua script execution functionality.
+Main interpreter entry point. Parses scripts, builds the default global environment, and executes code.
 
 ```csharp
 public class LuaInterpreter
@@ -22,51 +27,135 @@ public class LuaInterpreter
 
 #### Main Features
 
-- **Script Parsing:** Parse Lua script syntax
-- **Code Execution:** Execute parsed Lua code
-- **Variable Management:** Manage Lua variables and scopes
-- **Function Calls:** Support Lua function definition and calls
-- **Standard Library:** Provide Lua standard library support
+- **Script parsing:** Parse Lua source into an executable `Chunk`
+- **Code execution:** Run against the default or a custom `LuaTable` environment
+- **File execution:** Read a file and run it
+- **Standard library:** `CreateGlobalEnviroment` registers the built-in modules
+- **Host extension:** Inject C# functions via `Register` / `RegisterMethodFunction` on the environment table
 
 #### Main Methods
 
-##### Execute(string script)
+##### Interpreter(string luaCode)
 
 ```csharp
-public LuaValue Execute(string script)
+public static LuaValue Interpreter(string luaCode)
 ```
 
-**Description:** Execute Lua script
+**Description:** Execute Lua source with the default global environment. Internally calls `CreateGlobalEnviroment()` and the overload below.
 
 **Parameters:**
-- `script` (string): Lua script content
+- `luaCode` (string): Lua source text
 
 **Return Value:**
-- `LuaValue`: Execution result
+- `LuaValue`: Result of a top-level `return`, or `null` if the chunk does not return
 
-##### ExecuteFile(string filePath)
+##### Interpreter(string luaCode, LuaTable enviroment)
 
 ```csharp
-public LuaValue ExecuteFile(string filePath)
+public static LuaValue Interpreter(string luaCode, LuaTable enviroment)
 ```
 
-**Description:** Execute Lua file
+**Description:** Parse and execute Lua source in the given environment table (the script global scope).
 
 **Parameters:**
-- `filePath` (string): Lua file path
+- `luaCode` (string): Lua source text
+- `enviroment` (LuaTable): Global environment (spelled `enviroment` in source)
 
 **Return Value:**
-- `LuaValue`: Execution result
+- `LuaValue`: Result of a top-level `return`, or `null` if the chunk does not return
+
+##### RunFile(string luaFile)
+
+```csharp
+public static LuaValue RunFile(string luaFile)
+```
+
+**Description:** Read the entire file and execute it with the default global environment.
+
+**Parameters:**
+- `luaFile` (string): Path to a Lua file
+
+**Return Value:**
+- `LuaValue`: Result of a top-level `return`, or `null` if the chunk does not return
+
+##### RunFile(string luaFile, LuaTable enviroment)
+
+```csharp
+public static LuaValue RunFile(string luaFile, LuaTable enviroment)
+```
+
+**Description:** Read the entire file and execute it in the given environment.
+
+**Parameters:**
+- `luaFile` (string): Path to a Lua file
+- `enviroment` (LuaTable): Global environment
+
+**Return Value:**
+- `LuaValue`: Result of a top-level `return`, or `null` if the chunk does not return
+
+##### Parse(string luaCode)
+
+```csharp
+public static Chunk Parse(string luaCode)
+```
+
+**Description:** Parse Lua source into a `Chunk` without executing it. On failure throws `ArgumentException` whose message includes `Parser.GetEorrorMessages()`.
+
+**Parameters:**
+- `luaCode` (string): Lua source text
+
+**Return Value:**
+- `Chunk`: Executable chunk (set `Enviroment` yourself, then call `Execute()`)
+
+**Exceptions:**
+- `ArgumentException`: Syntax error
+
+##### CreateGlobalEnviroment()
+
+```csharp
+public static LuaTable CreateGlobalEnviroment()
+```
+
+**Description:** Create the default global environment, register standard libraries, and set `_G` to the table itself.
+
+**Registered content:**
+- `BaseLib.RegisterFunctions` — global base functions
+- `StringLib` → `string`
+- `TableLib` → `table`
+- `IOLib` → `io`
+- `FileLib` → `file`
+- `MathLib` → `math`
+- `OSLib` → `os`
+- `_G` — the environment table itself
+
+**Return Value:**
+- `LuaTable`: Environment suitable for `Interpreter` / `RunFile`
+
+`WinFormLib` in source is fully commented out, is not compiled, and is not registered by the default environment.
 
 ---
 
 ### LuaValue
 
-Lua value type base class that represents various data types in Lua.
+Base type for Lua values. Implements `IEquatable<LuaValue>`.
 
 ```csharp
-public abstract class LuaValue
+public abstract class LuaValue : IEquatable<LuaValue>
 ```
+
+#### Members
+
+```csharp
+public abstract object Value { get; }
+public abstract string GetTypeCode();
+public virtual bool GetBooleanValue();          // default true; LuaNil / LuaBoolean.False are false
+public bool Equals(LuaValue other);
+public static LuaValue GetKeyValue(LuaValue baseValue, LuaValue key);
+```
+
+`GetTypeCode()` returns Lua type names such as `"number"`, `"string"`, `"boolean"`, `"nil"`, `"table"`, `"function"`, `"userdata"`.
+
+`GetKeyValue` looks up a key on a table. For `LuaUserdata` with an `__index` metatable, it uses that metamethod. Accessing a non-table throws `Exception`.
 
 #### Derived Types
 
@@ -74,187 +163,411 @@ public abstract class LuaValue
 
 ```csharp
 public class LuaNumber : LuaValue
+{
+    public LuaNumber(double number);
+    public double Number { get; set; }
+}
 ```
 
-**Description:** Represents number type in Lua
+**Description:** Lua number (stored as `double`). `GetTypeCode()` is `"number"`.
 
 ##### LuaString
 
 ```csharp
 public class LuaString : LuaValue
+{
+    public LuaString(string text);
+    public static readonly LuaString Empty;
+    public string Text { get; set; }
+}
 ```
 
-**Description:** Represents string type in Lua
+**Description:** Lua string. `GetTypeCode()` is `"string"`.
 
 ##### LuaBoolean
 
 ```csharp
 public class LuaBoolean : LuaValue
+{
+    public static readonly LuaBoolean False;
+    public static readonly LuaBoolean True;
+    public bool BoolValue { get; set; }
+    public static LuaBoolean From(bool value);
+}
 ```
 
-**Description:** Represents boolean type in Lua
-
-##### LuaTable
-
-```csharp
-public class LuaTable : LuaValue
-```
-
-**Description:** Represents table type in Lua
-
-##### LuaFunction
-
-```csharp
-public class LuaFunction : LuaValue
-```
-
-**Description:** Represents function type in Lua
+**Description:** Lua boolean. The constructor is private; use `True` / `False` or `From(bool)`. `GetTypeCode()` is `"boolean"`.
 
 ##### LuaNil
 
 ```csharp
 public class LuaNil : LuaValue
+{
+    public static readonly LuaNil Nil;
+}
 ```
 
-**Description:** Represents nil type in Lua
+**Description:** Lua `nil` singleton. `Value` is `null`, `GetBooleanValue()` is `false`, `GetTypeCode()` is `"nil"`.
+
+##### LuaTable
+
+```csharp
+public class LuaTable : LuaValue
+{
+    public LuaTable();
+    public LuaTable(LuaTable parent);   // parent as __index / __newindex
+    public LuaTable MetaTable { get; set; }
+    public int Length { get; }          // array-part length
+    public int Count { get; }           // hash-part entry count
+    public IEnumerable<LuaValue> ListValues { get; }
+    public IEnumerable<LuaValue> Keys { get; }
+    public IEnumerable<KeyValuePair<LuaValue, LuaValue>> KeyValuePairs { get; }
+}
+```
+
+**Description:** Lua table. Array indices are **1-based**. `GetTypeCode()` is `"table"`. The `parent` constructor is used for nested scopes.
+
+**Common methods:**
+
+| Method | Description |
+| --- | --- |
+| `GetValue(int index)` | 1-based array lookup; out of range returns `LuaNil.Nil` |
+| `GetValue(string name)` | Named lookup; may use `__index` |
+| `GetValue(LuaValue key)` | Key lookup; may use `__index` |
+| `SetNameValue(string name, LuaValue value)` | Named write; `LuaNil.Nil` removes the key |
+| `SetKeyValue(LuaValue key, LuaValue value)` | Key write (integer keys go to the array part) |
+| `RawGetValue(LuaValue key)` / `RawSetValue(string name, LuaValue value)` | Bypass metatable |
+| `Register(string name, LuaFunc function)` | Register a C# delegate as a Lua function |
+| `AddValue` / `InsertValue` / `Remove` / `RemoveAt` | Array-part mutation (`InsertValue`/`RemoveAt` are 1-based) |
+| `Sort()` / `Sort(LuaFunction compare)` | Sort the array part |
+| `ContainsKey(LuaValue key)` | Whether the key exists |
+| `GetKey(string key)` | Find a matching `LuaString` key in the hash part |
+
+##### LuaFunction
+
+```csharp
+public delegate LuaValue LuaFunc(LuaValue[] args);
+
+public class LuaFunction : LuaValue
+{
+    public LuaFunction(LuaFunc function);
+    public LuaFunc Function { get; set; }
+    public LuaValue Invoke(LuaValue[] args);
+}
+```
+
+**Description:** Lua function. `GetTypeCode()` is `"function"`. Hosts typically inject functions with `LuaTable.Register` or `LuaMethodInfo`.
+
+##### LuaUserdata
+
+```csharp
+public class LuaUserdata : LuaValue
+{
+    public LuaUserdata(object obj);
+    public LuaUserdata(object obj, LuaTable metatable);
+    public LuaTable MetaTable { get; set; }
+}
+```
+
+**Description:** Wraps an arbitrary CLR object. `Value` is the wrapped object. `GetTypeCode()` is `"userdata"`. File handles are exposed as userdata plus a metatable.
+
+##### LuaMultiValue
+
+```csharp
+public class LuaMultiValue : LuaValue
+{
+    public LuaMultiValue(LuaValue[] values);
+    public LuaValue[] Values { get; set; }
+    public static LuaValue WrapLuaValues(LuaValue[] values);
+    public static LuaValue[] UnWrapLuaValues(LuaValue[] values);
+}
+```
+
+**Description:** Multiple-return container. `GetTypeCode()` throws `InvalidOperationException`. `WrapLuaValues`: empty → `LuaNil.Nil`, single value returned as-is, multiple values wrapped.
+
+##### LuaError
+
+```csharp
+public class LuaError : Exception
+{
+    public LuaError(string message);
+    public LuaError(string message, Exception innerException);
+    public LuaError(string messageformat, params object[] args);
+}
+```
+
+**Description:** Runtime Lua error (`error()` / `assert()`, and similar). This is **not** `LuaException` and has no `LineNumber` property. Syntax errors are `ArgumentException` from `Parse`.
 
 ---
 
 ### Standard Libraries
 
-#### BaseLib
+Libraries live in `JLGames.Infra.Languages.Lua.Library`. Embedders usually do not call library methods directly; `CreateGlobalEnviroment` registers them. For a custom environment, call the same `RegisterModule` / `RegisterFunctions` APIs.
 
-Base library that provides Lua basic functions.
+#### BaseLib
 
 ```csharp
 public class BaseLib
+{
+    public static void RegisterFunctions(LuaTable module);
+}
 ```
 
-**Main functions:**
-- `print()`: Print output
-- `type()`: Get type
-- `tonumber()`: Convert to number
-- `tostring()`: Convert to string
+**Description:** Registers base functions on the given table (the default environment registers them on the global table).
+
+**Lua functions:** `print`, `type`, `getmetatable`, `setmetatable`, `tostring`, `tonumber`, `ipairs`, `pairs`, `next`, `assert`, `error`, `rawget`, `rawset`, `select`, `dofile`, `loadstring`, `unpack`, `pcall`
 
 #### MathLib
 
-Math library that provides mathematical operation functions.
-
 ```csharp
-public class MathLib
+public static class MathLib
+{
+    public static void RegisterModule(LuaTable enviroment);
+    public static void RegisterFunctions(LuaTable module);
+}
 ```
 
-**Main functions:**
-- `abs()`: Absolute value
-- `floor()`: Floor function
-- `ceil()`: Ceiling function
-- `random()`: Random number
-- `sin()`, `cos()`, `tan()`: Trigonometric functions
+**Description:** Registered as `math`. Constants: `huge` (`double.MaxValue`), `pi`.
+
+**Lua functions:** `abs`, `acos`, `asin`, `atan`, `atan2`, `ceil`, `cos`, `cosh`, `deg`, `exp`, `floor`, `fmod`, `log`, `log10`, `max`, `min`, `modf`, `pow`, `rad`, `random`, `randomseed`, `sin`, `sinh`, `sqrt`, `tan`, `tanh`
 
 #### StringLib
 
-String library that provides string processing functions.
-
 ```csharp
-public class StringLib
+public static class StringLib
+{
+    public static void RegisterModule(LuaTable enviroment);
+    public static void RegisterFunctions(LuaTable module);
+}
 ```
 
-**Main functions:**
-- `len()`: String length
-- `sub()`: Substring
-- `find()`: Find string
-- `gsub()`: Global substitution
-- `format()`: Format string
+**Description:** Registered as `string`. `format` uses .NET `string.Format`, not Lua `printf` style. This implementation has **no** `string.find` / `string.gsub`.
+
+**Lua functions:** `byte`, `char`, `format`, `len`, `sub`, `lower`, `upper`, `rep`, `reverse`
 
 #### TableLib
 
-Table library that provides table operation functions.
-
 ```csharp
-public class TableLib
+public static class TableLib
+{
+    public static void RegisterModule(LuaTable enviroment);
+    public static void RegisterFunctions(LuaTable module);
+}
 ```
 
-**Main functions:**
-- `insert()`: Insert element
-- `remove()`: Remove element
-- `sort()`: Sort
-- `concat()`: Concatenate table elements
+**Description:** Registered as `table`. `removeitem` is an extension that removes by value.
+
+**Lua functions:** `concat`, `insert`, `remove`, `removeitem`, `maxn`, `sort`
 
 #### IOLib
 
-Input/Output library that provides file operation functions.
-
 ```csharp
-public class IOLib
+public static class IOLib
+{
+    public static void RegisterModule(LuaTable enviroment);
+    public static void RegisterFunctions(LuaTable module);
+}
 ```
 
-**Main functions:**
-- `open()`: Open file
-- `read()`: Read file
-- `write()`: Write file
-- `close()`: Close file
+**Description:** Registered as `io`. Opened files are `LuaUserdata` with a `FileLib` metatable.
+
+**Lua functions:** `input`, `output`, `open`, `read`, `write`, `flush`, `tmpfile`
+
+`open` modes: `"r"`/`"r+"` read, `"w"`/`"w+"` write, `"a"`/`"a+"` append.
+
+#### FileLib
+
+```csharp
+public static class FileLib
+{
+    public static void RegisterModule(LuaTable enviroment);
+    public static void RegisterFunctions(LuaTable module);
+    public static LuaTable CreateMetaTable();
+}
+```
+
+**Description:** Registered as `file`. `CreateMetaTable` is used by `io.open` so file userdata expose methods (`__index` points at the metatable).
+
+**Lua functions:** `close`, `read`, `write`, `lines`, `flush`, `seek`
+
+`read` modes: `*l` one line, `*a` all, `*n` number, or a character count.
 
 #### OSLib
 
-Operating system library that provides system-related functions.
-
 ```csharp
-public class OSLib
+public static class OSLib
+{
+    public static void RegisterModule(LuaTable enviroment);
+    public static void RegisterFunctions(LuaTable module);
+}
 ```
 
-**Main functions:**
-- `time()`: Get time
-- `date()`: Format date
-- `clock()`: Get clock time
+**Description:** Registered as `os`.
+
+**Lua functions:** `clock`, `date`, `time`, `execute`, `exit`, `getenv`, `remove`, `rename`, `tmpname`
+
+#### WinFormLib
+
+The `WinFormLib.cs` type is fully commented out. It is **not** part of the current public API and is not registered by `CreateGlobalEnviroment`.
+
+---
+
+### LuaInterpreterExtra
+
+Host-side extensions in the same namespace `JLGames.Infra.Languages.Lua`.
+
+#### LuaValueUtils
+
+Converts between C# values and `LuaValue`, and extracts `MethodInfo` from lambdas.
+
+```csharp
+public static class LuaValueUtils
+```
+
+##### ObjectToLuaValue(object o)
+
+```csharp
+public static LuaValue ObjectToLuaValue(object o)
+```
+
+**Description:** Returns a `LuaValue` containing the object's value. `null` → `LuaNil.Nil`; `bool` / `string` / common numeric types map to the matching Lua type; an existing `LuaValue` is returned as-is; other types become `LuaString` via `ToString()`.
+
+##### LuaValueToObject(LuaValue luaValue)
+
+```csharp
+public static object LuaValueToObject(LuaValue luaValue)
+```
+
+**Description:** Returns C# data from a `LuaValue`. `LuaNumber` is converted to `float`; other types return `Value`.
+
+##### StringToInt / StringToFloat / StringToDouble
+
+```csharp
+public static int StringToInt(string s);
+public static float StringToFloat(string s);
+public static double StringToDouble(string s);
+```
+
+**Description:** Returns `0` on parse failure. `float`/`double` use invariant culture.
+
+##### GetMethodInfo
+
+```csharp
+public static MethodInfo GetMethodInfo(LambdaExpression expression);
+public static MethodInfo GetMethodInfo<T, TResult>(Expression<Func<T, TResult>> expression);
+public static MethodInfo GetMethodInfo<T>(Expression<Action<T>> expression);
+public static MethodInfo GetMethodInfo(Expression<Action> expression);
+```
+
+**Description:** Returns the `MethodInfo` of a lambda that consists of a single method call. Throws `ArgumentException` if the expression is null or is not a method call.
+
+#### LuaMethodInfo
+
+```csharp
+public class LuaMethodInfo : LuaFunction
+{
+    public LuaMethodInfo(object target, MethodInfo method);
+    public object Target { get; }
+    public MethodInfo Method { get; }
+    public LuaValue InvokeMethod(LuaValue[] args);
+}
+```
+
+**Description:** C# function wrapper class for registering in Lua. Arguments and the return value are converted with `LuaValueUtils`, then `Method.Invoke` is called.
+
+#### LuaTableExtension
+
+```csharp
+public static class LuaTableExtension
+```
+
+##### RegisterMethodFunction
+
+```csharp
+public static LuaFunction RegisterMethodFunction(
+    this LuaTable luaTable, string funcName, object target, MethodInfo methodInfo)
+```
+
+**Description:** Register the C# method through the `MethodInfo` object. Lua scripts call it by `funcName`.
+
+##### Reset
+
+```csharp
+public static void Reset(this LuaTable luaTable)
+```
+
+**Description:** Clears the array part and hash part, then sets `MetaTable` to `null`.
 
 ---
 
 ### Parser Components
 
+The parser builds a syntax tree; the executor (`Chunk` / `Statement` / `Expr`) evaluates it against an environment table. Embedders normally use `LuaInterpreter.Parse` or `Interpreter`. The types below are useful when you need to parse once and execute later. Do not treat every syntax node as a stable host API.
+
 #### Parser
 
-Lua syntax parser.
-
 ```csharp
-public class Parser
+public partial class Parser
+{
+    public Parser();
+    public int Position { get; set; }
+    public List<Tuple<int, string>> Errors;
+    public void SetInput(ParserInput<char> input);
+    public Chunk ParseChunk(ParserInput<char> input, out bool success);
+    public string GetEorrorMessages();   // spelling as in source
+}
 ```
 
-**Features:**
-- Lexical analysis
-- Syntax analysis
-- Abstract syntax tree generation
+**Description:** Lua syntax parser. `ParseChunk` sets `success` to `false` if leftover input remains. `GetEorrorMessages()` formats errors with line and column.
 
-#### Statement
+`LuaInterpreter.Parse` uses a shared static `Parser` instance.
 
-Statement base class that represents various statements in Lua.
+#### TextInput / ParserInput&lt;T&gt;
 
 ```csharp
-public abstract class Statement
+public interface ParserInput<T> { /* Length, HasInput, GetInputSymbol, GetSubSection, FormErrorMessage */ }
+
+public class TextInput : ParserInput<char>
+{
+    public TextInput(string text);
+    public void GetLineColumnNumber(int pos, out int line, out int col);
+    public string GetSubString(int start, int length);
+}
 ```
 
-**Derived types:**
-- `Assignment`: Assignment statement
-- `IfStmt`: Conditional statement
-- `WhileStmt`: Loop statement
-- `ForStmt`: For loop statement
-- `Function`: Function definition
-- `ReturnStmt`: Return statement
+**Description:** Character-stream input. `LuaInterpreter.Parse` uses `new TextInput(luaCode)`.
 
-#### Expression
-
-Expression base class that represents various expressions in Lua.
+#### Chunk
 
 ```csharp
-public abstract class Expression
+public partial class Chunk
+{
+    public List<Statement> Statements;
+    public LuaTable Enviroment;
+    public LuaValue Execute();
+    public LuaValue Execute(out bool isBreak);
+    public LuaValue Execute(LuaTable enviroment, out bool isBreak);
+}
 ```
 
-**Derived types:**
-- `NumberLiteral`: Number literal
-- `StringLiteral`: String literal
-- `BoolLiteral`: Boolean literal
-- `FunctionCall`: Function call
-- `TableConstructor`: Table constructor
-- `BinaryOp`: Binary operation
+**Description:** Executable code block. `Execute()` runs the statement list on the current `Enviroment`; `return` yields a value, `break` sets `isBreak`. The overload that takes an environment builds a child scope with `new LuaTable(enviroment)`.
+
+#### Statement / Expr
+
+```csharp
+public abstract partial class Statement
+{
+    public abstract LuaValue Execute(LuaTable enviroment, out bool isBreak);
+}
+
+public abstract partial class Expr
+{
+    public abstract LuaValue Evaluate(LuaTable enviroment);
+    public abstract Term Simplify();
+}
+```
+
+**Description:** Statement and expression bases. Derived nodes (`IfStmt`, `WhileStmt`, `ForStmt`, `Function`, `ReturnStmt`, `Assignment`, literals, calls, table constructors, and so on) are produced by the parser for the executor. Embedders generally should not construct these nodes by hand.
 
 ---
 
@@ -263,10 +576,8 @@ public abstract class Expression
 ### Basic Script Execution
 
 ```csharp
-// Create Lua interpreter
-var interpreter = new LuaInterpreter();
+using JLGames.Infra.Languages.Lua;
 
-// Execute simple script
 string script = @"
 print('Hello, Lua!')
 local x = 10
@@ -274,7 +585,7 @@ local y = 20
 print('Sum: ' .. (x + y))
 ";
 
-var result = interpreter.Execute(script);
+LuaValue result = LuaInterpreter.Interpreter(script);
 ```
 
 ### Variables and Functions
@@ -290,11 +601,12 @@ function factorial(n)
 end
 
 local num = 5
-local result = factorial(num)
-print('Factorial of ' .. num .. ' is ' .. result)
+return factorial(num)
 ";
 
-var result = interpreter.Execute(script);
+LuaValue result = LuaInterpreter.Interpreter(script);
+LuaNumber number = result as LuaNumber;
+// number.Number == 120
 ```
 
 ### Table Operations
@@ -308,26 +620,29 @@ table.remove(t, 1)
 for i, v in ipairs(t) do
     print('Index ' .. i .. ': ' .. v)
 end
+
+return table.concat(t, ',')
 ";
 
-var result = interpreter.Execute(script);
+LuaValue result = LuaInterpreter.Interpreter(script);
 ```
 
 ### File Execution
 
 ```csharp
-// Execute Lua file
-var interpreter = new LuaInterpreter();
-var result = interpreter.ExecuteFile("script.lua");
+LuaValue result = LuaInterpreter.RunFile("script.lua");
 ```
 
-### Custom Function Registration
+### Custom Environment and C# Function Registration
 
 ```csharp
-var interpreter = new LuaInterpreter();
+using System;
+using JLGames.Infra.Languages.Lua;
 
-// Register C# function to Lua
-interpreter.RegisterFunction("csharp_function", (LuaValue[] args) => {
+LuaTable env = LuaInterpreter.CreateGlobalEnviroment();
+
+env.Register("csharp_function", (LuaValue[] args) =>
+{
     Console.WriteLine("Called from Lua!");
     return new LuaString("Hello from C#");
 });
@@ -335,9 +650,43 @@ interpreter.RegisterFunction("csharp_function", (LuaValue[] args) => {
 string script = @"
 local result = csharp_function()
 print(result)
+return result
 ";
 
-var result = interpreter.Execute(script);
+LuaValue result = LuaInterpreter.Interpreter(script, env);
+```
+
+### Registering a C# Method via MethodInfo
+
+```csharp
+using System;
+using JLGames.Infra.Languages.Lua;
+
+public class Host
+{
+    public string Greet(string name)
+    {
+        return "Hello, " + name;
+    }
+}
+
+var host = new Host();
+LuaTable env = LuaInterpreter.CreateGlobalEnviroment();
+env.RegisterMethodFunction(
+    "greet",
+    host,
+    LuaValueUtils.GetMethodInfo<Host, string>(h => h.Greet(null)));
+
+LuaValue result = LuaInterpreter.Interpreter(@"return greet('Lua')", env);
+// ((LuaString)result).Text == "Hello, Lua"
+```
+
+### Parse Then Execute
+
+```csharp
+Chunk chunk = LuaInterpreter.Parse("return 1 + 2");
+chunk.Enviroment = LuaInterpreter.CreateGlobalEnviroment();
+LuaValue result = chunk.Execute();
 ```
 
 ### Error Handling
@@ -347,33 +696,47 @@ try
 {
     string invalidScript = @"
     local x = 10
-    print(x + )  -- Syntax error
+    print(x + )  -- syntax error
     ";
-    
-    var result = interpreter.Execute(invalidScript);
+    LuaValue result = LuaInterpreter.Interpreter(invalidScript);
 }
-catch (LuaException ex)
+catch (ArgumentException ex)
 {
-    Console.WriteLine($"Lua error: {ex.Message}");
-    Console.WriteLine($"Line number: {ex.LineNumber}");
+    // Parse failed: syntax error (message from Parser.GetEorrorMessages)
+    Console.WriteLine(ex.Message);
+}
+
+try
+{
+    LuaInterpreter.Interpreter("error('boom')");
+}
+catch (LuaError ex)
+{
+    Console.WriteLine("Lua runtime error: " + ex.Message);
 }
 ```
+
+Scripts can also use `pcall` to catch runtime exceptions (including `LuaError` and other `Exception` types).
 
 ---
 
 ## Notes
 
-1. **Syntax support:** Supports Lua 5.1 syntax specification
-2. **Performance considerations:** Interpreter execution speed is relatively slow, suitable for script logic
-3. **Memory management:** Pay attention to memory usage during large script execution
-4. **Error handling:** Script errors will throw LuaException
-5. **Standard library:** Provides commonly used Lua standard library functions
-6. **Extensibility:** Supports registering custom C# functions to Lua environment
+1. **Entry points:** Use the static methods `Interpreter` / `RunFile` / `Parse`. Do not call non-existent `Execute` / `ExecuteFile`.
+2. **Syntax:** Lua 5.1-style; the string library has no `find`/`gsub`, and `string.format` uses .NET formatting.
+3. **Return value:** With no top-level `return`, `Interpreter`/`RunFile`/`Chunk.Execute` return C# `null` (not `LuaNil`).
+4. **Error types:** Syntax errors are `ArgumentException`; `error`/`assert` throw `LuaError`. There is no `LuaException`.
+5. **Spelling:** Parameters and fields are named `enviroment` / `Enviroment`.
+6. **Extensibility:** Register a `LuaFunc` with `LuaTable.Register`, or bind a CLR method with `RegisterMethodFunction`.
+7. **WinForm:** `WinFormLib` is disabled.
+8. **Performance:** Interpreted execution is suited to script logic, not hot paths.
 
 ---
 
 ## Dependencies
 
-- `System`: Basic types and collections
-- `System.Collections.Generic`: Generic collections
-- `System.Text`: String processing 
+- `System`: base types, exceptions, `Math`, `Environment`
+- `System.Collections.Generic`: generic collections
+- `System.IO`: file I/O (`RunFile`, `io`/`file`/`os`)
+- `System.Text`: string building
+- `System.Reflection` / `System.Linq.Expressions`: `LuaInterpreterExtra` method binding

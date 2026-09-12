@@ -2,7 +2,7 @@
 
 ## 概述
 
-Core模块提供了Infra框架的核心接口和基础类，包括克隆接口和回调机制。
+Core 模块提供 Infra 框架的核心接口与基础类型：`ICloneable<T>` 用于创建指定类型的副本，`Callback` 用于封装委托及可选绑定参数，供延迟调用（如服务完成回调）。
 
 ## 命名空间
 
@@ -14,11 +14,14 @@ Core模块提供了Infra框架的核心接口和基础类，包括克隆接口�
 
 ### ICloneable<T>
 
-泛型克隆接口，定义了对象克隆的基本操作。
+支持创建 `T` 类型副本的泛型克隆接口。`T` 为协变（`out T`），通常为实现类型本身。
 
 ```csharp
 public interface ICloneable<out T>
 ```
+
+**类型参数：**
+- `T`: 克隆结果的类型（通常为实现类型本身）
 
 #### 方法
 
@@ -28,10 +31,10 @@ public interface ICloneable<out T>
 T Clone();
 ```
 
-**描述：** 克隆对象
+**描述：** 创建当前实例的副本。
 
 **返回值：**
-- `T`: 克隆后的对象
+- `T`: 新实例；深拷贝或浅拷贝由实现方定义
 
 **示例：**
 ```csharp
@@ -61,7 +64,7 @@ var cloned = original.Clone();
 
 ### Callback
 
-通用回调上下文类，提供函数回调的封装和管理。
+封装委托及可选绑定参数，供延迟调用（如服务完成回调）。
 
 ```csharp
 public class Callback
@@ -75,38 +78,20 @@ public class Callback
 public delegate void Func(params object[] args);
 ```
 
-**描述：** 回调函数委托
+**描述：** 回调委托签名；接收调用时传入的参数。
 
 **参数：**
-- `args` (object[]): 可变参数数组
-
-#### 字段
-
-##### m_Func
-
-```csharp
-private Func m_Func;
-```
-
-**描述：** 回调函数
-
-##### m_Args
-
-```csharp
-private object[] m_Args;
-```
-
-**描述：** 回调参数
+- `args` (`object[]`): 传给 `Invoke` 或 `Apply` 的参数
 
 #### 属性
 
 ##### IsNone
 
 ```csharp
-public bool IsNone => m_Func == null;
+public bool IsNone { get; }
 ```
 
-**描述：** 是否为空回调
+**描述：** 未绑定委托时为 `true`（已调用 `Clear`，或构造时传入 `null`）。
 
 #### 构造函数
 
@@ -116,11 +101,11 @@ public bool IsNone => m_Func == null;
 public Callback(Func func, params object[] args)
 ```
 
-**描述：** 创建回调对象
+**描述：** 创建回调，绑定委托及供 `Invoke` 使用的可选参数。
 
 **参数：**
-- `func` (Func): 回调函数
-- `args` (object[]): 回调参数
+- `func` (`Func`): 要调用的委托；可为 `null`
+- `args` (`object[]`): `Invoke` 使用的绑定参数；`Apply` 不使用
 
 #### 方法
 
@@ -130,10 +115,10 @@ public Callback(Func func, params object[] args)
 public void SetFunc(Func func)
 ```
 
-**描述：** 设置回调函数
+**描述：** 替换已绑定的委托。
 
 **参数：**
-- `func` (Func): 回调函数
+- `func` (`Func`): 新委托；可为 `null`
 
 ##### SetArgs(params object[] args)
 
@@ -141,10 +126,10 @@ public void SetFunc(Func func)
 public void SetArgs(params object[] args)
 ```
 
-**描述：** 设置回调参数
+**描述：** 替换 `Invoke` 使用的绑定参数。
 
 **参数：**
-- `args` (object[]): 回调参数
+- `args` (`object[]`): 新的参数数组
 
 ##### Apply(params object[] args)
 
@@ -152,10 +137,10 @@ public void SetArgs(params object[] args)
 public void Apply(params object[] args)
 ```
 
-**描述：** 应用回调函数，使用传入的参数
+**描述：** 使用传入参数调用委托（不使用构造时绑定的参数）。
 
 **参数：**
-- `args` (object[]): 要使用的参数
+- `args` (`object[]`): 传给委托的参数
 
 ##### Invoke()
 
@@ -163,7 +148,7 @@ public void Apply(params object[] args)
 public void Invoke()
 ```
 
-**描述：** 调用回调函数，使用存储的参数
+**描述：** 使用构造或 `SetArgs` 绑定的参数调用委托。
 
 ##### Clear()
 
@@ -171,16 +156,16 @@ public void Invoke()
 public void Clear()
 ```
 
-**描述：** 清除回调函数和参数
+**描述：** 清除委托与绑定参数；此后 `IsNone` 为 `true`。
 
 ---
 
 ## 使用示例
 
-### ICloneable接口使用
+### ICloneable 接口使用
 
 ```csharp
-// 实现ICloneable接口
+// 实现 ICloneable 接口
 public class Person : ICloneable<Person>
 {
     public string Name { get; set; }
@@ -189,11 +174,12 @@ public class Person : ICloneable<Person>
 
     public Person Clone()
     {
+        // 深拷贝或浅拷贝由实现方定义；此处对列表做独立副本
         var clone = new Person
         {
             Name = this.Name,
             Age = this.Age,
-            Hobbies = new List<string>(this.Hobbies) // 深拷贝列表
+            Hobbies = new List<string>(this.Hobbies)
         };
         return clone;
     }
@@ -211,12 +197,12 @@ var cloned = original.Clone();
 cloned.Name = "李四";
 cloned.Hobbies.Add("跑步");
 
-// 原始对象不受影响
+// 原始对象不受影响（因实现为深拷贝列表）
 Console.WriteLine(original.Name); // 输出: 张三
 Console.WriteLine(original.Hobbies.Count); // 输出: 2
 ```
 
-### Callback类使用
+### Callback 类使用
 
 ```csharp
 // 定义回调函数
@@ -229,16 +215,16 @@ void MyCallback(params object[] args)
     }
 }
 
-// 创建回调对象
+// 创建回调对象（绑定参数仅供 Invoke 使用）
 var callback = new Callback(MyCallback, "参数1", 42, true);
 
-// 检查是否为空
+// 检查是否已绑定委托
 if (!callback.IsNone)
 {
     Console.WriteLine("回调对象不为空");
 }
 
-// 调用回调
+// 使用绑定参数调用
 callback.Invoke();
 // 输出:
 // 回调被调用，参数数量: 3
@@ -246,7 +232,7 @@ callback.Invoke();
 // 参数 1: 42
 // 参数 2: True
 
-// 使用Apply方法传入新参数
+// 使用 Apply 传入调用时参数（忽略绑定参数）
 callback.Apply("新参数1", "新参数2");
 // 输出:
 // 回调被调用，参数数量: 2
@@ -257,13 +243,12 @@ callback.Apply("新参数1", "新参数2");
 ### 动态设置回调
 
 ```csharp
-// 创建空回调
+// 构造时传入 null，未绑定委托
 var callback = new Callback(null);
 
-// 检查是否为空
 Console.WriteLine(callback.IsNone); // 输出: True
 
-// 设置回调函数
+// 替换委托
 callback.SetFunc((params object[] args) => {
     Console.WriteLine("动态设置的回调函数");
     foreach (var arg in args)
@@ -272,10 +257,9 @@ callback.SetFunc((params object[] args) => {
     }
 });
 
-// 设置参数
+// 替换 Invoke 使用的绑定参数
 callback.SetArgs("动态参数1", "动态参数2");
 
-// 调用回调
 callback.Invoke();
 // 输出:
 // 动态设置的回调函数
@@ -292,15 +276,15 @@ var callback = new Callback((params object[] args) => {
 
 Console.WriteLine(callback.IsNone); // 输出: False
 
-// 清除回调
+// 清除委托与绑定参数
 callback.Clear();
 
 Console.WriteLine(callback.IsNone); // 输出: True
 
-// 尝试调用已清除的回调
+// 调用前应检查 IsNone；已清除后再 Invoke/Apply 会抛出 NullReferenceException
 try
 {
-    callback.Invoke(); // 会抛出NullReferenceException
+    callback.Invoke();
 }
 catch (NullReferenceException)
 {
@@ -311,7 +295,6 @@ catch (NullReferenceException)
 ### 在事件系统中的应用
 
 ```csharp
-// 在事件系统中使用Callback
 public class EventSystem
 {
     private Dictionary<string, Callback> events = new Dictionary<string, Callback>();
@@ -323,7 +306,7 @@ public class EventSystem
 
     public void TriggerEvent(string eventName, params object[] args)
     {
-        if (events.TryGetValue(eventName, out var callback))
+        if (events.TryGetValue(eventName, out var callback) && !callback.IsNone)
         {
             if (args.Length > 0)
             {
@@ -337,15 +320,12 @@ public class EventSystem
     }
 }
 
-// 使用示例
 var eventSystem = new EventSystem();
 
-// 注册事件
 eventSystem.RegisterEvent("userLogin", (params object[] args) => {
     Console.WriteLine($"用户登录事件: {args[0]}");
 }, "默认用户");
 
-// 触发事件
 eventSystem.TriggerEvent("userLogin", "张三");
 // 输出: 用户登录事件: 张三
 
@@ -357,22 +337,21 @@ eventSystem.TriggerEvent("userLogin");
 
 ## 注意事项
 
-1. **ICloneable接口：**
-   - 使用协变泛型参数`out T`，支持向上转型
-   - 建议实现深拷贝以避免引用类型共享
-   - 克隆操作应该创建完全独立的对象副本
+1. **ICloneable 接口：**
+   - 使用协变泛型参数 `out T`，支持向上转型
+   - `Clone` 的语义（深拷贝或浅拷贝）由实现方定义
+   - 若需避免引用类型共享，实现方应自行处理深拷贝
 
-2. **Callback类：**
-   - 支持动态设置回调和参数
-   - 使用`IsNone`属性检查回调是否有效
-   - 调用前应检查回调是否为空
-   - `Apply`方法使用传入的参数，`Invoke`方法使用存储的参数
-   - 清除回调后再次调用会抛出异常
+2. **Callback 类：**
+   - 可用 `SetFunc` / `SetArgs` 动态替换委托与绑定参数
+   - 使用 `IsNone` 检查是否已绑定委托
+   - `Apply` 使用调用时传入的参数，不使用绑定参数；`Invoke` 使用构造或 `SetArgs` 绑定的参数
+   - `Clear` 之后 `IsNone` 为 `true`；未检查直接 `Invoke`/`Apply` 会抛出异常
 
 3. **性能考虑：**
    - 大量使用回调时注意内存管理
    - 避免在回调中执行耗时操作
-   - 及时清除不再使用的回调对象
+   - 及时 `Clear` 不再使用的回调
 
 4. **线程安全：**
    - 当前实现不是线程安全的
@@ -383,4 +362,4 @@ eventSystem.TriggerEvent("userLogin");
 ## 依赖关系
 
 - `System`: 基础类型
-- `System.Collections.Generic`: 泛型集合（在示例中使用） 
+- `System.Collections.Generic`: 泛型集合（在示例中使用）

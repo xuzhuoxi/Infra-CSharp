@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Extensions module provides various types of extension methods, including string extensions, float extensions, double extensions, etc., providing additional utility functions for basic types.
+The Extensions module provides extension methods for basic types: string rich-text tags and regex-based splitting, plus approximate equality comparison for float and double.
 
 ## Namespace
 
@@ -14,7 +14,7 @@ The Extensions module provides various types of extension methods, including str
 
 ### ExtString
 
-String extension method class that provides rich text formatting, regular expression splitting and other functions for strings.
+String extension methods: rich text tags and regex-based splitting.
 
 ```csharp
 public static class ExtString
@@ -81,10 +81,10 @@ public static string ToRichItalic(this string str)
 **Description:** Convert to italic rich text
 
 **Parameters:**
-- `str` (string): Source string
+- `str` (string): Source text.
 
 **Return Value:**
-- `string`: Italic rich text string
+- `string`: Rich text wrapped with italic tags.
 
 **Example:**
 ```csharp
@@ -101,10 +101,10 @@ public static string ToRichBold(this string str)
 **Description:** Convert to bold rich text
 
 **Parameters:**
-- `str` (string): Source string
+- `str` (string): Source text.
 
 **Return Value:**
-- `string`: Bold rich text string
+- `string`: Rich text wrapped with bold tags.
 
 **Example:**
 ```csharp
@@ -121,11 +121,11 @@ public static string ToRichSize(this string str, int size)
 **Description:** Convert to rich text with text size
 
 **Parameters:**
-- `str` (string): Source string
-- `size` (int): Font size
+- `str` (string): Source text.
+- `size` (int): Font size.
 
 **Return Value:**
-- `string`: Rich text string with font size
+- `string`: Rich text wrapped with size tag.
 
 **Example:**
 ```csharp
@@ -142,11 +142,11 @@ public static string ToRichSize(this string str, string size)
 **Description:** Convert to rich text with text size
 
 **Parameters:**
-- `str` (string): Source string
-- `size` (string): Font size string
+- `str` (string): Source text.
+- `size` (string): Font size value or unit string.
 
 **Return Value:**
-- `string`: Rich text string with font size
+- `string`: Rich text wrapped with size tag.
 
 **Example:**
 ```csharp
@@ -163,17 +163,18 @@ public static string ToRichColor(this string str, string color)
 **Description:** Convert to rich text with text color
 
 **Parameters:**
-- `str` (string): Source string
-- `color` (string): Color value (supports hexadecimal or color names)
+- `str` (string): Source text.
+- `color` (string): Color as #RRGGBB, hex without #, or color name.
 
 **Return Value:**
-- `string`: Rich text string with color
+- `string`: Rich text wrapped with color tag.
 
 **Example:**
 ```csharp
 string text = "Hello World";
 string coloredText = text.ToRichColor("red"); // Result: "<color=red>Hello World</color>"
 string hexColoredText = text.ToRichColor("#FF0000"); // Result: "<color=#FF0000>Hello World</color>"
+string hexNoHash = text.ToRichColor("FF0000"); // Result: "<color=#FF0000>Hello World</color>"
 ```
 
 #### Delegates
@@ -187,10 +188,10 @@ public delegate string MatchedAction(string matched);
 **Description:** Processing behavior when regular matching
 
 **Parameters:**
-- `matched` (string): Matched string
+- `matched` (string): Matched substring.
 
 **Return Value:**
-- `string`: Processed string
+- `string`: Transformed string to include in split result.
 
 #### Extension Methods
 
@@ -203,13 +204,13 @@ public static string[] Split(this string str, Regex regex, bool includeMatched =
 **Description:** Split string using regular expression
 
 **Parameters:**
-- `str` (string): Source string
-- `regex` (Regex): Regular expression
-- `includeMatched` (bool, optional): Whether to include matched items
-- `matchedAction` (MatchedAction, optional): Matched item processing function (ignored when includeMatched=false)
+- `str` (string): Source string.
+- `regex` (Regex): Pattern used as delimiters.
+- `includeMatched` (bool, optional): Whether matched segments are included in the result.
+- `matchedAction` (MatchedAction, optional): Transform for matched segments when `includeMatched` is true; ignored otherwise.
 
 **Return Value:**
-- `string[]`: Array of split strings
+- `string[]`: Split segments; null when `str` is null or empty. When `regex` is null, returns an array containing the source string.
 
 **Example:**
 ```csharp
@@ -218,29 +219,22 @@ var parts = text.Split(new Regex(@"\d+"), false); // Result: ["Hello", "World", 
 
 var partsWithMatch = text.Split(new Regex(@"\d+"), true); // Result: ["Hello", "123", "World", "456", "Test"]
 
-var partsWithAction = text.Split(new Regex(@"\d+"), true, match => $"<num>{match}</num>"); 
+var partsWithAction = text.Split(new Regex(@"\d+"), true, match => $"<num>{match}</num>");
 // Result: ["Hello", "<num>123</num>", "World", "<num>456</num>", "Test"]
+
+string[] empty = "".Split(new Regex(@"\d+")); // null
+string[] noRegex = text.Split((Regex)null); // ["Hello123World456Test"]
 ```
 
 ---
 
 ### ExtDouble
 
-Double precision floating-point extension methods class that provides comparison functionality for double precision numbers.
+Double extension methods for approximate equality comparison.
 
 ```csharp
 public static class ExtDouble
 ```
-
-#### Fields
-
-##### DOUBLE_DELTA
-
-```csharp
-private static double DOUBLE_DELTA = 1E-6;
-```
-
-**Description:** Precision threshold for double precision number comparison
 
 #### Extension Methods
 
@@ -253,11 +247,11 @@ public static bool DoubleEquals(this double value, double value2)
 **Description:** Determine whether two double data are similar (equal)
 
 **Parameters:**
-- `value` (double): First double precision number
-- `value2` (double): Second double precision number
+- `value` (double): First value.
+- `value2` (double): Second value.
 
 **Return Value:**
-- `bool`: Whether the two numbers are equal or similar
+- `bool`: True if values are equal or within epsilon (1E-6).
 
 **Example:**
 ```csharp
@@ -270,21 +264,11 @@ bool isEqual = a.DoubleEquals(b); // Result: true (considering floating-point pr
 
 ### ExtFloat
 
-Single precision floating-point extension methods class that provides comparison functionality for single precision numbers.
+Float extension methods for approximate equality comparison.
 
 ```csharp
 public static class ExtFloat
 ```
-
-#### Fields
-
-##### FLOAT_DELTA
-
-```csharp
-private static double FLOAT_DELTA = 1E-6;
-```
-
-**Description:** Precision threshold for single precision number comparison
 
 #### Extension Methods
 
@@ -297,11 +281,11 @@ public static bool FloatEquals(this float value, float value2)
 **Description:** Determine whether two float data are similar (equal)
 
 **Parameters:**
-- `value` (float): First single precision number
-- `value2` (float): Second single precision number
+- `value` (float): First value.
+- `value2` (float): Second value.
 
 **Return Value:**
-- `bool`: Whether the two numbers are equal or similar
+- `bool`: True if values are equal or within epsilon (1E-6).
 
 **Example:**
 ```csharp
@@ -324,10 +308,11 @@ string boldText = text.ToRichBold();           // <b>Hello World</b>
 string italicText = text.ToRichItalic();       // <i>Hello World</i>
 string sizedText = text.ToRichSize(18);        // <size=18>Hello World</size>
 string coloredText = text.ToRichColor("red");  // <color=red>Hello World</color>
+string hexNoHash = text.ToRichColor("FF0000"); // <color=#FF0000>Hello World</color>
 
-// Combined usage
+// Combined usage: later calls wrap the outer tags
 string richText = text.ToRichBold().ToRichColor("#FF0000").ToRichSize(20);
-// Result: <b><color=#FF0000><size=20>Hello World</size></color></b>
+// Result: <size=20><color=#FF0000><b>Hello World</b></color></size>
 ```
 
 ### Regular Expression Splitting
@@ -370,11 +355,11 @@ bool extensionEqual = a.DoubleEquals(b); // true (considering precision error)
 
 ## Notes
 
-1. **Rich Text Tags:** Rich text tags generated by extension methods require UI components that support rich text to display correctly
-2. **Color Format:** ToRichColor method supports color names and hexadecimal format, hexadecimal format automatically adds # prefix
-3. **Regular Expressions:** Split method uses regular expressions for splitting, ensure regular expressions are correct
-4. **Floating-Point Precision:** FloatEquals and DoubleEquals methods use 1E-6 as precision threshold, can be adjusted as needed
-5. **Performance Considerations:** Regular expression splitting may affect performance for large strings, pay attention to usage scenarios
+1. **Rich Text Tags:** Rich text tags generated by extension methods require UI components that support rich text to display correctly.
+2. **Color Format:** `ToRichColor` accepts `#RRGGBB`, hex without `#` (a `#` prefix is added when the value parses as hex), or a color name.
+3. **Regex Split:** `Split` returns null when the source string is null or empty; when `regex` is null, it returns an array containing the source string. `matchedAction` is ignored when `includeMatched` is false.
+4. **Floating-Point Precision:** `FloatEquals` and `DoubleEquals` treat values as similar when they are exactly equal or the absolute difference is less than 1E-6. That epsilon is an internal constant and cannot be changed from outside.
+5. **Performance Considerations:** Regular expression splitting may affect performance for large strings; consider the usage scenario.
 
 ---
 
@@ -382,4 +367,4 @@ bool extensionEqual = a.DoubleEquals(b); // true (considering precision error)
 
 - `System`: Basic types
 - `System.Text.RegularExpressions`: Regular expression functionality
-- `System.Collections.Generic`: Collection types 
+- `System.Collections.Generic`: Collection types

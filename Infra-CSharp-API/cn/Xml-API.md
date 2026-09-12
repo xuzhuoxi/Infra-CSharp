@@ -2,7 +2,7 @@
 
 ## 概述
 
-Xml模块提供了XML序列化和反序列化的工具类，支持对象与XML字符串之间的相互转换。
+Xml 模块提供基于 `XmlSerializer` 的 XML 序列化与反序列化工具，支持对象与 XML 字符串之间的相互转换。
 
 ## 命名空间
 
@@ -14,10 +14,10 @@ Xml模块提供了XML序列化和反序列化的工具类，支持对象与XML�
 
 ### XmlUtils
 
-XML工具类，提供对象与XML字符串之间的序列化和反序列化功能。
+基于 `XmlSerializer` 的 XML 序列化与反序列化工具。
 
 ```csharp
-public class XmlUtils
+public static class XmlUtils
 ```
 
 #### 静态方法
@@ -28,16 +28,13 @@ public class XmlUtils
 public static string ToXml(object obj)
 ```
 
-**描述：** Serialize to xml string / 序列化为xml字符串
+**描述：** 将对象序列化为 XML 字符串。
 
 **参数：**
-- `obj` (object): 要序列化的对象
+- `obj` (object): 待序列化的对象；为 null 时返回空字符串。
 
 **返回值：**
-- `string`: 序列化后的XML字符串
-
-**异常：**
-- `Exception`: 序列化过程中可能抛出的异常
+- `string`: XML 文本；`obj` 为 null 时为空字符串。
 
 **示例：**
 ```csharp
@@ -54,6 +51,8 @@ string xml = XmlUtils.ToXml(person);
 //         <Name>张三</Name>
 //         <Age>25</Age>
 //       </Person>
+
+string empty = XmlUtils.ToXml(null); // ""
 ```
 
 ##### FromXml<T>(string xml)
@@ -62,19 +61,16 @@ string xml = XmlUtils.ToXml(person);
 public static T FromXml<T>(string xml)
 ```
 
-**描述：** Deserialize from xml string to object / 从xml字符串反序列化为对象
+**描述：** 将 XML 字符串反序列化为 `T` 类型实例。
 
 **参数：**
-- `xml` (string): XML字符串
+- `xml` (string): XML 文本；为 null 或空时返回默认值。
 
 **类型参数：**
-- `T`: 目标类型
+- `T`: 目标类型（须为可实例化的可序列化类型）。
 
 **返回值：**
-- `T`: 反序列化后的对象
-
-**异常：**
-- `Exception`: 反序列化过程中可能抛出的异常
+- `T`: 反序列化结果；`xml` 为 null 或空时为 `default(T)`。
 
 **示例：**
 ```csharp
@@ -86,6 +82,8 @@ string xml = @"<?xml version=""1.0"" encoding=""utf-16""?>
 
 var person = XmlUtils.FromXml<Person>(xml);
 // 结果: person.Name = "张三", person.Age = 25
+
+Person missing = XmlUtils.FromXml<Person>(null); // null
 ```
 
 ##### FromXml(string xml, System.Type type)
@@ -94,19 +92,18 @@ var person = XmlUtils.FromXml<Person>(xml);
 public static object FromXml(string xml, System.Type type)
 ```
 
-**描述：** Deserialize from xml string to object / 从xml字符串反序列化为对象
+**描述：** 将 XML 字符串反序列化为指定类型的实例。
 
 **参数：**
-- `xml` (string): XML字符串
-- `type` (System.Type): 目标类型
+- `xml` (string): XML 文本；为 null 或空时返回 null。
+- `type` (System.Type): 目标类型（须为可实例化的可序列化类型）。
 
 **返回值：**
-- `object`: 反序列化后的对象
+- `object`: 反序列化结果；`xml` 为 null 或空时为 null。
 
 **异常：**
-- `ArgumentNullException`: 当type参数为null时抛出
-- `ArgumentException`: 当type为抽象类型时抛出
-- `Exception`: 反序列化过程中可能抛出的异常
+- `ArgumentNullException`: `type` 为 null。
+- `ArgumentException`: `type` 为抽象类型，无法实例化。
 
 **示例：**
 ```csharp
@@ -118,6 +115,8 @@ string xml = @"<?xml version=""1.0"" encoding=""utf-16""?>
 
 var person = XmlUtils.FromXml(xml, typeof(Person)) as Person;
 // 结果: person.Name = "张三", person.Age = 25
+
+object missing = XmlUtils.FromXml("", typeof(Person)); // null
 ```
 
 ---
@@ -127,8 +126,7 @@ var person = XmlUtils.FromXml(xml, typeof(Person)) as Person;
 ### 基本序列化和反序列化
 
 ```csharp
-// 定义数据类
-[Serializable]
+// 定义数据类（须有无参构造函数；序列化公共属性/字段）
 public class User
 {
     public string Name { get; set; }
@@ -146,7 +144,7 @@ var user = new User
     Tags = new List<string> { "VIP", "Active" }
 };
 
-// 序列化为XML
+// 序列化为 XML
 string xmlString = XmlUtils.ToXml(user);
 Console.WriteLine(xmlString);
 
@@ -159,7 +157,6 @@ Console.WriteLine($"Email: {deserializedUser.Email}");
 ### 复杂对象序列化
 
 ```csharp
-[Serializable]
 public class Order
 {
     public int OrderId { get; set; }
@@ -168,7 +165,6 @@ public class Order
     public decimal TotalAmount { get; set; }
 }
 
-[Serializable]
 public class Customer
 {
     public string Name { get; set; }
@@ -176,7 +172,6 @@ public class Customer
     public string Phone { get; set; }
 }
 
-[Serializable]
 public class OrderItem
 {
     public string ProductName { get; set; }
@@ -214,7 +209,7 @@ var deserializedOrder = XmlUtils.FromXml<Order>(orderXml);
 ```csharp
 try
 {
-    // 尝试反序列化无效的XML
+    // 尝试反序列化无效的 XML
     string invalidXml = "<Invalid>XML</Invalid>";
     var result = XmlUtils.FromXml<User>(invalidXml);
 }
@@ -225,9 +220,19 @@ catch (Exception ex)
 
 try
 {
-    // 尝试序列化不支持序列化的对象
-    var nonSerializableObject = new { Name = "Test" };
-    string xml = XmlUtils.ToXml(nonSerializableObject);
+    // 抽象类型无法实例化
+    object result = XmlUtils.FromXml("<Root />", typeof(Stream));
+}
+catch (ArgumentException ex)
+{
+    Console.WriteLine($"类型无效: {ex.Message}");
+}
+
+try
+{
+    // 匿名类型不受 XmlSerializer 支持
+    var anonymous = new { Name = "Test" };
+    string xml = XmlUtils.ToXml(anonymous);
 }
 catch (Exception ex)
 {
@@ -239,19 +244,20 @@ catch (Exception ex)
 
 ## 注意事项
 
-1. **序列化特性：** 要序列化的类必须标记`[Serializable]`特性，或者使用`XmlSerializer`支持的特性
-2. **公共属性：** 只有公共属性才会被序列化，私有字段不会被序列化
-3. **无参构造函数：** 反序列化的类必须有无参构造函数
-4. **抽象类型：** 不能反序列化到抽象类型
-5. **异常处理：** 序列化和反序列化过程可能抛出异常，建议使用try-catch处理
-6. **性能考虑：** 对于大量数据，XML序列化可能影响性能，考虑使用其他序列化方式
-7. **编码问题：** 默认使用UTF-16编码，注意中文字符的处理
+1. **实现方式：** 基于 `System.Xml.Serialization.XmlSerializer`。目标类型须为可实例化的可序列化类型。
+2. **公共成员：** 序列化公共属性与公共字段；私有成员不会被序列化。
+3. **无参构造函数：** 反序列化的类必须有无参构造函数。
+4. **空值行为：** `ToXml(null)` 返回空字符串；`FromXml` 在 XML 为 null 或空时返回 `null` / `default(T)`，不抛异常。
+5. **抽象类型：** 不能反序列化到抽象类型；`type` 为 null 时抛出 `ArgumentNullException`，为抽象类型时抛出 `ArgumentException`。
+6. **异常处理：** 序列化/反序列化失败时会先将异常写入控制台，再重新抛出，建议使用 try-catch 处理。
+7. **性能考虑：** 每次调用都会新建 `XmlSerializer` 实例；大量数据或高频调用时需注意开销。
+8. **编码：** 通过 `StringWriter` 输出，XML 声明默认为 UTF-16。
 
 ---
 
 ## 依赖关系
 
 - `System`: 基础类型
-- `System.IO`: 文件流操作
+- `System.IO`: 字符串读写
 - `System.Text`: 字符串构建
-- `System.Xml.Serialization`: XML序列化功能 
+- `System.Xml.Serialization`: XML 序列化功能

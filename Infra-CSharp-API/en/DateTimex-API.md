@@ -5,15 +5,11 @@
 ### Static Classes
 
 #### DateTimeUtil
-DateTime utility class
+Date/time utilities: tick constants, conversions, current timestamps, calendar helpers, and formatting.
 
 ```csharp
 /// <summary>
-/// DateTime utility class
-/// Provides utility methods and constants related to date and time
-/// 
-/// More information:
-///   TimeSpan
+/// Date/time utilities: tick constants, conversions, current timestamps, calendar helpers, and formatting.
 /// </summary>
 public static class DateTimeUtil
 {
@@ -93,7 +89,7 @@ public static class DateTimeUtil
     /// </summary>
     public const long TicksPerWeak = TicksPerDay * 7;
 
-    // Current timestamp properties
+    // Current timestamp properties (all based on UTC)
     /// <summary>
     /// The timestamp (tick) of 1970.1.1
     /// </summary>
@@ -163,76 +159,76 @@ public static class DateTimeUtil
     /// <summary>
     /// Ticks to nanoseconds
     /// </summary>
-    /// <param name="ticks">Number of ticks</param>
-    /// <returns>Number of nanoseconds</returns>
+    /// <param name="ticks">Tick count to convert.</param>
+    /// <returns>Nanoseconds.</returns>
     public static long Ticks2Nanos(long ticks);
 
     /// <summary>
     /// Ticks to milliseconds
     /// </summary>
-    /// <param name="ticks">Number of ticks</param>
-    /// <returns>Number of milliseconds</returns>
+    /// <param name="ticks">Tick count to convert.</param>
+    /// <returns>Milliseconds.</returns>
     public static long Ticks2Millis(long ticks);
 
     /// <summary>
     /// Ticks to seconds
     /// </summary>
-    /// <param name="ticks">Number of ticks</param>
-    /// <returns>Number of seconds</returns>
+    /// <param name="ticks">Tick count to convert.</param>
+    /// <returns>Seconds.</returns>
     public static long Ticks2Seconds(long ticks);
 
     /// <summary>
     /// Ticks to minutes
     /// </summary>
-    /// <param name="ticks">Number of ticks</param>
-    /// <returns>Number of minutes</returns>
+    /// <param name="ticks">Tick count to convert.</param>
+    /// <returns>Minutes.</returns>
     public static long Ticks2Minutes(long ticks);
 
     /// <summary>
     /// Ticks to hours
     /// </summary>
-    /// <param name="ticks">Number of ticks</param>
-    /// <returns>Number of hours</returns>
+    /// <param name="ticks">Tick count to convert.</param>
+    /// <returns>Hours.</returns>
     public static long Ticks2Hours(long ticks);
 
     /// <summary>
     /// Nanoseconds to ticks
     /// </summary>
-    /// <param name="nanos">Number of nanoseconds</param>
-    /// <returns>Number of ticks</returns>
+    /// <param name="nanos">Nanoseconds to convert.</param>
+    /// <returns>Ticks.</returns>
     public static long Nanos2Ticks(long nanos);
 
     /// <summary>
     /// Milliseconds to ticks
     /// </summary>
-    /// <param name="millisecond">Number of milliseconds</param>
-    /// <returns>Number of ticks</returns>
+    /// <param name="millisecond">Milliseconds</param>
+    /// <returns>Ticks</returns>
     public static long Millis2Ticks(long millisecond);
 
     /// <summary>
     /// Seconds to ticks
     /// </summary>
-    /// <param name="seconds">Number of seconds</param>
-    /// <returns>Number of ticks</returns>
+    /// <param name="seconds">Seconds</param>
+    /// <returns>Ticks</returns>
     public static long Seconds2Ticks(long seconds);
 
     /// <summary>
     /// Minutes to ticks
     /// </summary>
-    /// <param name="minutes">Number of minutes</param>
-    /// <returns>Number of ticks</returns>
+    /// <param name="minutes">Minutes</param>
+    /// <returns>Ticks</returns>
     public static long Minutes2Ticks(long minutes);
 
     /// <summary>
     /// Hours to ticks
     /// </summary>
-    /// <param name="hours">Number of hours</param>
-    /// <returns>Number of ticks</returns>
+    /// <param name="hours">Hours</param>
+    /// <returns>Ticks</returns>
     public static long Hours2Ticks(long hours);
 
     // Date calculation methods
     /// <summary>
-    /// Get the number of days in the specified month
+    /// Get the number of days in each month
     /// </summary>
     /// <param name="month">Month</param>
     /// <param name="year">Year</param>
@@ -240,228 +236,365 @@ public static class DateTimeUtil
     public static int GetMonthDay(int month, int year);
 
     /// <summary>
-    /// Check if it is a leap year
+    /// Check for leap year
     /// </summary>
     /// <param name="year">Year</param>
     /// <returns>Whether it is a leap year</returns>
     public static bool CheckLeapYear(int year);
 
     /// <summary>
-    /// Get the month difference between two dates
+    /// Calculate the month offsets between two time points
     /// </summary>
-    /// <param name="start">Start date</param>
-    /// <param name="end">End date</param>
+    /// <param name="start">Start time</param>
+    /// <param name="end">End time</param>
     /// <returns>Month difference</returns>
     public static int GetOffsetMonth(DateTime start, DateTime end);
 
     // Formatting methods
     /// <summary>
-    /// Format date time
+    /// Format time
     /// </summary>
     /// <param name="dt">DateTime</param>
-    /// <param name="format">Format</param>
-    /// <param name="provider">Format provider</param>
+    /// <param name="format">Format string</param>
+    /// <param name="provider">Format provider; invariant culture when null.</param>
     /// <returns>Formatted string</returns>
     public static string FormatDateTime(DateTime dt, string format, IFormatProvider provider = null);
 
     /// <summary>
     /// Format timestamp
     /// </summary>
-    /// <param name="timestamp">Timestamp</param>
-    /// <param name="format">Format</param>
-    /// <param name="provider">Format provider</param>
-    /// <returns>Formatted string</returns>
+    /// <param name="timestamp">Ticks from 0001.01.01</param>
+    /// <param name="format">Format string</param>
+    /// <param name="provider">Format provider; invariant culture when null.</param>
+    /// <returns>UTC-formatted string</returns>
     public static string FormatDateTime(long timestamp, string format, IFormatProvider provider = null);
 
     /// <summary>
-    /// Format local timestamp
+    /// Format timestamp
     /// </summary>
-    /// <param name="timestamp">Timestamp</param>
-    /// <param name="format">Format</param>
-    /// <param name="provider">Format provider</param>
-    /// <returns>Formatted string</returns>
+    /// <param name="timestamp">Ticks from 0001.01.01</param>
+    /// <param name="format">Format string</param>
+    /// <param name="provider">Format provider; invariant culture when null.</param>
+    /// <returns>String formatted in local time</returns>
     public static string FormatDateTimeLocal(long timestamp, string format, IFormatProvider provider = null);
 }
 ```
 
+### Classes
+
 #### TimeSeries
-Time series class
+Time series: append named time slices and locate which slice a timestamp falls into.
 
 ```csharp
 /// <summary>
-/// Time series class
-/// Used for processing time series data
+/// Time Series
 /// </summary>
 public class TimeSeries
 {
     /// <summary>
-    /// Constructor
+    /// Construct a time series object
     /// </summary>
-    /// <param name="startTime">Start time</param>
-    /// <param name="endTime">End time</param>
-    /// <param name="interval">Time interval</param>
-    public TimeSeries(DateTime startTime, DateTime endTime, TimeSpan interval);
+    /// <param name="basestamp">Base timestamp subtracted before locating slices.</param>
+    /// <param name="loop">Whether to loop when locating timestamps.</param>
+    public TimeSeries(long basestamp = 0, bool loop = false);
 
     /// <summary>
-    /// Start time
+    /// Set base timestamp
     /// </summary>
-    public DateTime StartTime { get; }
+    /// <param name="basestamp">Base timestamp for locating slices.</param>
+    public void SetBasestamp(long basestamp);
 
     /// <summary>
-    /// End time
+    /// Checks whether a time slice with the specified name is contained
     /// </summary>
-    public DateTime EndTime { get; }
+    /// <param name="name">Slice name to look up.</param>
+    /// <returns>True if any slice uses this name.</returns>
+    public bool Contains(string name);
 
     /// <summary>
-    /// Time interval
+    /// Find the first time slice with the specified name
     /// </summary>
-    public TimeSpan Interval { get; }
+    /// <param name="name">Slice name to find.</param>
+    /// <returns>Index of the first match, or -1 if not found.</returns>
+    public int FindFirstSlice(string name);
 
     /// <summary>
-    /// Number of time points
+    /// Find the last time slice with the specified name
     /// </summary>
-    public int Count { get; }
+    /// <param name="name">Slice name to find.</param>
+    /// <returns>Index of the last match, or -1 if not found.</returns>
+    public int FindLastSlice(string name);
 
     /// <summary>
-    /// Get the time point at the specified index
+    /// Locating time slices based on timestamps
     /// </summary>
-    /// <param name="index">Index</param>
-    /// <returns>Time point</returns>
-    public DateTime this[int index] { get; }
+    /// <param name="timestamp">Absolute timestamp (relative to series baseline).</param>
+    /// <returns>Name of the slice containing the offset, or null if none.</returns>
+    public string LocateTo(long timestamp);
 
     /// <summary>
-    /// Get time series enumerator
+    /// Add time slice
     /// </summary>
-    /// <returns>Time series enumerator</returns>
-    public IEnumerator<DateTime> GetEnumerator();
-}
-```
-
-#### TimeSlice
-Time slice class
-
-```csharp
-/// <summary>
-/// Time slice class
-/// Represents a time interval
-/// </summary>
-public struct TimeSlice
-{
-    /// <summary>
-    /// Start time
-    /// </summary>
-    public DateTime Start { get; set; }
+    /// <param name="name">Slice name.</param>
+    /// <param name="duration">Duration in ticks (no leading gap).</param>
+    /// <returns>True if added; false when name is empty or duration is negative.</returns>
+    public bool AddSlice(string name, long duration);
 
     /// <summary>
-    /// End time
+    /// Add time slice
     /// </summary>
-    public DateTime End { get; set; }
+    /// <param name="name">Slice name.</param>
+    /// <param name="space">Leading gap before this slice within the series layout.</param>
+    /// <param name="duration">Duration in ticks.</param>
+    /// <returns>True if added; false when arguments are invalid.</returns>
+    public bool AddSlice(string name, long space, long duration);
 
     /// <summary>
-    /// Constructor
+    /// Remove time slice
     /// </summary>
-    /// <param name="start">Start time</param>
-    /// <param name="end">End time</param>
-    public TimeSlice(DateTime start, DateTime end);
+    /// <param name="index">Index of the slice to remove.</param>
+    /// <param name="keepBlank">If true, shift the next slice to absorb the removed span.</param>
+    /// <returns>Removed slice name, or null if index is out of range.</returns>
+    public string RemoveAt(int index, bool keepBlank = false);
 
     /// <summary>
-    /// Duration
+    /// Remove the first time slice
     /// </summary>
-    public TimeSpan Duration { get; }
+    /// <param name="keepBlank">If true, shift the next slice after removal.</param>
+    /// <returns>Removed slice name, or null if the series is empty.</returns>
+    public string RemoveFirst(bool keepBlank = false);
 
     /// <summary>
-    /// Whether it contains the specified time
+    /// Remove last time slice
     /// </summary>
-    /// <param name="time">Time</param>
-    /// <returns>Whether it contains</returns>
-    public bool Contains(DateTime time);
+    /// <returns>Removed slice name, or null if the series is empty.</returns>
+    public string RemoveLast();
 
     /// <summary>
-    /// Whether it overlaps with another time slice
+    /// Remove all time slices
     /// </summary>
-    /// <param name="other">Another time slice</param>
-    /// <returns>Whether it overlaps</returns>
-    public bool Overlaps(TimeSlice other);
-
-    /// <summary>
-    /// Get intersection
-    /// </summary>
-    /// <param name="other">Another time slice</param>
-    /// <returns>Intersection time slice</returns>
-    public TimeSlice? Intersect(TimeSlice other);
-
-    /// <summary>
-    /// Get union
-    /// </summary>
-    /// <param name="other">Another time slice</param>
-    /// <returns>Union time slice</returns>
-    public TimeSlice Union(TimeSlice other);
+    public void RemoveAll();
 }
 ```
 
 #### StampTimer
-Timestamp timer class
+Elapsed-time timer with pause/resume, manual lost-time adjustment, and optional custom tick source.
+
+The default clock is `DateTimeUtil.NowTicks1970`.
 
 ```csharp
 /// <summary>
-/// Timestamp timer class
-/// Provides high-precision timestamp timing functionality
+/// Elapsed-time timer with pause/resume, manual lost-time adjustment, and optional custom tick source.
 /// </summary>
-    public class StampTimer
+public sealed class StampTimer
+{
+    /// <summary>
+    /// Get the current Ticks function proxy
+    /// </summary>
+    public delegate long NowTicksGetter();
+
+    /// <summary>
+    /// Lost time since Start, excluding pause intervals.
+    /// </summary>
+    public long LostTicks { get; }
+
+    /// <summary>
+    /// Lost time(millisecond)
+    /// </summary>
+    public long LostMilliseconds { get; }
+
+    /// <summary>
+    /// Global lost time(ticks)
+    /// </summary>
+    public long GlobalLostTicks { get; }
+
+    /// <summary>
+    /// Global lost time(millisecond)
+    /// </summary>
+    public long GlobalLostMilliseconds { get; }
+
+    /// <summary>
+    /// Pause lost time(ticks)
+    /// </summary>
+    public long PauseTicks { get; }
+
+    /// <summary>
+    /// Pause lost time(millisecond)
+    /// </summary>
+    public long PauseMilliseconds { get; }
+
+    /// <summary>
+    /// Is it pausing
+    /// </summary>
+    public bool IsPause { get; }
+
+    /// <summary>
+    /// Create a timer with zero baseline lost time.
+    /// </summary>
+    public StampTimer();
+
+    /// <summary>
+    /// Create a timer with the specified baseline lost ticks.
+    /// </summary>
+    /// <param name="baseLostTicks">Baseline lost ticks counted before Start.</param>
+    public StampTimer(long baseLostTicks);
+
+    /// <summary>
+    /// Create a timer with baseline lost time derived from a DateTime.
+    /// </summary>
+    /// <param name="baseLostDateTime">Date/time used as the baseline anchor.</param>
+    public StampTimer(DateTime baseLostDateTime);
+
+    /// <summary>
+    /// Set the function to get the current timestamp
+    /// </summary>
+    /// <param name="getter">Custom tick provider; uses DateTimeUtil.NowTicks1970 when null.</param>
+    public void SetNowTicksGetter(NowTicksGetter getter);
+
+    /// <summary>
+    /// Start the timer
+    /// </summary>
+    public void Start();
+
+    /// <summary>
+    /// Stop the timer
+    /// </summary>
+    public void Stop();
+
+    /// <summary>
+    /// Pause the timer
+    /// </summary>
+    public void Pause();
+
+    /// <summary>
+    /// Time goes on
+    /// </summary>
+    public void Continue();
+
+    /// <summary>
+    /// Increase lost time
+    /// </summary>
+    /// <param name="lostTicks">Ticks to add to running or pausing lost time depending on state.</param>
+    public void AddLost(long lostTicks);
+
+    /// <summary>
+    /// Increase running lost time
+    /// </summary>
+    /// <param name="lostTicks">Ticks to add while the timer is running.</param>
+    public void AddRunningLost(long lostTicks);
+
+    /// <summary>
+    /// Increase pausing lost time
+    /// </summary>
+    /// <param name="lostTicks">Ticks to add while the timer is paused.</param>
+    public void AddPausingLost(long lostTicks);
+
+    /// <summary>
+    /// Generate a timestamp object
+    /// </summary>
+    /// <param name="initTicks">Initial baseline lost ticks.</param>
+    /// <returns>A new StampTimer instance.</returns>
+    public static StampTimer GenTimer(long initTicks);
+
+    /// <summary>
+    /// Generate a timestamp object
+    /// </summary>
+    /// <returns>A new StampTimer with zero baseline.</returns>
+    public static StampTimer GenTimer();
+}
+```
+
+### Structs
+
+#### TimeSlice
+A time interval on the timeline with start, duration, and move/zoom operations. Start and duration are `long` timestamps (ticks), not `DateTime`.
+
+```csharp
+/// <summary>
+/// A time interval on the timeline with start, duration, and move/zoom operations.
+/// </summary>
+public struct TimeSlice
+{
+    /// <summary>
+    /// Anchor position when scaling a time slice.
+    /// </summary>
+    public enum ZoomAnchor
     {
-        private long m_StartTicks;
-        private long m_StopTicks;
-        private bool m_IsRunning;
+        /// <summary>Anchor at start.</summary>
+        Start,
 
-            /// <summary>
-    /// Whether it is running
-    /// </summary>
-        public bool IsRunning => m_IsRunning;
+        /// <summary>Anchor at center.</summary>
+        Center,
 
-            /// <summary>
-    /// Start timing
-    /// </summary>
-        public void Start();
-
-            /// <summary>
-    /// Stop timing
-    /// </summary>
-        public void Stop();
-
-            /// <summary>
-    /// Reset timer
-    /// </summary>
-        public void Reset();
-
-            /// <summary>
-    /// Restart timer
-    /// </summary>
-        public void Restart();
-
-            /// <summary>
-    /// Get elapsed milliseconds
-    /// </summary>
-    /// <returns>Number of milliseconds</returns>
-        public long GetElapsedMilliseconds();
-
-            /// <summary>
-    /// Get elapsed microseconds
-    /// </summary>
-    /// <returns>Number of microseconds</returns>
-        public long GetElapsedMicroseconds();
-
-            /// <summary>
-    /// Get elapsed nanoseconds
-    /// </summary>
-    /// <returns>Number of nanoseconds</returns>
-        public long GetElapsedNanoseconds();
-
-            /// <summary>
-    /// Get elapsed time span
-    /// </summary>
-    /// <returns>Time span</returns>
-        public TimeSpan GetElapsedTime();
+        /// <summary>Anchor at end.</summary>
+        End
     }
+
+    /// <summary>
+    /// Start Timestamp
+    /// </summary>
+    public long Start { get; }
+
+    /// <summary>
+    /// End Timestamp
+    /// </summary>
+    public long End { get; }
+
+    /// <summary>
+    /// Time Length
+    /// </summary>
+    public long Duration { get; }
+
+    /// <summary>
+    /// Check if the timestamp is within the time slice
+    /// </summary>
+    /// <param name="timestamp">Timestamp to test.</param>
+    /// <param name="includeEnd">Whether the end boundary is inclusive.</param>
+    /// <returns>True if timestamp lies within the slice.</returns>
+    public bool Contains(long timestamp, bool includeEnd = false);
+
+    /// <summary>
+    /// Move Time Piece
+    /// </summary>
+    /// <param name="offset">Ticks to shift the start; duration is unchanged.</param>
+    public void Move(long offset);
+
+    /// <summary>
+    /// Extend the time length
+    /// </summary>
+    /// <param name="duration">Ticks to add to duration.</param>
+    public void Extend(long duration);
+
+    /// <summary>
+    /// Zoom Time Piece
+    /// </summary>
+    /// <param name="scale">Scale factor; 1 means no change.</param>
+    /// <param name="anchor">Anchor in [0,1]: 0 end, 1 start, otherwise interpolated.</param>
+    public void Zoom(float scale, float anchor);
+
+    /// <summary>
+    /// Zoom Time Piece
+    /// </summary>
+    /// <param name="scale">Scale factor; 1 means no change.</param>
+    /// <param name="anchor">Fixed anchor: start, center, or end.</param>
+    public void Zoom(float scale, ZoomAnchor anchor);
+
+    /// <summary>
+    /// Create time slice by length of time
+    /// </summary>
+    /// <param name="start">Start timestamp.</param>
+    /// <param name="duration">Duration in ticks.</param>
+    /// <returns>A new time slice.</returns>
+    public static TimeSlice NewSliceWitDur(long start, long duration);
+
+    /// <summary>
+    /// Create time slice from two time points
+    /// </summary>
+    /// <param name="start">Start timestamp.</param>
+    /// <param name="end">End timestamp.</param>
+    /// <returns>A new time slice with duration end - start.</returns>
+    public static TimeSlice NewSliceWithEnd(long start, long end);
+}
 ```
 
 ### Feature Description
@@ -469,54 +602,51 @@ Timestamp timer class
 #### Time Unit Conversion
 
 **Supported Time Units**
-- **Nanoseconds**: Smallest time unit, 1 nanosecond = 10 Ticks
-- **Microseconds**: 1 microsecond = 10 nanoseconds
-- **Milliseconds**: 1 millisecond = 1000 microseconds
-- **Seconds**: 1 second = 1000 milliseconds
-- **Minutes**: 1 minute = 60 seconds
-- **Hours**: 1 hour = 60 minutes
-- **Days**: 1 day = 24 hours
-- **Weeks**: 1 week = 7 days
-- **Months**: 28/29/30/31 days
-- **Years**: 365 days (366 days in leap year)
+- **Tick**: .NET base unit; 1 tick = 100 nanoseconds
+- **Nanoseconds**: `Ticks2Nanos` / `Nanos2Ticks` (1 tick = 100 nanoseconds)
+- **Microseconds**: `TicksPerMicrosecond = 10`
+- **Milliseconds**: `TicksPerMilliSecond = 10_000`
+- **Centiseconds**: `TicksPerCentisecond = 100_000`
+- **Seconds**: `TicksPerSecond = 10_000_000`
+- **Minutes / hours / days / weeks**: `TicksPerMinute`, `TicksPerHour`, `TicksPerDay`, `TicksPerWeak`
+- **Months**: tick constants for 28/29/30/31-day months
+- **Years**: 365 days (366 in a leap year, `TicksPerYear2`)
 
 **Conversion Methods**
-1. **Ticks to other units**: Ticks2Nanos, Ticks2Millis, Ticks2Seconds, etc.
-2. **Other units to Ticks**: Nanos2Ticks, Millis2Ticks, Seconds2Ticks, etc.
-3. **Bidirectional conversion**: Supports bidirectional conversion of all time units
+1. **Ticks to other units**: `Ticks2Nanos`, `Ticks2Millis`, `Ticks2Seconds`, `Ticks2Minutes`, `Ticks2Hours`
+2. **Other units to ticks**: `Nanos2Ticks`, `Millis2Ticks`, `Seconds2Ticks`, `Minutes2Ticks`, `Hours2Ticks`
 
 #### Timestamp System
 
 **Timestamp Baselines**
-- **Unix Timestamp**: Number of seconds since January 1, 1970
-- **Ticks Timestamp**: Number of ticks since January 1, 0001
-- **Millisecond Timestamp**: Number of milliseconds since baseline time
-- **Nanosecond Timestamp**: Number of nanoseconds since baseline time
+- **Year 0001 baseline**: ticks / nanoseconds / milliseconds / seconds / minutes / hours since 0001-01-01 (`NowTicks`, `NowNanoseconds`, `NowMilliseconds`, `NowSeconds`, `NowMinutes`, `NowHours`)
+- **Unix 1970 baseline**: since 1970-01-01 UTC (`Ticks1970`, `NowTicks1970`, and the matching nano/milli/second/minute/hour properties)
 
-**Current Timestamps**
-- **NowTicks**: Current ticks since 0001.1.1
-- **NowTicks1970**: Current ticks since 1970.1.1
-- **NowMilliseconds1970**: Current milliseconds since 1970.1.1
-- **NowSeconds1970**: Current seconds since 1970.1.1
+Current timestamps are taken from `DateTime.UtcNow`.
+
+**Formatting**
+- `FormatDateTime(DateTime, ...)`: format a `DateTime` with the given pattern
+- `FormatDateTime(long, ...)`: treat ticks from 0001-01-01 as a UTC `DateTime` and format it
+- `FormatDateTimeLocal(long, ...)`: same tick input, converted to local time before formatting
+- `format` is a .NET standard/custom DateTime format string; a null `provider` uses the invariant culture
 
 #### Date Calculation
 
-**Month Day Calculation**
-- **GetMonthDay**: Calculate number of days based on year and month
-- **CheckLeapYear**: Check if it is a leap year
-- **GetOffsetMonth**: Calculate month difference between two dates
+- **GetMonthDay**: days in the given month (February accounts for leap years)
+- **CheckLeapYear**: whether the year is a leap year
+- **GetOffsetMonth**: month difference between two time points
 
-**Time Series Processing**
-- **TimeSeries**: Process time series data
-- **TimeSlice**: Represent time intervals
-- **StampTimer**: High-precision timer
+#### Time Series and Time Slices
+
+- **TimeSeries**: a sequence of named slices. `AddSlice` appends a fragment (optional leading `space`); `LocateTo` returns the slice name for a timestamp; when `loop` is true, location wraps by total series duration
+- **TimeSlice**: an interval of `long` start + duration, created with `NewSliceWitDur` / `NewSliceWithEnd`, with `Contains`, `Move`, `Extend`, and `Zoom`
+- **StampTimer**: pause/resume elapsed timer; `LostTicks` excludes pause time, `GlobalLostTicks` includes the constructor baseline; inject a custom clock with `SetNowTicksGetter`
 
 ### Usage Examples
 
 #### Time Unit Conversion
 ```csharp
-// Basic time unit conversion
-long ticks = 1000000; // Number of ticks for 1 second
+long ticks = DateTimeUtil.TicksPerSecond; // ticks in 1 second
 
 long nanoseconds = DateTimeUtil.Ticks2Nanos(ticks);
 long milliseconds = DateTimeUtil.Ticks2Millis(ticks);
@@ -531,14 +661,15 @@ Console.WriteLine($"Seconds: {seconds}");
 Console.WriteLine($"Minutes: {minutes}");
 Console.WriteLine($"Hours: {hours}");
 
-// Reverse conversion
 long backToTicks = DateTimeUtil.Nanos2Ticks(nanoseconds);
 Console.WriteLine($"Convert back to Ticks: {backToTicks}");
+
+long fromHours = DateTimeUtil.Hours2Ticks(2);
+long fromSeconds = DateTimeUtil.Seconds2Ticks(90);
 ```
 
 #### Timestamp Operations
 ```csharp
-// Get current timestamps
 long currentTicks = DateTimeUtil.NowTicks;
 long currentTicks1970 = DateTimeUtil.NowTicks1970;
 long currentMilliseconds = DateTimeUtil.NowMilliseconds1970;
@@ -548,29 +679,27 @@ Console.WriteLine($"Current Ticks (0001 baseline): {currentTicks}");
 Console.WriteLine($"Current Ticks (1970 baseline): {currentTicks1970}");
 Console.WriteLine($"Current Milliseconds (1970 baseline): {currentMilliseconds}");
 Console.WriteLine($"Current Seconds (1970 baseline): {currentSeconds}");
+Console.WriteLine($"Unix epoch ticks: {DateTimeUtil.Ticks1970}");
 
-// Timestamp formatting
-string formattedTime = DateTimeUtil.FormatDateTime(currentMilliseconds, "yyyy-MM-dd HH:mm:ss");
+// timestamp is ticks from 0001.01.01
+string formattedTime = DateTimeUtil.FormatDateTime(currentTicks, "yyyy-MM-dd HH:mm:ss");
 Console.WriteLine($"Formatted time: {formattedTime}");
 ```
 
 #### Date Calculation
 ```csharp
-// Month day calculation
 int daysInFebruary2024 = DateTimeUtil.GetMonthDay(2, 2024);
 int daysInFebruary2023 = DateTimeUtil.GetMonthDay(2, 2023);
 
 Console.WriteLine($"Days in February 2024: {daysInFebruary2024}"); // 29 (leap year)
 Console.WriteLine($"Days in February 2023: {daysInFebruary2023}"); // 28
 
-// Leap year check
 bool isLeap2024 = DateTimeUtil.CheckLeapYear(2024);
 bool isLeap2023 = DateTimeUtil.CheckLeapYear(2023);
 
 Console.WriteLine($"2024 is leap year: {isLeap2024}"); // True
 Console.WriteLine($"2023 is leap year: {isLeap2023}"); // False
 
-// Month difference calculation
 DateTime startDate = new DateTime(2023, 1, 1);
 DateTime endDate = new DateTime(2024, 6, 15);
 int monthOffset = DateTimeUtil.GetOffsetMonth(startDate, endDate);
@@ -580,123 +709,113 @@ Console.WriteLine($"Month difference from {startDate:yyyy-MM-dd} to {endDate:yyy
 
 #### Time Series Processing
 ```csharp
-// Create time series
-DateTime startTime = new DateTime(2024, 1, 1);
-DateTime endTime = new DateTime(2024, 1, 31);
-TimeSpan interval = TimeSpan.FromDays(1);
+var series = new TimeSeries(basestamp: 0, loop: true);
 
-var timeSeries = new TimeSeries(startTime, endTime, interval);
+series.AddSlice("morning", DateTimeUtil.Hours2Ticks(8));
+series.AddSlice("work", DateTimeUtil.Hours2Ticks(8));
+series.AddSlice("evening", DateTimeUtil.Hours2Ticks(8));
 
-Console.WriteLine($"Time series length: {timeSeries.Count}");
-Console.WriteLine($"Time interval: {interval}");
+Console.WriteLine(series.Contains("work"));          // True
+Console.WriteLine(series.FindFirstSlice("work"));    // 1
 
-// Iterate through time series
-foreach (DateTime time in timeSeries)
-{
-    Console.WriteLine($"Time point: {time:yyyy-MM-dd}");
-}
+string name = series.LocateTo(DateTimeUtil.Hours2Ticks(10));
+Console.WriteLine($"Slice at 10 hours: {name}");     // work
+
+// Loop locate: wraps after the total series duration
+string looped = series.LocateTo(DateTimeUtil.Hours2Ticks(26));
+Console.WriteLine($"Slice at 26 hours: {looped}");   // work
+
+series.SetBasestamp(DateTimeUtil.NowTicks1970);
+series.RemoveAt(0);
+series.RemoveLast();
+series.RemoveAll();
 ```
 
 #### Time Slice Operations
 ```csharp
-// Create time slices
-var slice1 = new TimeSlice(
-    new DateTime(2024, 1, 1, 9, 0, 0),
-    new DateTime(2024, 1, 1, 17, 0, 0)
+var slice = TimeSlice.NewSliceWitDur(0, DateTimeUtil.Hours2Ticks(8));
+var slice2 = TimeSlice.NewSliceWithEnd(
+    DateTimeUtil.Hours2Ticks(4),
+    DateTimeUtil.Hours2Ticks(12)
 );
 
-var slice2 = new TimeSlice(
-    new DateTime(2024, 1, 1, 14, 0, 0),
-    new DateTime(2024, 1, 1, 18, 0, 0)
-);
+Console.WriteLine($"Start: {slice.Start}, End: {slice.End}, Duration: {slice.Duration}");
+Console.WriteLine(slice.Contains(DateTimeUtil.Hours2Ticks(3)));       // True
+Console.WriteLine(slice.Contains(slice.End));                        // False (end exclusive by default)
+Console.WriteLine(slice.Contains(slice.End, includeEnd: true));      // True
 
-Console.WriteLine($"Slice 1: {slice1.Start:HH:mm} - {slice1.End:HH:mm}");
-Console.WriteLine($"Slice 2: {slice2.Start:HH:mm} - {slice2.End:HH:mm}");
-Console.WriteLine($"Slice 1 duration: {slice1.Duration}");
-
-// Check overlap
-bool overlaps = slice1.Overlaps(slice2);
-Console.WriteLine($"Overlaps: {overlaps}");
-
-// Get intersection
-var intersection = slice1.Intersect(slice2);
-if (intersection.HasValue)
-{
-    Console.WriteLine($"Intersection: {intersection.Value.Start:HH:mm} - {intersection.Value.End:HH:mm}");
-}
+slice.Move(DateTimeUtil.Hours2Ticks(1));
+slice.Extend(DateTimeUtil.Hours2Ticks(2));
+slice.Zoom(2f, TimeSlice.ZoomAnchor.Center);
+slice.Zoom(0.5f, 1f); // anchor 1 = start
 ```
 
 #### High-Precision Timer
 ```csharp
-// Create timer
 var timer = new StampTimer();
-
-// Start timing
 timer.Start();
 
-// Perform some operations
-Thread.Sleep(100); // Simulate time-consuming operation
+Thread.Sleep(100);
 
-// Stop timing
+timer.Pause();
+Console.WriteLine($"Paused: {timer.IsPause}");
+Console.WriteLine($"Lost milliseconds: {timer.LostMilliseconds}");
+Console.WriteLine($"Pause milliseconds: {timer.PauseMilliseconds}");
+
+timer.Continue();
+Thread.Sleep(50);
 timer.Stop();
 
-// Get timing results
-long elapsedMs = timer.GetElapsedMilliseconds();
-long elapsedMicros = timer.GetElapsedMicroseconds();
-long elapsedNanos = timer.GetElapsedNanoseconds();
-TimeSpan elapsedTime = timer.GetElapsedTime();
+Console.WriteLine($"Lost ticks: {timer.LostTicks}");
+Console.WriteLine($"Lost milliseconds: {timer.LostMilliseconds}");
+Console.WriteLine($"Global lost milliseconds: {timer.GlobalLostMilliseconds}");
 
-Console.WriteLine($"Elapsed time:");
-Console.WriteLine($"  Milliseconds: {elapsedMs}");
-Console.WriteLine($"  Microseconds: {elapsedMicros}");
-Console.WriteLine($"  Nanoseconds: {elapsedNanos}");
-Console.WriteLine($"  Time span: {elapsedTime}");
+// Manually adjust lost time
+timer.AddLost(DateTimeUtil.TicksPerMilliSecond * 10);
+timer.AddRunningLost(DateTimeUtil.TicksPerMilliSecond);
+timer.AddPausingLost(DateTimeUtil.TicksPerMilliSecond);
 
-// Restart timer
-timer.Restart();
-// ... perform other operations
-timer.Stop();
-Console.WriteLine($"Elapsed time after restart: {timer.GetElapsedMilliseconds()}ms");
+// Baseline lost time / factory / custom clock
+var withBase = new StampTimer(DateTimeUtil.TicksPerSecond);
+var fromFactory = StampTimer.GenTimer();
+fromFactory.SetNowTicksGetter(() => DateTimeUtil.NowTicks1970);
+fromFactory.Start();
 ```
 
 #### Time Formatting
 ```csharp
-// Format current time
-DateTime now = DateTime.Now;
+DateTime now = DateTime.UtcNow;
 string formatted1 = DateTimeUtil.FormatDateTime(now, "yyyy-MM-dd HH:mm:ss");
 string formatted2 = DateTimeUtil.FormatDateTime(now, "yyyy-MM-dd HH:mm:ss.fff");
 
 Console.WriteLine($"Format 1: {formatted1}");
 Console.WriteLine($"Format 2: {formatted2}");
 
-// Format timestamp
-long timestamp = DateTimeUtil.NowMilliseconds1970;
+long timestamp = DateTimeUtil.NowTicks; // ticks from 0001.01.01
 string formattedTimestamp = DateTimeUtil.FormatDateTime(timestamp, "yyyy-MM-dd HH:mm:ss");
 string formattedLocal = DateTimeUtil.FormatDateTimeLocal(timestamp, "yyyy-MM-dd HH:mm:ss");
 
-Console.WriteLine($"Timestamp formatting: {formattedTimestamp}");
+Console.WriteLine($"Timestamp formatting (UTC): {formattedTimestamp}");
 Console.WriteLine($"Local time formatting: {formattedLocal}");
 ```
 
 #### Performance Testing
 ```csharp
-// Use timer for performance testing
 var performanceTimer = new StampTimer();
 
-// Test time unit conversion performance
 performanceTimer.Start();
 for (int i = 0; i < 1000000; i++)
 {
-    long ticks = i * 1000;
+    long ticks = i * 1000L;
     long ms = DateTimeUtil.Ticks2Millis(ticks);
-    long backToTicks = DateTimeUtil.Millis2Ticks(ms);
+    long backToTicks = DateTimeUtil.Nanos2Ticks(DateTimeUtil.Ticks2Nanos(ticks));
 }
 performanceTimer.Stop();
 
-Console.WriteLine($"1 million time conversions took: {performanceTimer.GetElapsedMilliseconds()}ms");
+Console.WriteLine($"1 million time conversions took: {performanceTimer.LostMilliseconds}ms");
 
-// Test timestamp retrieval performance
-performanceTimer.Restart();
+performanceTimer = StampTimer.GenTimer();
+performanceTimer.Start();
 for (int i = 0; i < 100000; i++)
 {
     long ticks = DateTimeUtil.NowTicks;
@@ -704,23 +823,23 @@ for (int i = 0; i < 100000; i++)
 }
 performanceTimer.Stop();
 
-Console.WriteLine($"100k timestamp retrievals took: {performanceTimer.GetElapsedMilliseconds()}ms");
+Console.WriteLine($"100k timestamp retrievals took: {performanceTimer.LostMilliseconds}ms");
 ```
 
 ### Design Features
 
-1. **High Precision**: Supports nanosecond-level precision
-2. **Multiple Baselines**: Supports both Unix and Ticks time baselines
-3. **Complete Conversion**: Supports bidirectional conversion of all time units
-4. **Practical Tools**: Provides date calculation and formatting functions
-5. **Performance Optimization**: Uses constants to avoid repeated calculations
-6. **Easy to Use**: Provides concise API interfaces
+1. **High precision**: tick-based units, convertible to nanoseconds
+2. **Two baselines**: current timestamps from both 0001-01-01 and 1970-01-01 UTC
+3. **Unit conversion**: bidirectional conversion and constants for common units
+4. **Named time series**: `TimeSeries` manages named slices and supports looped location
+5. **Mutable slices**: `TimeSlice` supports move, extend, and anchored zoom
+6. **Pausable timer**: `StampTimer` separates running lost time from pause time and accepts a custom clock
 
 ### Considerations
 
-1. **Precision Considerations**: Nanosecond-level operations may be limited by system precision
-2. **Timezone Handling**: Pay attention to the difference between UTC and local time
-3. **Performance Impact**: Frequent timestamp retrieval may affect performance
-4. **Memory Usage**: Pay attention to memory usage for large time series data
-5. **Thread Safety**: Time operations in multi-threaded environments
-6. **Baseline Time**: Pay attention to differences between different time baselines 
+1. **Precision**: 1 tick = 100 nanoseconds; nanosecond readings are limited by system clock resolution
+2. **Time zone**: current timestamps use UTC; `FormatDateTime(long)` formats as UTC, `FormatDateTimeLocal` converts to local time
+3. **Timestamp unit**: `FormatDateTime(long)` / `FormatDateTimeLocal` take **ticks from 0001-01-01**, not Unix milliseconds
+4. **TimeSlice type**: start, end, and duration are `long`, not `DateTime`; it is a mutable struct (copy semantics apply)
+5. **StampTimer clock**: defaults to `DateTimeUtil.NowTicks1970`; `Stop` internally calls `Pause`
+6. **Naming**: `TicksPerWeak` is ticks per week; `NewSliceWitDur` is the factory method name in source

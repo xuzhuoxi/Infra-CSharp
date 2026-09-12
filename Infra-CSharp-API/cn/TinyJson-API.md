@@ -5,160 +5,97 @@
 ### 静态类 (Static Classes)
 
 #### JSONParser
-JSON解析器类
+简易 JSON 解析器。尽量以较少的 GC 分配解析 JSON；提供简洁的扩展方法 API；支持解析类和结构体；无类型信息时可解析为 `Dictionary<string, object>` 和 `List<object>`；不使用 JIT Emit，以支持 iOS 等 AOT 编译环境；损坏或无效的 JSON 尽量不抛异常，而是返回 `null`；仅写入类/结构体上的公共字段和属性 setter。
+
+限制：无 JIT Emit，结构体解析较慢；受 `int.MaxValue` 限制，仅能解析小于 2GB 的 JSON；不支持抽象类或接口，解析时会抛出异常。
 
 ```csharp
 /// <summary>
-/// JSON解析器类
-/// 提供简单高效的JSON解析功能
-/// 
-/// 特性：
-/// - 约300行代码的简单JSON解析器
-/// - 尝试最小化GC分配
-/// - 简洁的API："[1,2,3]".FromJson<List<int>>()
-/// - 支持类和结构体解析
-/// - 可以解析为Dictionary<string,object>和List<object>
-/// - 支持AOT编译（无JIT Emit）
-/// - 损坏的JSON返回null而不是抛出异常
-/// - 只写入公共字段和属性setter
-/// 
+/// 约 300 行的简易 JSON 解析器。
+/// 尽量以较少的 GC 分配解析 JSON。
+/// 简洁 API："[1,2,3]".FromJson&lt;List&lt;int&gt;&gt;()
+/// 支持解析类和结构体。
+/// 无类型信息时可解析为 Dictionary&lt;string, object&gt; 和 List&lt;object&gt;。
+/// 不使用 JIT Emit，以支持 iOS 等 AOT 编译环境。
+/// 损坏或无效的 JSON 尽量不抛异常，而是返回 null。
+/// 仅写入类/结构体上的公共字段和属性 setter。
+///
 /// 限制：
-/// - 无JIT Emit支持，解析结构体较慢
-/// - 限制解析小于2GB的JSON文件
-/// - 不支持抽象类或接口解析
+/// - 无 JIT Emit，结构体解析较慢
+/// - 受 int.MaxValue 限制，仅能解析小于 2GB 的 JSON
+/// - 不支持抽象类或接口，解析时会抛出异常
 /// </summary>
 public static class JSONParser
 {
-    [ThreadStatic] static Stack<List<string>> splitArrayPool;
-    [ThreadStatic] static StringBuilder stringBuilder;
-    [ThreadStatic] static Dictionary<Type, Dictionary<string, FieldInfo>> fieldInfoCache;
-    [ThreadStatic] static Dictionary<Type, Dictionary<string, PropertyInfo>> propertyInfoCache;
-
     /// <summary>
-    /// 从JSON字符串解析为指定类型
+    /// 从 JSON 字符串解析为指定类型。
     /// </summary>
     /// <typeparam name="T">目标类型</typeparam>
-    /// <param name="json">JSON字符串</param>
-    /// <returns>解析后的对象</returns>
+    /// <param name="json">JSON 字符串</param>
+    /// <returns>解析后的对象；损坏或无效的 JSON 通常返回 null（值类型则可能为默认值）</returns>
     public static T FromJson<T>(this string json);
-
-    /// <summary>
-    /// 解析字符串值
-    /// </summary>
-    /// <param name="json">JSON字符串</param>
-    /// <returns>解析后的字符串</returns>
-    static int AppendUntilStringEnd(bool appendEscapeCharacter, int startIdx, string json);
-
-    /// <summary>
-    /// 分割JSON对象和数组
-    /// 将 { <value>:<value>, <value>:<value> } 和 [ <value>, <value> ] 分割为值字符串列表
-    /// </summary>
-    /// <param name="json">JSON字符串</param>
-    /// <returns>分割后的值列表</returns>
-    static List<string> Split(string json);
-
-    /// <summary>
-    /// 解析值到指定类型
-    /// </summary>
-    /// <param name="type">目标类型</param>
-    /// <param name="json">JSON字符串</param>
-    /// <returns>解析后的对象</returns>
-    internal static object ParseValue(Type type, string json);
-
-    /// <summary>
-    /// 解析匿名值
-    /// </summary>
-    /// <param name="json">JSON字符串</param>
-    /// <returns>解析后的对象</returns>
-    static object ParseAnonymousValue(string json);
-
-    /// <summary>
-    /// 创建成员名称字典
-    /// </summary>
-    /// <typeparam name="T">成员信息类型</typeparam>
-    /// <param name="members">成员数组</param>
-    /// <returns>成员名称字典</returns>
-    static Dictionary<string, T> CreateMemberNameDictionary<T>(T[] members) where T : MemberInfo;
-
-    /// <summary>
-    /// 解析对象
-    /// </summary>
-    /// <param name="type">对象类型</param>
-    /// <param name="json">JSON字符串</param>
-    /// <returns>解析后的对象</returns>
-    static object ParseObject(Type type, string json);
 }
 ```
 
 #### JSONWriter
-JSON写入器类
+简易 JSON 写入器。从对象输出 JSON 结构；提供简洁的扩展方法 API；仅输出对象上的公共字段和属性 getter。
 
 ```csharp
 /// <summary>
-/// JSON写入器类
-/// 提供简单高效的JSON序列化功能
-/// 
-/// 特性：
-/// - 从对象输出JSON结构
-/// - 简洁的API：(new List<int> { 1, 2, 3 }).ToJson() == "[1,2,3]"
-/// - 只输出公共字段和属性getter
+/// 简易 JSON 写入器。
+/// 从对象输出 JSON 结构。
+/// 简洁 API：(new List&lt;int&gt; { 1, 2, 3 }).ToJson() == "[1,2,3]"
+/// 仅输出对象上的公共字段和属性 getter。
 /// </summary>
 public static class JSONWriter
 {
     /// <summary>
-    /// 将对象序列化为JSON字符串
+    /// 将对象序列化为 JSON 字符串。
     /// </summary>
     /// <param name="item">要序列化的对象</param>
-    /// <returns>JSON字符串</returns>
+    /// <returns>紧凑格式的 JSON 字符串；<paramref name="item"/> 为 null 时返回 "null"</returns>
     public static string ToJson(this object item);
-
-    /// <summary>
-    /// 将值追加到StringBuilder
-    /// </summary>
-    /// <param name="stringBuilder">StringBuilder</param>
-    /// <param name="item">要追加的对象</param>
-    static void AppendValue(StringBuilder stringBuilder, object item);
-
-    /// <summary>
-    /// 获取成员名称
-    /// </summary>
-    /// <param name="member">成员信息</param>
-    /// <returns>成员名称</returns>
-    static string GetMemberName(MemberInfo member);
 }
 ```
 
 ### 功能说明
 
-#### JSON解析特性
+#### JSON 解析特性
 
 **支持的数据类型**
-- **基本类型**：string, int, float, double, decimal, bool, DateTime
-- **枚举类型**：支持枚举值的解析
-- **数组类型**：支持各种数组类型
-- **集合类型**：支持List<T>等泛型集合
-- **字典类型**：支持Dictionary<string, T>
-- **自定义类型**：支持类和结构体
+- **字符串**：`string`
+- **基元类型**：`bool`、`char`、`sbyte`、`byte`、`short`、`ushort`、`int`、`uint`、`long`、`ulong`、`float`、`double`（通过 `Convert.ChangeType`，使用不变区域性）
+- **decimal**：使用 `decimal.TryParse` 解析
+- **DateTime**：去掉引号后使用不变区域性解析
+- **枚举**：支持带或不带引号的枚举名；解析失败时返回 `0`
+- **数组**：任意元素类型的数组
+- **集合**：`List<T>`
+- **字典**：仅支持 `Dictionary<string, T>`（键类型不是 `string` 时返回 `null`）
+- **无类型**：`FromJson<object>()` 将对象解析为 `Dictionary<string, object>`，将数组解析为 `List<object>`
+- **自定义类型**：类和结构体的公共实例字段与可写属性
 
 **解析特性**
-1. **线程安全**：使用ThreadStatic变量确保线程安全
-2. **内存优化**：使用对象池减少GC压力
-3. **错误容错**：损坏的JSON返回null而不是抛出异常
-4. **反射缓存**：缓存字段和属性信息提高性能
+1. **线程安全**：使用 `ThreadStatic` 缓存字段/属性反射信息和临时缓冲区
+2. **内存优化**：使用列表对象池减少 GC 压力
+3. **错误容错**：损坏或无效的 JSON 尽量返回 `null` 而不是抛出异常
+4. **特性控制**：支持 `DataMember`（可指定 JSON 名）和 `IgnoreDataMember`；成员名匹配忽略大小写
+5. **构造函数**：使用未初始化对象创建实例，不调用构造函数
 
-#### JSON序列化特性
+#### JSON 序列化特性
 
 **序列化规则**
-- **公共成员**：只序列化公共字段和属性
-- **属性控制**：支持DataMember和IgnoreDataMember特性
-- **类型支持**：支持所有基本类型和集合类型
-- **编码处理**：正确处理特殊字符和Unicode
+- **公共成员**：只序列化公共实例字段和可读属性
+- **空值省略**：字段或属性值为 `null` 时不写入该成员
+- **特性控制**：支持 `DataMember`（可指定 JSON 名）和 `IgnoreDataMember`
+- **字典**：仅输出键类型为 `string` 的 `Dictionary<,>`；其它键类型输出 `{}`
+- **集合**：实现 `IList` 的类型按 JSON 数组输出
 
 **输出格式**
-1. **紧凑格式**：输出紧凑的JSON格式
-2. **类型保持**：保持原始数据类型
-3. **特殊字符**：正确处理转义字符
-4. **Unicode支持**：支持Unicode字符编码
+1. **紧凑格式**：无额外空白
+2. **数值**：整数按十进制输出；`float`/`double`/`decimal` 使用不变区域性
+3. **布尔**：`true` / `false`
+4. **DateTime / 枚举**：带引号的字符串（`DateTime` 使用不变区域性格式）
+5. **字符串**：转义 `"\`、控制字符及 Unicode 控制字符
 
 ### 使用示例
 
@@ -179,8 +116,8 @@ string jsonBool = "true";
 bool value = jsonBool.FromJson<bool>();
 Console.WriteLine(value); // True
 
-// 解析数组
-string jsonArray = "[1, 2, 3, 4, 5]";
+// 解析数组 / List
+string jsonArray = "[1,2,3,4,5]";
 List<int> list = jsonArray.FromJson<List<int>>();
 Console.WriteLine(string.Join(", ", list)); // 1, 2, 3, 4, 5
 ```
@@ -231,15 +168,15 @@ Console.WriteLine($"地址: {company.Properties["Address"]}");
 
 #### 动态解析
 ```csharp
-// 解析为动态对象
+// 无类型信息时解析
 string jsonDynamic = "{\"name\":\"张三\",\"age\":25,\"skills\":[\"C#\",\"Java\",\"Python\"]}";
 
-// 解析为Dictionary
+// 解析为 Dictionary
 Dictionary<string, object> dict = jsonDynamic.FromJson<Dictionary<string, object>>();
 Console.WriteLine($"姓名: {dict["name"]}");
 Console.WriteLine($"年龄: {dict["age"]}");
 
-// 解析为object（自动推断类型）
+// 解析为 object（对象 → Dictionary<string, object>，数组 → List<object>）
 object obj = jsonDynamic.FromJson<object>();
 if (obj is Dictionary<string, object> dynamicDict)
 {
@@ -278,10 +215,10 @@ public class Product
     public decimal Price { get; set; }
     public bool InStock { get; set; }
     public DateTime CreatedDate { get; set; }
-    
+
     [IgnoreDataMember]
     public string InternalId { get; set; }
-    
+
     [DataMember(Name = "product_name")]
     public string DisplayName { get; set; }
 }
@@ -292,14 +229,16 @@ var product = new Product
     Name = "笔记本电脑",
     Price = 5999.99m,
     InStock = true,
-    CreatedDate = DateTime.Now,
+    CreatedDate = new DateTime(2024, 1, 1, 12, 0, 0),
     InternalId = "INT-001",
     DisplayName = "高性能笔记本"
 };
 
 string json = product.ToJson();
 Console.WriteLine(json);
-// 输出: {"Name":"笔记本电脑","Price":5999.99,"InStock":true,"CreatedDate":"2024-01-01T12:00:00","product_name":"高性能笔记本"}
+// InternalId 因 IgnoreDataMember 被忽略
+// DisplayName 因 DataMember.Name 输出为 product_name
+// CreatedDate 以不变区域性格式输出为带引号的字符串
 ```
 
 #### 复杂对象序列化
@@ -334,31 +273,22 @@ Console.WriteLine(json);
 
 #### 错误处理
 ```csharp
-// 处理损坏的JSON
+// 损坏的 JSON 通常返回 null，而不是抛出异常
 string corruptedJson = "{\"name\":\"张三\",\"age\":25,"; // 缺少闭合括号
 
-try
+var result = corruptedJson.FromJson<Dictionary<string, object>>();
+if (result == null)
 {
-    var result = corruptedJson.FromJson<Dictionary<string, object>>();
-    if (result == null)
-    {
-        Console.WriteLine("JSON解析失败，返回null");
-    }
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"解析异常: {ex.Message}");
+    Console.WriteLine("JSON 解析失败，返回 null");
 }
 
-// 处理类型不匹配
-string typeMismatchJson = "{\"age\":\"not_a_number\"}";
-var person = typeMismatchJson.FromJson<Person>();
-Console.WriteLine($"年龄: {person.Age}"); // 可能返回默认值
+// 枚举名无法识别时返回 0
+// 抽象类或接口会抛出异常（不支持）
 ```
 
 #### 性能优化
 ```csharp
-// 批量解析
+// 批量解析（每个线程有独立的 ThreadStatic 缓存）
 var jsonList = new List<string>
 {
     "{\"name\":\"张三\",\"age\":25}",
@@ -381,28 +311,29 @@ var products = new List<Product>
     new Product { Name = "产品3", Price = 300 }
 };
 
-var jsonList = new List<string>();
+var serialized = new List<string>();
 foreach (var product in products)
 {
-    var json = product.ToJson();
-    jsonList.Add(json);
+    serialized.Add(product.ToJson());
 }
 ```
 
 ### 设计特点
 
-1. **简洁API**：提供扩展方法，使用简单
-2. **高性能**：使用ThreadStatic和对象池优化性能
-3. **容错性强**：损坏的JSON返回null而不是抛出异常
+1. **简洁 API**：`FromJson<T>()` / `ToJson()` 扩展方法
+2. **高性能**：`ThreadStatic` 缓存与列表对象池
+3. **容错性强**：损坏的 JSON 尽量返回 `null` 而不是抛出异常
 4. **类型安全**：支持强类型解析
-5. **内存优化**：最小化GC分配
-6. **AOT支持**：支持AOT编译环境
+5. **内存优化**：尽量减少 GC 分配
+6. **AOT 支持**：无 JIT Emit，可用于 iOS 等 AOT 环境
 
 ### 注意事项
 
-1. **类型限制**：不支持抽象类或接口解析
-2. **文件大小**：限制解析小于2GB的JSON文件
-3. **性能考虑**：大量数据时注意内存使用
-4. **线程安全**：每个线程有独立的缓存
-5. **编码问题**：注意JSON字符串的编码格式
-6. **特性支持**：支持DataMember和IgnoreDataMember特性 
+1. **类型限制**：不支持抽象类或接口解析（会抛出异常）
+2. **文件大小**：仅能解析小于 2GB 的 JSON（受 `int.MaxValue` 限制）
+3. **字典键**：解析和序列化均要求字典键为 `string`
+4. **线程安全**：每个线程有独立的解析缓存
+5. **构造函数**：解析自定义类型时不调用构造函数
+6. **空值**：序列化时跳过值为 `null` 的字段和属性
+7. **特性支持**：支持 `DataMember` 和 `IgnoreDataMember`
+8. **成员匹配**：解析时成员名忽略大小写

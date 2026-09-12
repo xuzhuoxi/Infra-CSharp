@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Serial module provides serialization manager functionality for starting and stopping multiple modules in sequence. This module includes serialization manager interfaces, module interfaces, status enumerations, and event definitions.
+The Serial module provides a serial module manager that starts registered modules in registration order and stops them in reverse order. Modules dispatch completion events through `IEventDispatcher`, and the manager uses those events to advance to the next module. This module includes the manager and module contracts, a status enum, and lifecycle event constants.
 
 ## Namespace
 
@@ -14,13 +14,13 @@ The Serial module provides serialization manager functionality for starting and 
 
 ### ISerialManager
 
-Serialization manager interface that defines basic operations for serialization managers.
+Serial module manager contract; registers modules and starts/stops them in registration order (reverse on stop).
 
 ```csharp
 public interface ISerialManager
 ```
 
-#### 方法
+#### Methods
 
 ##### AppendModule(ISerialModule module)
 
@@ -28,10 +28,10 @@ public interface ISerialManager
 void AppendModule(ISerialModule module);
 ```
 
-**Description:** Append module
+**Description:** Append a module to the end of the serial chain.
 
 **Parameters:**
-- `module` (ISerialModule): Serial module to add
+- `module` (ISerialModule): Module to register; ignored if null.
 
 ##### StartManager(Callback endCall = null)
 
@@ -39,13 +39,13 @@ void AppendModule(ISerialModule module);
 bool StartManager(Callback endCall = null);
 ```
 
-**Description:** Manager start
+**Description:** Start all registered modules in order; invokes `endCall` when all have started.
 
 **Parameters:**
-- `endCall` (Callback, optional): Callback function after startup completion
+- `endCall` (`Callback`, optional): Optional callback after the manager and all modules have started. `Callback` is defined in `JLGames.Infra`.
 
 **Returns:**
-- `bool`: Whether startup was successful
+- `bool`: `true` if started from `SerialStatus.Stopped`; otherwise `false`.
 
 ##### StopManager(Callback endCall = null)
 
@@ -53,19 +53,21 @@ bool StartManager(Callback endCall = null);
 bool StopManager(Callback endCall = null);
 ```
 
-**Description:** Manager stop
+**Description:** Stop all registered modules in reverse order; invokes `endCall` when all have stopped.
 
 **Parameters:**
-- `endCall` (Callback, optional): Callback function after stop completion
+- `endCall` (`Callback`, optional): Optional callback after the manager and all modules have stopped. `Callback` is defined in `JLGames.Infra`.
 
 **Returns:**
-- `bool`: Whether stop was successful
+- `bool`: `true` if stopped from `SerialStatus.Started`; otherwise `false`.
 
 ---
 
 ### ISerialModule
 
-Serialization module interface that inherits from IEventDispatcher and defines basic operations for serialization modules.
+Serial lifecycle module contract; supports startup/shutdown and dispatches completion events via `IEventDispatcher`. Inherits `IEventDispatcher` (see the Event API).
+
+After `Startup` or `Shutdown` completes, dispatch `SerialEvents.EventOnModuleStarted` or `SerialEvents.EventOnModuleStopped` respectively so `SerialManager` can proceed to the next module.
 
 ```csharp
 public interface ISerialModule : IEventDispatcher
@@ -79,7 +81,7 @@ public interface ISerialModule : IEventDispatcher
 void Startup();
 ```
 
-**Description:** Start
+**Description:** Start the module asynchronously; dispatch `SerialEvents.EventOnModuleStarted` when finished.
 
 ##### Shutdown()
 
@@ -87,7 +89,7 @@ void Startup();
 void Shutdown();
 ```
 
-**Description:** Stop
+**Description:** Stop the module asynchronously; dispatch `SerialEvents.EventOnModuleStopped` when finished.
 
 ---
 
@@ -95,18 +97,13 @@ void Shutdown();
 
 ### SerialManager
 
-Serialization manager implementation class that inherits from EventDispatcher and implements ISerialManager interface.
+Default `ISerialManager` implementation; drives modules sequentially and dispatches manager lifecycle events. Inherits `EventDispatcher` and implements `ISerialManager`.
 
 ```csharp
 public sealed class SerialManager : EventDispatcher, ISerialManager
 ```
 
-#### Fields
-
-- `m_Modules` (List<ISerialModule>): Module list
-- `m_Status` (SerialStatus): Current status
-- `m_Index` (int): Current processing module index
-- `m_EndCall` (Callback): End callback
+Public members match `ISerialManager`. The manager dispatches `SerialEvents.EventOnManagerStarted` / `EventOnManagerStopped` through the inherited `EventDispatcher`. Callers can listen with `AddEventListener` and the rest of the Event API.
 
 #### Methods
 
@@ -116,10 +113,10 @@ public sealed class SerialManager : EventDispatcher, ISerialManager
 public void AppendModule(ISerialModule module)
 ```
 
-**Description:** Add module to manager
+**Description:** Append a module to the end of the serial chain. Ignored if `module` is null.
 
 **Parameters:**
-- `module` (ISerialModule): Module to add
+- `module` (ISerialModule): Module to register; ignored if null.
 
 ##### StartManager(Callback endCall = null)
 
@@ -127,13 +124,13 @@ public void AppendModule(ISerialModule module)
 public bool StartManager(Callback endCall = null)
 ```
 
-**Description:** Start manager, start all modules in sequence
+**Description:** Start all registered modules in order; invokes `endCall` when all have started, then dispatches `SerialEvents.EventOnManagerStarted`. Startup is allowed only when the current status is `SerialStatus.Stopped`.
 
 **Parameters:**
-- `endCall` (Callback, optional): Callback after startup completion
+- `endCall` (`Callback`, optional): Optional callback after the manager and all modules have started. Completion calls `Callback.Invoke()`.
 
 **Returns:**
-- `bool`: Whether startup was successful
+- `bool`: `true` if started from `SerialStatus.Stopped`; otherwise `false`.
 
 ##### StopManager(Callback endCall = null)
 
@@ -141,57 +138,19 @@ public bool StartManager(Callback endCall = null)
 public bool StopManager(Callback endCall = null)
 ```
 
-**Description:** Stop manager, stop all modules in reverse order
+**Description:** Stop all registered modules in reverse order; invokes `endCall` when all have stopped, then dispatches `SerialEvents.EventOnManagerStopped`. Shutdown is allowed only when the current status is `SerialStatus.Started`.
 
 **Parameters:**
-- `endCall` (Callback, optional): Callback after stop completion
+- `endCall` (`Callback`, optional): Optional callback after the manager and all modules have stopped. Completion calls `Callback.Invoke()`.
 
 **Returns:**
-- `bool`: Whether stop was successful
-
-##### StartModule()
-
-```csharp
-private void StartModule()
-```
-
-**Description:** Start the module at current index
-
-##### OnModuleStartup(EventData evd)
-
-```csharp
-private void OnModuleStartup(EventData evd)
-```
-
-**Description:** Module startup completion event handling
-
-**Parameters:**
-- `evd` (EventData): Event data
-
-##### StopModule()
-
-```csharp
-private void StopModule()
-```
-
-**Description:** Stop the module at current index
-
-##### OnModuleShutdown(EventData evd)
-
-```csharp
-private void OnModuleShutdown(EventData evd)
-```
-
-**Description:** Module shutdown completion event handling
-
-**Parameters:**
-- `evd` (EventData): Event data
+- `bool`: `true` if stopped from `SerialStatus.Started`; otherwise `false`.
 
 ---
 
 ### SerialEvents
 
-Serial event constant definition class.
+Event type constants for serial module and manager lifecycle.
 
 ```csharp
 public static class SerialEvents
@@ -205,7 +164,7 @@ public static class SerialEvents
 public const string EventOnModuleStarted = "SerialModule:EventOnObserverStarted";
 ```
 
-**Description:** Serial module start finish event
+**Description:** Dispatched by a module when `ISerialModule.Startup` completes.
 
 ##### EventOnModuleStopped
 
@@ -213,7 +172,7 @@ public const string EventOnModuleStarted = "SerialModule:EventOnObserverStarted"
 public const string EventOnModuleStopped = "SerialModule:EventOnObserverStopped";
 ```
 
-**Description:** Serial module stop finish event
+**Description:** Dispatched by a module when `ISerialModule.Shutdown` completes.
 
 ##### EventOnManagerStarted
 
@@ -221,7 +180,7 @@ public const string EventOnModuleStopped = "SerialModule:EventOnObserverStopped"
 public const string EventOnManagerStarted = "SerialManager:EventOnManagerStarted";
 ```
 
-**Description:** Serial manager start finish event
+**Description:** Dispatched by `SerialManager` when all modules have started.
 
 ##### EventOnManagerStopped
 
@@ -229,7 +188,7 @@ public const string EventOnManagerStarted = "SerialManager:EventOnManagerStarted
 public const string EventOnManagerStopped = "SerialManager:EventOnManagerStopped";
 ```
 
-**Description:** Serial manager stop finish event
+**Description:** Dispatched by `SerialManager` when all modules have stopped.
 
 ---
 
@@ -237,7 +196,7 @@ public const string EventOnManagerStopped = "SerialManager:EventOnManagerStopped
 
 ### SerialStatus
 
-Serial manager status enumeration.
+Lifecycle state of `SerialManager`.
 
 ```csharp
 public enum SerialStatus
@@ -251,7 +210,7 @@ public enum SerialStatus
 Stopped
 ```
 
-**Description:** Stop completed
+**Description:** All modules stopped; ready to start.
 
 ##### Starting
 
@@ -259,7 +218,7 @@ Stopped
 Starting
 ```
 
-**Description:** Starting in progress
+**Description:** Startup in progress (modules starting sequentially).
 
 ##### Started
 
@@ -267,7 +226,7 @@ Starting
 Started
 ```
 
-**Description:** Start completed
+**Description:** All modules started; ready to stop.
 
 ##### Stopping
 
@@ -275,7 +234,7 @@ Started
 Stopping
 ```
 
-**Description:** Stopping in progress
+**Description:** Shutdown in progress (modules stopping in reverse order).
 
 ---
 
@@ -284,86 +243,85 @@ Stopping
 ### Basic Usage
 
 ```csharp
-// Create serial manager
+using JLGames.Infra;
+using JLGames.Infra.Event;
+using JLGames.Infra.Serial;
+
 var serialManager = new SerialManager();
 
-// Add modules
-serialManager.AppendModule(new MyModule1());
-serialManager.AppendModule(new MyModule2());
-serialManager.AppendModule(new MyModule3());
+serialManager.AddEventListener(SerialEvents.EventOnManagerStarted, evd =>
+{
+    Console.WriteLine("Manager started event");
+});
+serialManager.AddEventListener(SerialEvents.EventOnManagerStopped, evd =>
+{
+    Console.WriteLine("Manager stopped event");
+});
 
-// Start manager
-serialManager.StartManager(() => {
+serialManager.AppendModule(new MyModule("Module1"));
+serialManager.AppendModule(new MyModule("Module2"));
+serialManager.AppendModule(new MyModule("Module3"));
+
+bool started = serialManager.StartManager(new Callback(args =>
+{
     Console.WriteLine("All modules started");
-});
+}));
 
-// Stop manager
-serialManager.StopManager(() => {
+bool stopped = serialManager.StopManager(new Callback(args =>
+{
     Console.WriteLine("All modules stopped");
-});
+}));
 ```
+
+`StartManager` returns `true` only when the status is `Stopped`; `StopManager` returns `true` only when the status is `Started`. Calling `StopManager` before startup has finished returns `false`.
 
 ### Custom Module Implementation
 
+A module must implement `ISerialModule`. Inheriting `EventDispatcher` is the recommended way to reuse event dispatch:
+
 ```csharp
-public class MyModule : ISerialModule
+using JLGames.Infra.Event;
+using JLGames.Infra.Serial;
+
+public class MyModule : EventDispatcher, ISerialModule
 {
-    private EventDispatcher m_EventDispatcher = new EventDispatcher();
+    private readonly string m_Name;
+
+    public MyModule(string name)
+    {
+        m_Name = name;
+    }
 
     public void Startup()
     {
-        // Startup logic
-        Console.WriteLine("Module starting...");
-        
-        // Send event after startup completion
-        m_EventDispatcher.DispatchEvent(SerialEvents.EventOnModuleStarted, null);
+        Console.WriteLine($"{m_Name} starting...");
+        DispatchEvent(SerialEvents.EventOnModuleStarted, null);
     }
 
     public void Shutdown()
     {
-        // Shutdown logic
-        Console.WriteLine("Module stopping...");
-        
-        // Send event after shutdown completion
-        m_EventDispatcher.DispatchEvent(SerialEvents.EventOnModuleStopped, null);
-    }
-
-    // IEventDispatcher interface implementation
-    public void AddEventListener(string eventName, EventListener listener)
-    {
-        m_EventDispatcher.AddEventListener(eventName, listener);
-    }
-
-    public void RemoveEventListener(string eventName, EventListener listener)
-    {
-        m_EventDispatcher.RemoveEventListener(eventName, listener);
-    }
-
-    public void OnceEventListener(string eventName, EventListener listener)
-    {
-        m_EventDispatcher.OnceEventListener(eventName, listener);
-    }
-
-    public void DispatchEvent(string eventName, EventData eventData)
-    {
-        m_EventDispatcher.DispatchEvent(eventName, eventData);
+        Console.WriteLine($"{m_Name} stopping...");
+        DispatchEvent(SerialEvents.EventOnModuleStopped, null);
     }
 }
 ```
+
+If startup or shutdown is asynchronous, dispatch the matching event only after the work actually finishes, not when the method returns. The manager waits for that event via `OnceEventListener` before moving to the next module.
 
 ---
 
 ## Notes
 
-1. **Serial Execution:** SerialManager starts modules serially in the order they were added, and stops them serially in reverse order
-2. **Event-Driven:** Modules must notify startup/shutdown completion by sending appropriate events
-3. **State Management:** Manager maintains current state to prevent duplicate startup or shutdown
-4. **Error Handling:** If module startup or shutdown fails, the entire process will be interrupted
-5. **Callback Support:** Supports executing callback functions after startup/shutdown completion
+1. **Serial execution:** `SerialManager` starts modules in append order and stops them in reverse order. With no registered modules, start/stop completes immediately and still invokes the callback and manager events.
+2. **Event-driven:** Modules must dispatch `EventOnModuleStarted` / `EventOnModuleStopped` after `Startup` / `Shutdown` complete; otherwise the serial chain stalls on the current module.
+3. **State constraints:** Start is allowed only from `Stopped`, stop only from `Started`; other states return `false`.
+4. **Null modules:** `AppendModule(null)` is ignored.
+5. **Callbacks:** Completion calls `Callback.Invoke()` (using arguments bound at construction). `endCall` may be null.
+6. **Registration timing:** Call `AppendModule` before `StartManager`.
 
 ---
 
 ## Dependencies
 
-- `JLGames.Infra.Event`: Depends on event system
-- `System.Collections.Generic`: Uses List collection 
+- `JLGames.Infra`: uses `Callback`
+- `JLGames.Infra.Event`: depends on the event system (`IEventDispatcher`, `EventDispatcher`)

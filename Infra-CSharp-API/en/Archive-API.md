@@ -5,12 +5,11 @@
 ### Interfaces
 
 #### IUnarchive
-Unarchive interface
+Archive extraction contract; supports parameter configuration, single/batch unzip, and progress events. Extends `IEventDispatcher`.
 
 ```csharp
 /// <summary>
-/// Unarchive interface
-/// Provides unarchive functionality for archive files
+/// Archive extraction contract; supports parameter configuration, single/batch unzip, and progress events.
 /// </summary>
 public interface IUnarchive : IEventDispatcher
 {
@@ -21,7 +20,7 @@ public interface IUnarchive : IEventDispatcher
     void SetUnarchiveParams(UnarchiveParams @params);
 
     /// <summary>
-    /// Set the unzip storage directory path
+    /// Set the unxip storage directory path
     /// </summary>
     /// <param name="dstPath">Destination path</param>
     void SetDstPath(string dstPath);
@@ -75,12 +74,11 @@ public interface IUnarchive : IEventDispatcher
 ### Classes
 
 #### UnarchiveParams
-Unarchive parameters class
+Parameters for archive extraction (destination path, overwrite policy, entry name encoding).
 
 ```csharp
 /// <summary>
-/// Unarchive parameters class
-/// Defines various parameters for unarchive operations
+/// Parameters for archive extraction (destination path, overwrite policy, entry name encoding).
 /// </summary>
 public class UnarchiveParams
 {
@@ -89,28 +87,28 @@ public class UnarchiveParams
     private readonly Encoding m_Encoding;
 
     /// <summary>
-    /// Destination path
+    /// Destination directory for extracted files.
     /// </summary>
-    public string DstPath => m_DstPath;
+    public string DstPath { get; }
 
     /// <summary>
-    /// Whether to override
+    /// Whether to overwrite existing files at the destination.
     /// </summary>
-    public bool Override => m_Override;
+    public bool Override { get; }
 
     /// <summary>
-    /// Encoding format
+    /// Encoding used to read entry names from the archive.
     /// </summary>
-    public Encoding Encoding => m_Encoding;
+    public Encoding Encoding { get; }
 
     /// <summary>
-    /// Constructor
+    /// Create parameters with default overwrite (true) and UTF-8 encoding.
     /// </summary>
     /// <param name="dstPath">Destination path</param>
     public UnarchiveParams(string dstPath);
 
     /// <summary>
-    /// Constructor
+    /// Create parameters with the specified destination, overwrite policy, and encoding.
     /// </summary>
     /// <param name="dstPath">Destination path</param>
     /// <param name="override">Whether to override</param>
@@ -118,7 +116,7 @@ public class UnarchiveParams
     public UnarchiveParams(string dstPath, bool @override, Encoding encoding);
 
     /// <summary>
-    /// Set destination path
+    /// Update the destination directory path.
     /// </summary>
     /// <param name="path">New path</param>
     public void SetDstPath(string path);
@@ -126,70 +124,129 @@ public class UnarchiveParams
 ```
 
 #### Unzip
-Unarchive implementation class
+ZIP archive extractor; dispatches `UnarchiveEvents` per entry and per archive. Extends `EventDispatcher` and implements `IUnarchive`.
 
 ```csharp
 /// <summary>
-/// Unarchive implementation class
-/// Provides unarchive functionality for ZIP and other archive files
+/// ZIP archive extractor; dispatches <see cref="UnarchiveEvents"/> per entry and per archive.
 /// </summary>
-public class Unzip : IUnarchive
+public class Unzip : EventDispatcher, IUnarchive
 {
-    // Specific implementation requires further analysis of file content
+    /// <summary>
+    /// Set parameters
+    /// </summary>
+    /// <param name="params">Unarchive parameters</param>
+    public void SetUnarchiveParams(UnarchiveParams @params);
+
+    /// <summary>
+    /// Set the unzip storage directory path
+    /// </summary>
+    /// <param name="dstPath">Destination path</param>
+    public void SetDstPath(string dstPath);
+
+    /// <summary>
+    /// Extract a single archive using previously set parameters.
+    /// </summary>
+    /// <param name="srcFilePath">Source file path</param>
+    public void UnarchiveFile(string srcFilePath);
+
+    /// <summary>
+    /// Extract a single archive
+    /// </summary>
+    /// <param name="srcFilePath">Source file path</param>
+    /// <param name="dstDir">Destination directory</param>
+    /// <param name="override">Whether to override</param>
+    /// <param name="encoding">Encoding format</param>
+    public void UnarchiveFile(string srcFilePath, string dstDir, bool @override, Encoding encoding);
+
+    /// <summary>
+    /// Extract a single archive
+    /// </summary>
+    /// <param name="srcFilePath">Source file path</param>
+    /// <param name="params">Unarchive parameters</param>
+    public void UnarchiveFile(string srcFilePath, UnarchiveParams @params);
+
+    /// <summary>
+    /// Extract multiple archives using previously set parameters.
+    /// </summary>
+    /// <param name="srcFilePaths">Source file path collection</param>
+    public void UnarchiveFiles(IEnumerable<string> srcFilePaths);
+
+    /// <summary>
+    /// Extract multiple archives
+    /// </summary>
+    /// <param name="srcFilePaths">Source file path collection</param>
+    /// <param name="dstDir">Destination directory</param>
+    /// <param name="override">Whether to override</param>
+    /// <param name="encoding">Encoding format</param>
+    public void UnarchiveFiles(IEnumerable<string> srcFilePaths, string dstDir, bool @override, Encoding encoding);
+
+    /// <summary>
+    /// Extract multiple archives
+    /// </summary>
+    /// <param name="srcFilePaths">Source file path collection</param>
+    /// <param name="params">Unarchive parameters</param>
+    public void UnarchiveFiles(IEnumerable<string> srcFilePaths, UnarchiveParams @params);
 }
 ```
 
+`SetDstPath`: if no parameters are set, creates `UnarchiveParams` for that path (default overwrite, UTF-8); if parameters already exist, only updates the destination directory.
+
+`UnarchiveFile`: returns immediately if the source file does not exist; creates the destination directory if it is missing. Existing entries are skipped and recorded in the ignore list when `Override` is `false`. Dispatches `EventUnarchiveEntry` after each extracted entry and `EventUnarchive` when the archive is finished.
+
 #### ArchiveUtil
-Archive utility class
+Static helpers for ZIP archive extraction without subscribing to events. Internally creates `Unzip`, sets parameters, and runs extraction.
 
 ```csharp
 /// <summary>
-/// Archive utility class
-/// Provides static utility methods for archive file operations
+/// Static helpers for ZIP archive extraction without subscribing to events.
 /// </summary>
 public static class ArchiveUtil
 {
     /// <summary>
-    /// Extract ZIP file
+    /// Unpack a single archive
     /// </summary>
-    /// <param name="zipPath">ZIP file path</param>
-    /// <param name="extractPath">Extract path</param>
-    /// <param name="overwrite">Whether to overwrite</param>
-    public static void ExtractZip(string zipPath, string extractPath, bool overwrite = true);
+    /// <param name="srcFilePath">Source file path</param>
+    /// <param name="dstDir">Destination directory</param>
+    /// <param name="override">Whether to override</param>
+    /// <param name="encoding">Encoding format</param>
+    public static void UnzipFile(string srcFilePath, string dstDir, bool @override, Encoding encoding);
 
     /// <summary>
-    /// Create ZIP file
+    /// Unpack a single archive
     /// </summary>
-    /// <param name="zipPath">ZIP file path</param>
-    /// <param name="sourcePath">Source file path</param>
-    /// <param name="compressionLevel">Compression level</param>
-    public static void CreateZip(string zipPath, string sourcePath, int compressionLevel = 6);
+    /// <param name="srcFilePath">Source file path</param>
+    /// <param name="dstDir">Destination directory</param>
+    public static void UnzipFile(string srcFilePath, string dstDir);
 
     /// <summary>
-    /// Check if file is ZIP format
+    /// Unzip multiple archives
     /// </summary>
-    /// <param name="filePath">File path</param>
-    /// <returns>Whether it is ZIP format</returns>
-    public static bool IsZipFile(string filePath);
+    /// <param name="srcFilePaths">Source file path collection</param>
+    /// <param name="dstDir">Destination directory</param>
+    /// <param name="override">Whether to override</param>
+    /// <param name="encoding">Encoding format</param>
+    public static void UnzipFiles(IEnumerable<string> srcFilePaths, string dstDir, bool @override, Encoding encoding);
 
     /// <summary>
-    /// Get file list in ZIP file
+    /// Unzip multiple archives
     /// </summary>
-    /// <param name="zipPath">ZIP file path</param>
-    /// <returns>File list</returns>
-    public static string[] GetZipFileList(string zipPath);
+    /// <param name="srcFilePaths">Source file path collection</param>
+    /// <param name="dstDir">Destination directory</param>
+    public static void UnzipFiles(IEnumerable<string> srcFilePaths, string dstDir);
 }
 ```
+
+The two-argument overloads are equivalent to `@override = true` and `encoding = Encoding.UTF8`.
 
 ### Event Data Classes
 
 #### UnarchiveEventData
-Unarchive event data class
+Event payload when an entire archive has been processed.
 
 ```csharp
 /// <summary>
-/// Unarchive event data class
-/// Contains detailed information about unarchive operations
+/// Event payload when an entire archive has been processed.
 /// </summary>
 public sealed class UnarchiveEventData
 {
@@ -200,20 +257,20 @@ public sealed class UnarchiveEventData
     /// <summary>
     /// Archive file path
     /// </summary>
-    public string ArchiveFilePath => m_ArchiveFilePath;
+    public string ArchiveFilePath { get; }
 
     /// <summary>
-    /// HeaderName corresponding to the generated file after unarchive
+    /// Unarchive the HeaderName corresponding to the generated file
     /// </summary>
-    public string[] Files => m_Files;
+    public string[] Files { get; }
 
     /// <summary>
-    /// HeaderName corresponding to the ignored file after unarchive
+    /// Unarchive the HeaderName corresponding to the ignored file
     /// </summary>
-    public string[] IgnoreFiles => m_IgnoreFiles;
+    public string[] IgnoreFiles { get; }
 
     /// <summary>
-    /// Constructor
+    /// Create completion event data for one archive.
     /// </summary>
     /// <param name="archiveFilePath">Archive file path</param>
     /// <param name="files">Unarchived file list</param>
@@ -221,20 +278,18 @@ public sealed class UnarchiveEventData
     public UnarchiveEventData(string archiveFilePath, string[] files, string[] ignoreFiles);
 
     /// <summary>
-    /// String representation
+    /// Returns a short diagnostic string (path and entry counts).
     /// </summary>
-    /// <returns>Event data string</returns>
     public override string ToString();
 }
 ```
 
 #### UnarchiveEntryEventData
-Unarchive entry event data class
+Event payload when a single entry inside an archive has been extracted or skipped. The current implementation dispatches this event only after a successful extract.
 
 ```csharp
 /// <summary>
-/// Unarchive entry event data class
-/// Contains detailed information about single file unarchive
+/// Event payload when a single entry inside an archive has been extracted or skipped.
 /// </summary>
 public sealed class UnarchiveEntryEventData
 {
@@ -244,24 +299,23 @@ public sealed class UnarchiveEntryEventData
     /// <summary>
     /// Archive file path
     /// </summary>
-    public string ArchiveFilePath => m_ArchiveFilePath;
+    public string ArchiveFilePath { get; }
 
     /// <summary>
-    /// HeaderName corresponding to the generated file after unarchive
+    /// Unarchive the HeaderName corresponding to the generated file
     /// </summary>
-    public string EntryHeaderName => m_EntryHeaderName;
+    public string EntryHeaderName { get; }
 
     /// <summary>
-    /// Constructor
+    /// Create per-entry event data.
     /// </summary>
     /// <param name="archiveFilePath">Archive file path</param>
     /// <param name="entryHeaderName">Entry header name</param>
     public UnarchiveEntryEventData(string archiveFilePath, string entryHeaderName);
 
     /// <summary>
-    /// String representation
+    /// Returns a short diagnostic string (archive path and entry name).
     /// </summary>
-    /// <returns>Event data string</returns>
     public override string ToString();
 }
 ```
@@ -269,12 +323,11 @@ public sealed class UnarchiveEntryEventData
 ### Static Classes
 
 #### UnarchiveEvents
-Unarchive event constants
+Event name constants dispatched during archive extraction.
 
 ```csharp
 /// <summary>
-/// Unarchive event constants
-/// Defines event types triggered during unarchive process
+/// Event name constants dispatched during archive extraction.
 /// </summary>
 public static class UnarchiveEvents
 {
@@ -295,33 +348,33 @@ public static class UnarchiveEvents
 #### Unarchive Feature Characteristics
 
 **Basic Features**
-- **Single file unarchive**: Supports unarchiving single archive files
-- **Batch unarchive**: Supports unarchiving multiple archive files simultaneously
-- **Parameter configuration**: Supports custom unarchive parameters
-- **Event notification**: Provides unarchive progress and completion events
+- **Single file unarchive**: Supports extracting a single ZIP archive
+- **Batch unarchive**: Supports extracting multiple archives sequentially
+- **Parameter configuration**: Destination, overwrite policy, and encoding via `UnarchiveParams` or method arguments
+- **Event notification**: `Unzip` dispatches per-entry and per-archive events (`ArchiveUtil` does not subscribe to events)
 
 **Advanced Features**
-1. **Encoding support**: Supports multiple character encoding formats
-2. **Override control**: Can choose whether to override existing files
-3. **Path management**: Flexible destination path settings
-4. **Error handling**: Comprehensive exception handling mechanism
+1. **Encoding support**: `Encoding` is used to read entry names from the archive
+2. **Override control**: When `Override` is `false`, existing files are skipped and recorded in `IgnoreFiles`
+3. **Path management**: `SetDstPath` updates the destination on existing parameters, or creates default parameters if none are set
+4. **Silent skip**: `UnarchiveFile` returns without throwing if the source file does not exist
 
 #### Event-Driven Architecture
 
 **Event Types**
-- **EventUnarchiveEntry**: Single file unarchive completion event
-  - **EventUnarchive**: Complete archive unarchive completion event
+- **EventUnarchiveEntry**: Single entry extraction completion event
+- **EventUnarchive**: Complete archive processing event
 
 **Event Data**
-- **UnarchiveEventData**: Contains unarchived file list and ignored file list
-- **UnarchiveEntryEventData**: Contains unarchive information for single file
+- **UnarchiveEventData**: Contains extracted file list and ignored file list
+- **UnarchiveEntryEventData**: Contains archive path and entry name for a single entry
 
 #### Parameter Management
 
 **UnarchiveParams**
-- **DstPath**: Unarchive destination path
-- **Override**: Whether to override existing files
-- **Encoding**: File encoding format
+- **DstPath**: Destination directory for extracted files
+- **Override**: Whether to overwrite existing files at the destination (defaults to `true` in the single-argument constructor)
+- **Encoding**: Encoding used to read entry names from the archive (defaults to `Encoding.UTF8` in the single-argument constructor)
 
 ### Usage Examples
 
@@ -349,12 +402,12 @@ unarchive.UnarchiveFile("archive.zip", "extract_folder", true, Encoding.UTF8);
 
 #### Using Parameter Configuration
 ```csharp
-// Create unarchive parameters
-var params = new UnarchiveParams("output_folder", true, Encoding.UTF8);
+// Create unarchive parameters (overwrite + UTF-8)
+var unarchiveParams = new UnarchiveParams("output_folder", true, Encoding.UTF8);
 
 // Set unarchiver parameters
 var unarchive = new Unzip();
-unarchive.SetUnarchiveParams(params);
+unarchive.SetUnarchiveParams(unarchiveParams);
 
 // Unarchive file
 unarchive.UnarchiveFile("archive.zip");
@@ -378,23 +431,22 @@ unarchive.UnarchiveFiles(fileList, "batch_output", true, Encoding.UTF8);
 
 #### Using Utility Classes
 ```csharp
-// Check if it's a ZIP file
-bool isZip = ArchiveUtil.IsZipFile("file.zip");
-Console.WriteLine($"Is ZIP file: {isZip}");
+// Unpack a single ZIP (default overwrite, UTF-8)
+ArchiveUtil.UnzipFile("archive.zip", "extract_folder");
 
-// Get ZIP file list
-string[] fileList = ArchiveUtil.GetZipFileList("archive.zip");
-Console.WriteLine("ZIP file contents:");
-foreach (var file in fileList)
+// Unpack a single ZIP (explicit overwrite and encoding)
+ArchiveUtil.UnzipFile("archive.zip", "extract_folder", true, Encoding.UTF8);
+
+// Unzip multiple archives (default overwrite, UTF-8)
+var fileList = new List<string>
 {
-    Console.WriteLine($"  {file}");
-}
+    "archive1.zip",
+    "archive2.zip"
+};
+ArchiveUtil.UnzipFiles(fileList, "batch_output");
 
-// Extract ZIP file
-ArchiveUtil.ExtractZip("archive.zip", "extract_folder", true);
-
-// Create ZIP file
-ArchiveUtil.CreateZip("new_archive.zip", "source_folder", 6);
+// Unzip multiple archives (explicit overwrite and encoding)
+ArchiveUtil.UnzipFiles(fileList, "batch_output", false, Encoding.GetEncoding("GBK"));
 ```
 
 #### Advanced Unarchive Configuration
@@ -447,18 +499,18 @@ catch (Exception ex)
 
 ### Design Features
 
-1. **Event-driven**: Event-based notification mechanism
-2. **Parameterized configuration**: Flexible parameter settings
-3. **Batch processing**: Supports batch unarchive operations
-4. **Encoding support**: Supports multiple character encodings
-5. **Error handling**: Comprehensive exception handling
-6. **Utility class support**: Provides static utility methods
+1. **Event-driven**: `Unzip` dispatches per-entry and per-archive events via `EventDispatcher`
+2. **Parameterized configuration**: Destination, overwrite policy, and entry-name encoding via `UnarchiveParams`
+3. **Batch processing**: Sequential extraction from a path collection
+4. **Encoding support**: `Encoding` is used to read ZIP entry names
+5. **Override and ignore**: Existing entries are recorded in `IgnoreFiles` when overwrite is disabled
+6. **Utility class support**: `ArchiveUtil` provides static unzip helpers without event subscription
 
 ### Notes
 
 1. **File permissions**: Ensure sufficient file read/write permissions
 2. **Disk space**: Check target disk space before unarchiving
-3. **Encoding issues**: Pay attention to filename encoding format
+3. **Encoding issues**: `Encoding` applies to ZIP entry names, not file contents
 4. **Override risks**: Be careful with data security when using override mode
-5. **Memory usage**: Pay attention to memory usage when unarchiving large files
-6. **Event listeners**: Clean up unnecessary event listeners in time 
+5. **Missing source file**: Returns silently if the source path does not exist; no exception is thrown
+6. **Event listeners**: `ArchiveUtil` does not expose events; clean up unused listeners when using `Unzip`

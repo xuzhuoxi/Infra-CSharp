@@ -5,126 +5,56 @@
 ### Static Classes
 
 #### JSONParser
-JSON parser class
+A simple JSON parser. Attempts to parse JSON with minimal GC allocation; provides a concise extension-method API; supports class and struct parsing; can parse JSON without type information into `Dictionary<string, object>` and `List<object>`; does not use JIT Emit so AOT compilation (including iOS) is supported; attempts not to throw when JSON is corrupted or invalid and returns `null` instead; only writes to public fields and property setters on classes/structs.
+
+Limitations: no JIT Emit, so struct parsing is slower; limited to JSON smaller than 2GB (`int.MaxValue`); parsing abstract classes or interfaces is not supported and will throw.
 
 ```csharp
 /// <summary>
-/// JSON parser class
-/// Provides simple and efficient JSON parsing functionality
-/// 
-/// Features:
-/// - Simple JSON parser with about 300 lines of code
-/// - Attempts to minimize GC allocation
-/// - Concise API: "[1,2,3]".FromJson<List<int>>()
-/// - Supports class and struct parsing
-/// - Can parse to Dictionary<string,object> and List<object>
-/// - Supports AOT compilation (no JIT Emit)
-/// - Corrupted JSON returns null instead of throwing exceptions
-/// - Only writes to public fields and property setters
-/// 
+/// Really simple JSON parser in ~300 lines.
+/// Attempts to parse JSON files with minimal GC allocation.
+/// Nice and simple "[1,2,3]".FromJson&lt;List&lt;int&gt;&gt;() API.
+/// Classes and structs can be parsed too.
+/// Can parse JSON without type information into Dictionary&lt;string, object&gt; and List&lt;object&gt;.
+/// No JIT Emit support to support AOT compilation on iOS.
+/// Attempts are made to NOT throw an exception if the JSON is corrupted or invalid: returns null instead.
+/// Only public fields and property setters on classes/structs will be written to.
+///
 /// Limitations:
-/// - No JIT Emit support, struct parsing is slower
-/// - Limited to parsing JSON files smaller than 2GB
-/// - Does not support abstract class or interface parsing
+/// - No JIT Emit support to parse structures quickly
+/// - Limited to parsing &lt;2GB JSON files (due to int.MaxValue)
+/// - Parsing of abstract classes or interfaces is NOT supported and will throw an exception
 /// </summary>
 public static class JSONParser
 {
-    [ThreadStatic] static Stack<List<string>> splitArrayPool;
-    [ThreadStatic] static StringBuilder stringBuilder;
-    [ThreadStatic] static Dictionary<Type, Dictionary<string, FieldInfo>> fieldInfoCache;
-    [ThreadStatic] static Dictionary<Type, Dictionary<string, PropertyInfo>> propertyInfoCache;
-
     /// <summary>
-    /// Parse from JSON string to specified type
+    /// Parse a JSON string into the specified type.
     /// </summary>
     /// <typeparam name="T">Target type</typeparam>
     /// <param name="json">JSON string</param>
-    /// <returns>Parsed object</returns>
+    /// <returns>Parsed object; corrupted or invalid JSON typically returns null (or a default value type)</returns>
     public static T FromJson<T>(this string json);
-
-    /// <summary>
-    /// Parse string value
-    /// </summary>
-    /// <param name="json">JSON string</param>
-    /// <returns>Parsed string</returns>
-    static int AppendUntilStringEnd(bool appendEscapeCharacter, int startIdx, string json);
-
-    /// <summary>
-    /// Split JSON objects and arrays
-    /// Splits { <value>:<value>, <value>:<value> } and [ <value>, <value> ] into value string lists
-    /// </summary>
-    /// <param name="json">JSON string</param>
-    /// <returns>Split value list</returns>
-    static List<string> Split(string json);
-
-    /// <summary>
-    /// Parse value to specified type
-    /// </summary>
-    /// <param name="type">Target type</param>
-    /// <param name="json">JSON string</param>
-    /// <returns>Parsed object</returns>
-    internal static object ParseValue(Type type, string json);
-
-    /// <summary>
-    /// Parse anonymous value
-    /// </summary>
-    /// <param name="json">JSON string</param>
-    /// <returns>Parsed object</returns>
-    static object ParseAnonymousValue(string json);
-
-    /// <summary>
-    /// Create member name dictionary
-    /// </summary>
-    /// <typeparam name="T">Member info type</typeparam>
-    /// <param name="members">Member array</param>
-    /// <returns>Member name dictionary</returns>
-    static Dictionary<string, T> CreateMemberNameDictionary<T>(T[] members) where T : MemberInfo;
-
-    /// <summary>
-    /// Parse object
-    /// </summary>
-    /// <param name="type">Object type</param>
-    /// <param name="json">JSON string</param>
-    /// <returns>Parsed object</returns>
-    static object ParseObject(Type type, string json);
 }
 ```
 
 #### JSONWriter
-JSON writer class
+A simple JSON writer. Outputs JSON structures from an object; provides a concise extension-method API; only outputs public fields and property getters on objects.
 
 ```csharp
 /// <summary>
-/// JSON writer class
-/// Provides simple and efficient JSON serialization functionality
-/// 
-/// Features:
-/// - Outputs JSON structure from objects
-/// - Concise API: (new List<int> { 1, 2, 3 }).ToJson() == "[1,2,3]"
-/// - Only outputs public fields and property getters
+/// Really simple JSON writer.
+/// Outputs JSON structures from an object.
+/// Really simple API: (new List&lt;int&gt; { 1, 2, 3 }).ToJson() == "[1,2,3]"
+/// Will only output public fields and property getters on objects.
 /// </summary>
 public static class JSONWriter
 {
     /// <summary>
-    /// Serialize object to JSON string
+    /// Serialize an object to a JSON string.
     /// </summary>
     /// <param name="item">Object to serialize</param>
-    /// <returns>JSON string</returns>
+    /// <returns>Compact JSON string; returns "null" when <paramref name="item"/> is null</returns>
     public static string ToJson(this object item);
-
-    /// <summary>
-    /// Append value to StringBuilder
-    /// </summary>
-    /// <param name="stringBuilder">StringBuilder</param>
-    /// <param name="item">Object to append</param>
-    static void AppendValue(StringBuilder stringBuilder, object item);
-
-    /// <summary>
-    /// Get member name
-    /// </summary>
-    /// <param name="member">Member info</param>
-    /// <returns>Member name</returns>
-    static string GetMemberName(MemberInfo member);
 }
 ```
 
@@ -133,32 +63,39 @@ public static class JSONWriter
 #### JSON Parsing Features
 
 **Supported Data Types**
-- **Basic Types:** string, int, float, double, decimal, bool, DateTime
-- **Enum Types:** Support enum value parsing
-- **Array Types:** Support various array types
-- **Collection Types:** Support generic collections like List<T>
-- **Dictionary Types:** Support Dictionary<string, T>
-- **Custom Types:** Support classes and structs
+- **String:** `string`
+- **Primitive types:** `bool`, `char`, `sbyte`, `byte`, `short`, `ushort`, `int`, `uint`, `long`, `ulong`, `float`, `double` (via `Convert.ChangeType` with invariant culture)
+- **decimal:** parsed with `decimal.TryParse`
+- **DateTime:** quotes stripped, then parsed with invariant culture
+- **Enums:** quoted or unquoted enum names; parse failure returns `0`
+- **Arrays:** arrays of any element type
+- **Collections:** `List<T>`
+- **Dictionaries:** `Dictionary<string, T>` only (returns `null` when the key type is not `string`)
+- **Untyped:** `FromJson<object>()` parses objects as `Dictionary<string, object>` and arrays as `List<object>`
+- **Custom types:** public instance fields and writable properties on classes and structs
 
 **Parsing Features**
-1. **Thread Safety:** Uses ThreadStatic variables to ensure thread safety
-2. **Memory Optimization:** Uses object pools to reduce GC pressure
-3. **Error Tolerance:** Returns null instead of throwing exceptions for corrupted JSON
-4. **Reflection Caching:** Caches field and property information to improve performance
+1. **Thread Safety:** Uses `ThreadStatic` caches for field/property reflection and temporary buffers
+2. **Memory Optimization:** Uses a list object pool to reduce GC pressure
+3. **Error Tolerance:** Corrupted or invalid JSON typically returns `null` instead of throwing
+4. **Attribute Control:** Supports `DataMember` (optional JSON name) and `IgnoreDataMember`; member names match case-insensitively
+5. **Constructors:** Instances are created uninitialized; constructors are not called
 
 #### JSON Serialization Features
 
 **Serialization Rules**
-- **Public Members:** Only serializes public fields and properties
-- **Attribute Control:** Supports DataMember and IgnoreDataMember attributes
-- **Type Support:** Supports all basic types and collection types
-- **Encoding Handling:** Properly handles special characters and Unicode
+- **Public Members:** Only serializes public instance fields and readable properties
+- **Null Omission:** Members whose value is `null` are omitted
+- **Attribute Control:** Supports `DataMember` (optional JSON name) and `IgnoreDataMember`
+- **Dictionaries:** Only `Dictionary<,>` with `string` keys is written; other key types emit `{}`
+- **Collections:** Types that implement `IList` are written as JSON arrays
 
 **Output Format**
-1. **Compact Format:** Outputs compact JSON format
-2. **Type Preservation:** Maintains original data types
-3. **Special Characters:** Properly handles escape characters
-4. **Unicode Support:** Supports Unicode character encoding
+1. **Compact Format:** No extra whitespace
+2. **Numbers:** Integers in decimal; `float`/`double`/`decimal` use invariant culture
+3. **Booleans:** `true` / `false`
+4. **DateTime / enums:** Quoted strings (`DateTime` uses invariant culture formatting)
+5. **Strings:** Escapes `"\`, control characters, and Unicode control characters
 
 ### Usage Examples
 
@@ -179,8 +116,8 @@ string jsonBool = "true";
 bool value = jsonBool.FromJson<bool>();
 Console.WriteLine(value); // True
 
-// Parse arrays
-string jsonArray = "[1, 2, 3, 4, 5]";
+// Parse arrays / List
+string jsonArray = "[1,2,3,4,5]";
 List<int> list = jsonArray.FromJson<List<int>>();
 Console.WriteLine(string.Join(", ", list)); // 1, 2, 3, 4, 5
 ```
@@ -198,7 +135,6 @@ public class Person
 // Parse object
 string jsonPerson = "{\"Name\":\"John\",\"Age\":25,\"Email\":\"john@example.com\"}";
 Person person = jsonPerson.FromJson<Person>();
-```
 Console.WriteLine($"Name: {person.Name}, Age: {person.Age}, Email: {person.Email}");
 ```
 
@@ -232,7 +168,7 @@ Console.WriteLine($"Address: {company.Properties["Address"]}");
 
 #### Dynamic Parsing
 ```csharp
-// Parse to dynamic object
+// Parse without type information
 string jsonDynamic = "{\"name\":\"John\",\"age\":25,\"skills\":[\"C#\",\"Java\",\"Python\"]}";
 
 // Parse to Dictionary
@@ -240,7 +176,7 @@ Dictionary<string, object> dict = jsonDynamic.FromJson<Dictionary<string, object
 Console.WriteLine($"Name: {dict["name"]}");
 Console.WriteLine($"Age: {dict["age"]}");
 
-// Parse to object (automatic type inference)
+// Parse to object (objects → Dictionary<string, object>, arrays → List<object>)
 object obj = jsonDynamic.FromJson<object>();
 if (obj is Dictionary<string, object> dynamicDict)
 {
@@ -279,10 +215,10 @@ public class Product
     public decimal Price { get; set; }
     public bool InStock { get; set; }
     public DateTime CreatedDate { get; set; }
-    
+
     [IgnoreDataMember]
     public string InternalId { get; set; }
-    
+
     [DataMember(Name = "product_name")]
     public string DisplayName { get; set; }
 }
@@ -293,14 +229,16 @@ var product = new Product
     Name = "Laptop",
     Price = 999.99m,
     InStock = true,
-    CreatedDate = DateTime.Now,
+    CreatedDate = new DateTime(2024, 1, 1, 12, 0, 0),
     InternalId = "INT-001",
     DisplayName = "High Performance Laptop"
 };
 
 string json = product.ToJson();
 Console.WriteLine(json);
-// Output: {"Name":"Laptop","Price":999.99,"InStock":true,"CreatedDate":"2024-01-01T12:00:00","product_name":"High Performance Laptop"}
+// InternalId is omitted because of IgnoreDataMember
+// DisplayName is written as product_name because of DataMember.Name
+// CreatedDate is a quoted string formatted with invariant culture
 ```
 
 #### Complex Object Serialization
@@ -335,31 +273,22 @@ Console.WriteLine(json);
 
 #### Error Handling
 ```csharp
-// Handle corrupted JSON
+// Corrupted JSON typically returns null instead of throwing
 string corruptedJson = "{\"name\":\"John\",\"age\":25,"; // Missing closing brace
 
-try
+var result = corruptedJson.FromJson<Dictionary<string, object>>();
+if (result == null)
 {
-    var result = corruptedJson.FromJson<Dictionary<string, object>>();
-    if (result == null)
-    {
-        Console.WriteLine("JSON parsing failed, returned null");
-    }
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Parsing exception: {ex.Message}");
+    Console.WriteLine("JSON parsing failed, returned null");
 }
 
-// Handle type mismatch
-string typeMismatchJson = "{\"age\":\"not_a_number\"}";
-var person = typeMismatchJson.FromJson<Person>();
-Console.WriteLine($"Age: {person.Age}"); // May return default value
+// Unrecognized enum names return 0
+// Abstract classes or interfaces throw (not supported)
 ```
 
 #### Performance Optimization
 ```csharp
-// Batch parsing
+// Batch parsing (each thread has its own ThreadStatic cache)
 var jsonList = new List<string>
 {
     "{\"name\":\"John\",\"age\":25}",
@@ -382,28 +311,29 @@ var products = new List<Product>
     new Product { Name = "Product3", Price = 300 }
 };
 
-var jsonList = new List<string>();
+var serialized = new List<string>();
 foreach (var product in products)
 {
-    var json = product.ToJson();
-    jsonList.Add(json);
+    serialized.Add(product.ToJson());
 }
 ```
 
 ### Design Features
 
-1. **Concise API**: Provides extension methods, simple to use
-2. **High Performance**: Uses ThreadStatic and object pools to optimize performance
-3. **Error Tolerant**: Corrupted JSON returns null instead of throwing exceptions
-4. **Type Safe**: Supports strongly typed parsing
-5. **Memory Optimized**: Minimizes GC allocation
-6. **AOT Support**: Supports AOT compilation environment
+1. **Concise API:** `FromJson<T>()` / `ToJson()` extension methods
+2. **High Performance:** `ThreadStatic` caches and a list object pool
+3. **Error Tolerant:** Corrupted JSON typically returns `null` instead of throwing
+4. **Type Safe:** Supports strongly typed parsing
+5. **Memory Optimized:** Minimizes GC allocation
+6. **AOT Support:** No JIT Emit; usable in AOT environments such as iOS
 
 ### Considerations
 
-1. **Type Limitations**: Does not support abstract class or interface parsing
-2. **File Size**: Limited to parsing JSON files smaller than 2GB
-3. **Performance Considerations**: Pay attention to memory usage for large amounts of data
-4. **Thread Safety**: Each thread has independent cache
-5. **Encoding Issues**: Pay attention to JSON string encoding format
-6. **Attribute Support**: Supports DataMember and IgnoreDataMember attributes 
+1. **Type Limitations:** Abstract classes or interfaces are not supported (throws)
+2. **File Size:** Limited to JSON smaller than 2GB (`int.MaxValue`)
+3. **Dictionary Keys:** Both parse and serialize require dictionary keys to be `string`
+4. **Thread Safety:** Each thread has an independent parse cache
+5. **Constructors:** Custom types are created uninitialized; constructors are not called
+6. **Null Values:** Serialization skips fields and properties whose value is `null`
+7. **Attribute Support:** Supports `DataMember` and `IgnoreDataMember`
+8. **Member Matching:** Parse matches member names case-insensitively

@@ -37,10 +37,9 @@ Reusable object pool class
 
 ```csharp
 /// <summary>
-/// Reusable object pool
-/// Contains three sub-pools internally: reusable object pool, in-use object pool, and destroying object pool
+/// Reusable object pool with three sub-pools: reusable, in-use, and pending destroy.
 /// </summary>
-/// <typeparam name="T">Object type</typeparam>
+/// <typeparam name="T">Pooled object type.</typeparam>
 public class ReuseObjectPool<T>
 {
     private readonly int m_MaxReuseCount;
@@ -49,8 +48,8 @@ public class ReuseObjectPool<T>
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="initCapacity">Capacity size of sub pool</param>
-    /// <param name="maxReuseCount">Maximum number of reused objects</param>
+    /// <param name="initCapacity">Initial capacity of each sub-pool.</param>
+    /// <param name="maxReuseCount">Maximum objects allowed in the reusable sub-pool.</param>
     public ReuseObjectPool(int initCapacity = 8, int maxReuseCount = 100);
 
     // Public properties
@@ -83,16 +82,16 @@ public class ReuseObjectPool<T>
     /// <summary>
     /// Check if there is an object in the subpool
     /// </summary>
-    /// <param name="type">Subpool type</param>
-    /// <returns>Whether empty</returns>
+    /// <param name="type">Sub-pool to check.</param>
+    /// <returns>True if the sub-pool has no objects.</returns>
     public bool IsPoolEmpty(ReusePoolSubType type);
 
     /// <summary>
     /// Check if the object exists in the pool
     /// </summary>
-    /// <param name="type">Subpool type</param>
-    /// <param name="o">Object to check</param>
-    /// <returns>Whether exists in pool</returns>
+    /// <param name="type">Sub-pool to search.</param>
+    /// <param name="o">Object to look up.</param>
+    /// <returns>True if the object exists in the sub-pool.</returns>
     public bool InPool(ReusePoolSubType type, T o);
 
     /// <summary>
@@ -100,292 +99,316 @@ public class ReuseObjectPool<T>
     /// If the object itself is in the pool, return failure.
     /// If the object is in another pool, remove it and add it to the target pool
     /// </summary>
-    /// <param name="targetType">Target pool type</param>
-    /// <param name="o">Object to move</param>
-    /// <returns>Whether successful</returns>
+    /// <param name="targetType">Destination sub-pool.</param>
+    /// <param name="o">Object to move.</param>
+    /// <returns>False if already in target pool; otherwise whether the move succeeded.</returns>
     public bool TransferTo(ReusePoolSubType targetType, T o);
 
     /// <summary>
     /// Reuse an object
     /// Remove an object from the reuse pool and add it to the usage pool
     /// </summary>
-    /// <returns>Reused object</returns>
+    /// <returns>Reused object moved to the in-use pool, or default if reusable pool is empty.</returns>
     public T TransferResueToUsing();
 
     /// <summary>
     /// Remove the object from the pool
     /// </summary>
-    /// <param name="sourceType">Source pool type</param>
-    /// <param name="o">Object to remove</param>
-    /// <returns>Whether successfully removed</returns>
+    /// <param name="sourceType">Sub-pool to remove from.</param>
+    /// <param name="o">Object to remove.</param>
+    /// <returns>True if the object was removed.</returns>
     public bool RemoveFormPool(ReusePoolSubType sourceType, T o);
 
     /// <summary>
     /// Add object to target pool.
     /// </summary>
-    /// <param name="targetType">Target pool type</param>
-    /// <param name="o">Object to add</param>
-    /// <returns>Whether successfully added</returns>
+    /// <param name="targetType">Destination sub-pool.</param>
+    /// <param name="o">Object to add.</param>
+    /// <returns>True if added; false if null, duplicate, or reusable pool is full.</returns>
     public bool AddToPool(ReusePoolSubType targetType, T o);
 
     /// <summary>
-    /// Transfer object to target pool.
+    /// Transfer an object from one sub-pool to another.
     /// </summary>
-    /// <param name="sourceType">Source pool type</param>
-    /// <param name="targetType">Target pool type</param>
-    /// <param name="o">Object to transfer</param>
-    /// <returns>Transferred object</returns>
+    /// <param name="sourceType">Source sub-pool.</param>
+    /// <param name="targetType">Destination sub-pool.</param>
+    /// <param name="o">Object to transfer.</param>
+    /// <returns>Transferred object on success, or default on failure.</returns>
     public T TransferBetween(ReusePoolSubType sourceType, ReusePoolSubType targetType, T o);
 
     /// <summary>
     /// Clear all objects in sub pool
     /// </summary>
-    /// <param name="type">Subpool type</param>
-    /// <returns>Cleared object array</returns>
+    /// <param name="type">Sub-pool to clear.</param>
+    /// <returns>Objects that were in the sub-pool before clearing; null if sub-pool not found.</returns>
     public T[] ClearSubPool(ReusePoolSubType type);
 
     /// <summary>
     /// Clear all objects
     /// </summary>
-    /// <returns>Cleared object array</returns>
+    /// <returns>All objects from every sub-pool before clearing.</returns>
     public T[] ClearAll();
 
     /// <summary>
     /// Traverse all elements of the subpool
     /// </summary>
-    /// <param name="poolType">Pool type</param>
-    /// <param name="action">Traversal action</param>
+    /// <param name="poolType">Sub-pool to traverse.</param>
+    /// <param name="action">Action invoked per element.</param>
     public void ForeachElement(ReusePoolSubType poolType, Action<T> action);
 
     // Protected methods
-    /// <summary>
-    /// Clear subpool
-    /// </summary>
-    /// <param name="subPool">Subpool</param>
-    /// <returns>Cleared object array</returns>
     protected T[] ClearSubPool(List<T> subPool);
-
-    /// <summary>
-    /// Get subpool
-    /// </summary>
-    /// <param name="type">Pool type</param>
-    /// <returns>Subpool</returns>
     protected List<T> GetSubPool(ReusePoolSubType type);
-
-    /// <summary>
-    /// Transfer object between two pools
-    /// </summary>
-    /// <param name="sourcePool">源池</param>
-    /// <param name="targetPool">目标池</param>
-    /// <param name="o">要转移的对象</param>
-    /// <returns>转移的对象</returns>
     protected T TransferBetween(List<T> sourcePool, List<T> targetPool, T o);
-
-    /// <summary>
-    /// 在两个池之间转移对象（按索引）
-    /// </summary>
-    /// <param name="sourcePool">源池</param>
-    /// <param name="targetPool">目标池</param>
-    /// <param name="sourceIndex">源索引</param>
-    /// <returns>转移的对象</returns>
     protected T TransferBetween(List<T> sourcePool, List<T> targetPool, int sourceIndex);
-
-    /// <summary>
-    /// 从池中移除对象（按索引）
-    /// </summary>
-    /// <param name="subPool">子池</param>
-    /// <param name="index">索引</param>
-    /// <returns>移除的对象</returns>
     protected T RemoveFormPool(List<T> subPool, int index);
-
-    /// <summary>
-    /// Remove object from pool
-    /// </summary>
-    /// <param name="subPool">Subpool</param>
-    /// <param name="o">Object to remove</param>
-    /// <returns>Whether successfully removed</returns>
     protected bool RemoveFormPool(List<T> subPool, T o);
-
-    /// <summary>
-    /// Remove object from all pools
-    /// </summary>
-    /// <param name="o">Object to remove</param>
-    /// <returns>Whether successfully removed</returns>
     protected bool RemoveFormPool(T o);
-
-    /// <summary>
-    /// Add object to pool
-    /// </summary>
-    /// <param name="subPool">Subpool</param>
-    /// <param name="o">Object to add</param>
-    /// <returns>Whether successfully added</returns>
     protected bool AddToPool(List<T> subPool, T o);
 }
 ```
 
-#### KVObjectPool<K, V>
-Key-value object pool class
+#### KVObjectPool<TKey, TValue>
+Key-value mapping object pool class
 
 ```csharp
 /// <summary>
-/// Key-value object pool class
-/// Provides key-value pair based object pool management
+/// Key-Value mapping object pool
 /// </summary>
-/// <typeparam name="K">Key type</typeparam>
-/// <typeparam name="V">Value type</typeparam>
-public class KVObjectPool<K, V>
+/// <typeparam name="TKey">Dictionary key type.</typeparam>
+/// <typeparam name="TValue">Stored reference type.</typeparam>
+public sealed class KVObjectPool<TKey, TValue> where TValue : class
 {
-    private readonly Dictionary<K, V> m_Pool;
+    private readonly Dictionary<TKey, TValue> m_CacheMap;
+
+    /// <summary>
+    /// Create a pool with default dictionary capacity.
+    /// </summary>
+    public KVObjectPool();
 
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="capacity">Initial capacity</param>
-    public KVObjectPool(int capacity = 16);
+    /// <param name="size">Initial dictionary capacity.</param>
+    public KVObjectPool(int size);
 
     /// <summary>
-    /// Number of objects in pool
+    /// Add or replace an entry by key.
     /// </summary>
-    public int Count { get; }
+    /// <param name="key">Entry key.</param>
+    /// <param name="value">Object to store.</param>
+    public void Add(TKey key, TValue value);
 
     /// <summary>
-    /// Add object to pool
+    /// Remove
     /// </summary>
-    /// <param name="key">Key</param>
-    /// <param name="value">Value</param>
-    /// <returns>Whether successfully added</returns>
-    public bool Add(K key, V value);
+    /// <param name="key">Entry key to remove.</param>
+    public void Remove(TKey key);
 
     /// <summary>
-    /// Get object from pool
+    /// Remove all
     /// </summary>
-    /// <param name="key">Key</param>
-    /// <param name="value">Output value</param>
-    /// <returns>Whether successfully retrieved</returns>
-    public bool TryGet(K key, out V value);
+    public void RemoveAll();
 
     /// <summary>
-    /// Remove object from pool
+    /// Check exist
     /// </summary>
-    /// <param name="key">Key</param>
-    /// <returns>Whether successfully removed</returns>
-    public bool Remove(K key);
+    /// <param name="key">Entry key.</param>
+    /// <returns>True if the key exists.</returns>
+    public bool ContainsKey(TKey key);
 
     /// <summary>
-    /// Check if pool contains specified key
+    /// Get object
     /// </summary>
-    /// <param name="key">Key</param>
-    /// <returns>Whether contains</returns>
-    public bool ContainsKey(K key);
+    /// <param name="key">Entry key.</param>
+    /// <returns>Stored value, or default if key not found.</returns>
+    public TValue GetValue(TKey key);
 
     /// <summary>
-    /// Clear pool
+    /// Clone object
     /// </summary>
-    public void Clear();
-
-    /// <summary>
-    /// Traverse all objects in pool
-    /// </summary>
-    /// <param name="action">Traversal action</param>
-    public void ForEach(Action<K, V> action);
+    /// <param name="key">Entry key whose value to clone.</param>
+    /// <param name="cloneAction">Optional custom clone delegate; uses ICloneable when null.</param>
+    /// <returns>Cloned value, or default if key missing or cloning unsupported.</returns>
+    public TValue CloneValue(TKey key, PoolDelegate.CloneObject<TValue> cloneAction = null);
 }
 ```
 
 #### MetaObjectPool<T>
-Meta object pool class
+Meta / prototype object pool class
 
 ```csharp
 /// <summary>
-/// Meta object pool class
-/// Provides metadata-based object pool management
+/// Meta object pool.
+/// Modify the pool size to automatically increase or decrease objects.
 /// </summary>
-/// <typeparam name="T">Object type</typeparam>
-public class MetaObjectPool<T>
+/// <typeparam name="T">Pooled reference type.</typeparam>
+public class MetaObjectPool<T> where T : class
 {
-    private readonly Dictionary<string, List<T>> m_Pool;
-    private readonly int m_MaxPoolSize;
+    /// <summary>
+    /// Factory that creates a new pooled instance.
+    /// </summary>
+    /// <returns>New instance.</returns>
+    public delegate T OriginGenFunc();
 
     /// <summary>
-    /// Constructor
+    /// Callback on creation
     /// </summary>
-    /// <param name="maxPoolSize">Maximum pool size</param>
-    public MetaObjectPool(int maxPoolSize = 100);
+    /// <param name="o">Newly created instance.</param>
+    public delegate void CreateCallback(T o);
 
     /// <summary>
-    /// Add object to specified metadata pool
+    /// Callback on destroy
     /// </summary>
-    /// <param name="metaKey">Metadata key</param>
-    /// <param name="obj">Object</param>
-    /// <returns>Whether successfully added</returns>
-    public bool Add(string metaKey, T obj);
+    /// <param name="o">Instance being removed from the pool.</param>
+    public delegate void DestroyCallback(T o);
+
+    protected readonly T m_Original;
+    protected readonly OriginGenFunc m_OriginGenFuncGen;
+    protected readonly List<T> m_ObjectPool;
+    protected CreateCallback m_CreateCallback = null;
+    protected DestroyCallback m_DestroyCallback = null;
 
     /// <summary>
-    /// Get object from specified metadata pool
+    /// Current number of objects in the pool.
     /// </summary>
-    /// <param name="metaKey">Metadata key</param>
-    /// <returns>Object, returns default value if pool is empty</returns>
-    public T Get(string metaKey);
+    public int Count { get; }
 
     /// <summary>
-    /// Remove object from specified metadata pool
+    /// constructor
     /// </summary>
-    /// <param name="metaKey">Metadata key</param>
-    /// <returns>Removed object</returns>
-    public T Remove(string metaKey);
+    /// <param name="original">Meta Object</param>
+    /// <param name="size">Number of initial objects</param>
+    /// <param name="capacity">Object pool initial capacity</param>
+    public MetaObjectPool(T original, int size = 0, int capacity = 0);
 
     /// <summary>
-    /// Check if specified metadata pool is empty
+    /// constructor
     /// </summary>
-    /// <param name="metaKey">Metadata key</param>
-    /// <returns>Whether empty</returns>
-    public bool IsEmpty(string metaKey);
+    /// <param name="originGenFuncGen">Object constructor</param>
+    /// <param name="size">Number of initial objects</param>
+    /// <param name="capacity">Object pool initial capacity</param>
+    public MetaObjectPool(OriginGenFunc originGenFuncGen, int size = 0, int capacity = 0);
 
     /// <summary>
-    /// Get size of specified metadata pool
+    /// constructor
     /// </summary>
-    /// <param name="metaKey">Metadata key</param>
-    /// <returns>Pool size</returns>
-    public int GetPoolSize(string metaKey);
+    /// <param name="original">Meta Object</param>
+    /// <param name="size">Number of initial objects</param>
+    public MetaObjectPool(T original, int size);
 
     /// <summary>
-    /// Clear specified metadata pool
+    /// constructor
     /// </summary>
-    /// <param name="metaKey">Metadata key</param>
-    /// <returns>Cleared object array</returns>
-    public T[] ClearPool(string metaKey);
+    /// <param name="originGenFuncGen">Object constructor</param>
+    /// <param name="size">Number of initial objects</param>
+    public MetaObjectPool(OriginGenFunc originGenFuncGen, int size);
 
     /// <summary>
-    /// Clear all pools
+    /// Setting callback on creation
     /// </summary>
-    public void ClearAll();
+    /// <param name="callback">Callback invoked when an object is added.</param>
+    public void SetCreateCallback(CreateCallback callback);
 
     /// <summary>
-    /// Traverse all objects in specified metadata pool
+    /// Setting callback on destroy
     /// </summary>
-    /// <param name="metaKey">Metadata key</param>
-    /// <param name="action">Traversal action</param>
-    public void ForEach(string metaKey, Action<T> action);
+    /// <param name="callback">Callback invoked when an object is removed.</param>
+    public void SetDestroyCallback(DestroyCallback callback);
+
+    /// <summary>
+    /// Resize the pool to the target count.
+    /// </summary>
+    /// <param name="size">Target object count.</param>
+    /// <returns>Added or removed instances; null if count unchanged.</returns>
+    public T[] UpdateToSize(int size);
+
+    /// <summary>
+    /// Update number of objects by offset
+    /// </summary>
+    /// <param name="offset">Delta count (positive to add, negative to remove).</param>
+    /// <returns>Added or removed instances; null if offset is 0.</returns>
+    public T[] Offset(int offset);
+
+    /// <summary>
+    /// Remove number of objects.
+    /// </summary>
+    /// <param name="removeSize">Number of instances to remove.</param>
+    /// <returns>Removed instances; null if removeSize is less than or equal to 0.</returns>
+    public virtual T[] Remove(int removeSize);
+
+    /// <summary>
+    /// Add number of objects.
+    /// </summary>
+    /// <param name="addSize">Number of instances to add.</param>
+    /// <returns>Newly added instances; null if addSize is less than or equal to 0.</returns>
+    public virtual T[] Add(int addSize);
+
+    /// <summary>
+    /// Gets or sets the object at the specified index.
+    /// </summary>
+    /// <param name="index">Zero-based index.</param>
+    public T this[int index] { get; set; }
+
+    /// <summary>
+    /// get the first element
+    /// </summary>
+    public T First { get; }
+
+    /// <summary>
+    /// get the last element
+    /// </summary>
+    public T Last { get; }
+
+    /// <summary>
+    /// find the first matched element.
+    /// </summary>
+    /// <param name="match">Predicate for matching.</param>
+    /// <returns>First match, or default if none.</returns>
+    public T FindFirst(Predicate<T> match);
+
+    /// <summary>
+    /// find the last matched element.
+    /// </summary>
+    /// <param name="match">Predicate for matching.</param>
+    /// <returns>Last match, or default if none.</returns>
+    public T FindLast(Predicate<T> match);
+
+    /// <summary>
+    /// remove the first matched element.
+    /// </summary>
+    /// <param name="match">Predicate for matching.</param>
+    /// <returns>Removed instance, or default if none matched.</returns>
+    public virtual T RemoveFirst(Predicate<T> match);
+
+    /// <summary>
+    /// remove the last matched element.
+    /// </summary>
+    /// <param name="match">Predicate for matching.</param>
+    /// <returns>Removed instance, or default if none matched.</returns>
+    public virtual T RemoveLast(Predicate<T> match);
+
+    protected virtual T NewObject();
 }
 ```
 
 ### Static Classes
 
 #### PoolDelegate
-Object pool delegate definitions
+Pool-related delegates
 
 ```csharp
 /// <summary>
-/// Object pool delegate definitions
-/// Defines various callback functions used in object pools
+/// Pool-related delegates.
 /// </summary>
 public static class PoolDelegate
 {
     /// <summary>
-    /// Clone object
+    /// Clone an object instance.
     /// </summary>
-    /// <param name="origin">Original object</param>
-    /// <typeparam name="T">Object type</typeparam>
-    /// <returns>Cloned object</returns>
+    /// <param name="origin">Source instance to clone.</param>
+    /// <typeparam name="T">Reference type to clone.</typeparam>
+    /// <returns>Cloned instance.</returns>
     public delegate T CloneObject<T>(T origin) where T : class;
 }
 ```
@@ -395,20 +418,22 @@ public static class PoolDelegate
 #### Object Pool Types
 
 **ReuseObjectPool<T>**
-- **Three-pool design**: Reusable pool, in-use pool, destroying pool
-- **Object lifecycle management**: Complete object lifecycle tracking
-- **Automatic transfer**: Supports automatic transfer of objects between different pools
-- **Capacity control**: Configurable maximum number of reusable objects
+- **Three-pool design**: Reusable pool, in-use pool, pending-destroy pool
+- **Object lifecycle management**: Tracks object state across the three sub-pools
+- **Object transfer**: `TransferTo`, `TransferBetween`, `TransferResueToUsing`
+- **Capacity control**: Configurable maximum objects in the reusable sub-pool; adding to a full reusable pool fails
 
-**KVObjectPool<K, V>**
-- **Key-value management**: Key-value pair based object storage
-- **Fast lookup**: O(1) time complexity object lookup
-- **Flexible storage**: Supports arbitrary key and value types
+**KVObjectPool<TKey, TValue>**
+- **Key-value mapping**: Stores reference-type values by key (`TValue : class`)
+- **Add or replace**: `Add` writes by key and overwrites an existing entry
+- **Get and clone**: `GetValue` looks up by key; `CloneValue` clones via a custom delegate or `ICloneable` / `ICloneable<TValue>`
+- **Sealed type**: `sealed` class, not inheritable
 
 **MetaObjectPool<T>**
-- **Metadata grouping**: Object grouping based on metadata keys
-- **Multi-pool management**: Supports multiple independent object pools
-- **Capacity limits**: Configurable maximum capacity for each pool
+- **Prototype pool**: Creates instances from a prototype (must be cloneable) or a factory delegate (`T : class`)
+- **Automatic resize**: Adjusts instance count via `UpdateToSize`, `Offset`, `Add`, `Remove`
+- **Create/destroy callbacks**: `SetCreateCallback`, `SetDestroyCallback`
+- **Lookup and indexing**: Indexer, `First` / `Last`, `FindFirst` / `FindLast`, `RemoveFirst` / `RemoveLast`
 
 #### Object Pool Features
 
@@ -418,9 +443,9 @@ public static class PoolDelegate
 3. **Fast allocation**: Pre-allocates objects for fast retrieval
 
 **Lifecycle Management**
-1. **State tracking**: Tracks object usage state
-2. **Automatic recycling**: Supports automatic object recycling mechanism
-3. **Resource cleanup**: Provides complete resource cleanup functionality
+1. **State tracking**: `ReuseObjectPool<T>` tracks which sub-pool an object is in
+2. **Count adjustment**: `MetaObjectPool<T>` grows or shrinks to a target count
+3. **Resource cleanup**: Clear, remove, and destroy-callback support
 
 ### Usage Examples
 
@@ -472,8 +497,8 @@ Console.WriteLine($"Transfer to destroying pool: {transferSuccess}");
 
 // Transfer between two pools
 GameObject transferredObj = pool.TransferBetween(
-    ReusePoolSubType.Destroying, 
-    ReusePoolSubType.Reusable, 
+    ReusePoolSubType.Destroying,
+    ReusePoolSubType.Reusable,
     obj
 );
 Console.WriteLine($"Transfer back to reusable pool: {transferredObj != null}");
@@ -534,63 +559,84 @@ pool.ForeachElement(ReusePoolSubType.Using, obj => {
 // Create key-value object pool
 var kvPool = new KVObjectPool<string, GameObject>();
 
-// Add objects
+// Add or replace objects
 kvPool.Add("player", new GameObject("Player"));
 kvPool.Add("enemy", new GameObject("Enemy"));
 kvPool.Add("item", new GameObject("Item"));
-
-Console.WriteLine($"Objects in pool: {kvPool.Count}");
-
-// Get object
-if (kvPool.TryGet("player", out GameObject player))
-{
-    Console.WriteLine($"Retrieved player object: {player.Name}");
-}
 
 // Check if key exists
 bool hasEnemy = kvPool.ContainsKey("enemy");
 Console.WriteLine($"Contains enemy key: {hasEnemy}");
 
-// Remove object
-bool removed = kvPool.Remove("item");
-Console.WriteLine($"Removed item object: {removed}");
+// Get by key
+GameObject player = kvPool.GetValue("player");
+if (player != null)
+{
+    Console.WriteLine($"Retrieved player object: {player.Name}");
+}
 
-// Traverse all objects
-kvPool.ForEach((key, value) => {
-    Console.WriteLine($"Key: {key}, Value: {value.Name}");
-});
+// Clone with a custom delegate
+GameObject cloned = kvPool.CloneValue("player", origin => new GameObject(origin.Name));
+Console.WriteLine($"Cloned object: {cloned?.Name}");
+
+// Remove a single entry
+kvPool.Remove("item");
+Console.WriteLine($"Still contains item: {kvPool.ContainsKey("item")}");
+
+// Remove all
+kvPool.RemoveAll();
 ```
 
-#### Meta Object Pool Usage
+#### Prototype Object Pool Usage
 ```csharp
-// Create meta object pool
-var metaPool = new MetaObjectPool<GameObject>(maxPoolSize: 20);
+// Create a prototype pool with a factory
+var metaPool = new MetaObjectPool<GameObject>(
+    () => new GameObject("Bullet"),
+    size: 3,
+    capacity: 10
+);
 
-// Add objects to different metadata pools
-metaPool.Add("players", new GameObject("Player1"));
-metaPool.Add("players", new GameObject("Player2"));
-metaPool.Add("enemies", new GameObject("Enemy1"));
-metaPool.Add("items", new GameObject("Item1"));
+Console.WriteLine($"Objects in pool: {metaPool.Count}");
 
-// Get object
-GameObject player = metaPool.Get("players");
-Console.WriteLine($"Retrieved player: {player?.Name}");
+// Set create / destroy callbacks
+metaPool.SetCreateCallback(obj => Console.WriteLine($"Created: {obj.Name}"));
+metaPool.SetDestroyCallback(obj => Console.WriteLine($"Destroyed: {obj.Name}"));
 
-// Check pool status
-bool playersEmpty = metaPool.IsEmpty("players");
-int playersCount = metaPool.GetPoolSize("players");
-Console.WriteLine($"Players pool is empty: {playersEmpty}");
-Console.WriteLine($"Players pool size: {playersCount}");
+// Add / remove objects
+GameObject[] added = metaPool.Add(2);
+Console.WriteLine($"Added {added.Length} objects");
 
-// Traverse specific pool
-Console.WriteLine("Objects in players pool:");
-metaPool.ForEach("players", obj => {
-    Console.WriteLine($"  {obj.Name}");
-});
+GameObject[] removed = metaPool.Remove(1);
+Console.WriteLine($"Removed {removed.Length} objects");
 
-// Clear specific pool
-GameObject[] clearedPlayers = metaPool.ClearPool("players");
-Console.WriteLine($"Cleared {clearedPlayers.Length} player objects");
+// Resize to a target count
+metaPool.UpdateToSize(5);
+
+// Access objects
+GameObject first = metaPool.First;
+GameObject last = metaPool.Last;
+GameObject byIndex = metaPool[0];
+Console.WriteLine($"First: {first?.Name}, Last: {last?.Name}, [0]: {byIndex?.Name}");
+
+// Find / remove by predicate
+GameObject found = metaPool.FindFirst(o => o.Name == "Bullet");
+GameObject lastFound = metaPool.FindLast(o => o.Name == "Bullet");
+GameObject removedFirst = metaPool.RemoveFirst(o => o.Name == "Bullet");
+```
+
+#### Creating from a Cloneable Prototype
+```csharp
+public class Bullet : ICloneable<Bullet>
+{
+    public int Damage { get; set; }
+    public Bullet Clone() => new Bullet { Damage = Damage };
+}
+
+var prototype = new Bullet { Damage = 10 };
+var pool = new MetaObjectPool<Bullet>(prototype, size: 4);
+
+Console.WriteLine($"Objects in pool: {pool.Count}"); // 4
+Console.WriteLine($"First object damage: {pool.First?.Damage}");
 ```
 
 #### Object Lifecycle Management
@@ -643,18 +689,20 @@ Console.WriteLine($"Using objects: {gameObjectPool.SelfUsingPool.Count}"); // 0
 
 ### Design Features
 
-1. **Three-pool design**: Reusable, in-use, and destroying state pools
-2. **Type safety**: Generic design ensures type safety
+1. **Three-pool design**: `ReuseObjectPool<T>` provides reusable, in-use, and pending-destroy state pools
+2. **Type safety**: Generic design; `KVObjectPool` / `MetaObjectPool` constrain values to reference types
 3. **Performance optimization**: Reduces object creation and GC pressure
-4. **Flexible management**: Supports multiple object pool management methods
-  5. **Lifecycle tracking**: Complete object lifecycle management
-  6. **Easy to use**: Clean API design
+4. **Flexible management**: Reuse pool, key-value map pool, and prototype count pool
+5. **Lifecycle tracking**: Sub-pool transfer, create/destroy callbacks, predicate find/remove
+6. **Easy to use**: Constructors with defaults and a focused public API
 
 ### Notes
 
-1. **Object state**: Pay attention to object state management in different pools
-2. **Memory usage**: Reasonably set pool size to avoid memory waste
-3. **Thread safety**: Multi-threaded environments require additional synchronization mechanisms
-4. **Object cleanup**: Clean up unnecessary objects in time
-5. **Pool size control**: Avoid pools being too large affecting performance
-6. **Object reuse**: Ensure reused objects are correctly reset 
+1. **Object state**: Pay attention to object state management across `ReuseObjectPool<T>` sub-pools
+2. **Memory usage**: Set the reusable cap and `MetaObjectPool<T>` initial size/capacity reasonably
+3. **Thread safety**: Multi-threaded environments require additional synchronization
+4. **Object cleanup**: Clean up unused objects in time; `MetaObjectPool<T>.Remove` invokes the destroy callback
+5. **Pool size control**: Avoid oversized pools; adding to a full reusable pool returns false
+6. **Object reuse**: Ensure reused objects are reset correctly
+7. **Cloning requirements**: `KVObjectPool.CloneValue` without `cloneAction` requires `ICloneable<TValue>` or `ICloneable`; a prototype-based `MetaObjectPool<T>` likewise needs a cloneable original, otherwise use `OriginGenFunc`
+8. **Null handling**: Adding `null` to `ReuseObjectPool<T>` fails; lookups and empty-pool reuse return `default`

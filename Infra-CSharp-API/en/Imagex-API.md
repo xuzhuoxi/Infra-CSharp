@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Imagex module provides image processing functionality, including image interfaces, RGBA image classes, transparency processing, and image filters.
+The Imagex module provides 2D pixel-buffer and convolution-filter types, including image interfaces, an RGBA image class, per-pixel alpha access, and sparse convolution kernels and filter matrices.
 
 ## Namespace
 
@@ -14,7 +14,7 @@ The Imagex module provides image processing functionality, including image inter
 
 ### IImage
 
-Image interface that defines basic image operations.
+Read/write access to a 2D pixel buffer.
 
 ```csharp
 public interface IImage
@@ -28,7 +28,7 @@ public interface IImage
 Bounds2Int Bounds { get; }
 ```
 
-**Description:** Data range definition
+**Description:** Data range.
 
 **Type:** `Bounds2Int`
 
@@ -40,14 +40,14 @@ Bounds2Int Bounds { get; }
 uint At(int x, int y);
 ```
 
-**Description:** Get pixel value
+**Description:** Get pixel value.
 
 **Parameters:**
 - `x` (int): X coordinate
 - `y` (int): Y coordinate
 
 **Return Value:**
-- `uint`: Pixel value
+- `uint`: Pixel color as packed uint
 
 ##### Set(int x, int y, uint color)
 
@@ -55,18 +55,18 @@ uint At(int x, int y);
 void Set(int x, int y, uint color);
 ```
 
-**Description:** Set pixel value
+**Description:** Set pixel value.
 
 **Parameters:**
 - `x` (int): X coordinate
 - `y` (int): Y coordinate
-- `color` (uint): Color value
+- `color` (uint): Packed color value
 
 ---
 
 ### IAlpha
 
-Alpha interface that defines basic transparency processing operations.
+Read/write access to per-pixel alpha channel.
 
 ```csharp
 public interface IAlpha
@@ -80,14 +80,14 @@ public interface IAlpha
 byte AlphaAt(int x, int y);
 ```
 
-**Description:** Get alpha value
+**Description:** Get alpha value.
 
 **Parameters:**
 - `x` (int): X coordinate
 - `y` (int): Y coordinate
 
 **Return Value:**
-- `byte`: Alpha value
+- `byte`: Alpha in range 0–255
 
 ##### SetAlpha(int x, int y, byte alpha)
 
@@ -95,12 +95,12 @@ byte AlphaAt(int x, int y);
 void SetAlpha(int x, int y, byte alpha);
 ```
 
-**Description:** Set alpha value
+**Description:** Set alpha value.
 
 **Parameters:**
 - `x` (int): X coordinate
 - `y` (int): Y coordinate
-- `alpha` (byte): Alpha value
+- `alpha` (byte): Alpha in range 0–255
 
 ---
 
@@ -108,7 +108,7 @@ void SetAlpha(int x, int y, byte alpha);
 
 ### RGBA
 
-RGBA image class that implements IImage and IAlpha interfaces, providing 32-bit RGBA image processing functionality.
+RGBA image backed by a byte array (R, G, B, A per pixel). Implements `ICloneable<RGBA>`, `IImage`, and `IAlpha`.
 
 ```csharp
 public class RGBA : ICloneable<RGBA>, IImage, IAlpha
@@ -122,11 +122,11 @@ public class RGBA : ICloneable<RGBA>, IImage, IAlpha
 public RGBA(int width, int height)
 ```
 
-**Description:** Create RGBA image with specified width and height
+**Description:** Create an image with origin at (0, 0) and the given size.
 
 **Parameters:**
-- `width` (int): Image width
-- `height` (int): Image height
+- `width` (int): Image width in pixels
+- `height` (int): Image height in pixels
 
 ##### RGBA(Bounds2Int rect)
 
@@ -134,20 +134,20 @@ public RGBA(int width, int height)
 public RGBA(Bounds2Int rect)
 ```
 
-**Description:** Create RGBA image based on bounds
+**Description:** Create an image covering the given bounds rectangle.
 
 **Parameters:**
-- `rect` (Bounds2Int): Image bounds
+- `rect` (Bounds2Int): Pixel bounds
 
 #### Properties
 
 ##### Bounds
 
 ```csharp
-public Bounds2Int Bounds => m_Rect;
+public Bounds2Int Bounds { get; }
 ```
 
-**Description:** Image bounds
+**Description:** Data range.
 
 #### Methods
 
@@ -157,10 +157,10 @@ public Bounds2Int Bounds => m_Rect;
 public RGBA Clone()
 ```
 
-**Description:** Clone image
+**Description:** Deep-copy pixel data and layout metadata.
 
 **Return Value:**
-- `RGBA`: Cloned image object
+- `RGBA`: A new independent copy
 
 ##### At(int x, int y)
 
@@ -168,14 +168,14 @@ public RGBA Clone()
 public uint At(int x, int y)
 ```
 
-**Description:** Get pixel value
+**Description:** Get pixel value (equivalent to `RgbaAt`). Returns 0 if out of bounds.
 
 **Parameters:**
 - `x` (int): X coordinate
 - `y` (int): Y coordinate
 
 **Return Value:**
-- `uint`: Pixel value
+- `uint`: Pixel color as packed uint
 
 ##### Set(int x, int y, uint color)
 
@@ -183,12 +183,12 @@ public uint At(int x, int y)
 public void Set(int x, int y, uint color)
 ```
 
-**Description:** Set pixel value
+**Description:** Set pixel value. Ignored if out of bounds.
 
 **Parameters:**
 - `x` (int): X coordinate
 - `y` (int): Y coordinate
-- `color` (uint): Color value
+- `color` (uint): Packed color value
 
 ##### AlphaAt(int x, int y)
 
@@ -196,7 +196,7 @@ public void Set(int x, int y, uint color)
 public byte AlphaAt(int x, int y)
 ```
 
-**Description:** Get alpha value
+**Description:** Get alpha value. Returns 0 if out of bounds.
 
 **Parameters:**
 - `x` (int): X coordinate
@@ -211,7 +211,7 @@ public byte AlphaAt(int x, int y)
 public void SetAlpha(int x, int y, byte alpha)
 ```
 
-**Description:** Set alpha value
+**Description:** Set alpha value. Ignored if out of bounds.
 
 **Parameters:**
 - `x` (int): X coordinate
@@ -224,14 +224,14 @@ public void SetAlpha(int x, int y, byte alpha)
 public uint RgbaAt(int x, int y)
 ```
 
-**Description:** Get RGBA pixel value
+**Description:** Get packed RGBA as uint (R in high byte, A in low byte).
 
 **Parameters:**
 - `x` (int): X coordinate
 - `y` (int): Y coordinate
 
 **Return Value:**
-- `uint`: RGBA pixel value
+- `uint`: Packed color, or 0 if out of bounds
 
 ##### PixOffset(int x, int y)
 
@@ -239,14 +239,14 @@ public uint RgbaAt(int x, int y)
 public int PixOffset(int x, int y)
 ```
 
-**Description:** Calculate pixel offset in array
+**Description:** Byte offset of the R channel for the pixel at (x, y) in the backing array. Does not perform bounds checking.
 
 **Parameters:**
 - `x` (int): X coordinate
 - `y` (int): Y coordinate
 
 **Return Value:**
-- `int`: Pixel offset
+- `int`: Index into the backing byte array
 
 ---
 
@@ -254,7 +254,7 @@ public int PixOffset(int x, int y)
 
 ### FilterKernel
 
-Vector kernel filter class that provides core functionality for image filters.
+Sparse convolution kernel as offset/weight vectors. Implements `ICloneable<FilterKernel>`.
 
 ```csharp
 public class FilterKernel : ICloneable<FilterKernel>
@@ -262,21 +262,13 @@ public class FilterKernel : ICloneable<FilterKernel>
 
 #### Properties
 
-##### Vectors
-
-```csharp
-internal KernelVector[] Vectors;
-```
-
-**Description:** Kernel vector array
-
 ##### Len
 
 ```csharp
-public int Len => Vectors?.Length ?? 0;
+public int Len { get; }
 ```
 
-**Description:** Vector count
+**Description:** Number of kernel vectors, or 0 if unset.
 
 #### Methods
 
@@ -286,14 +278,14 @@ public int Len => Vectors?.Length ?? 0;
 public bool Less(int i, int j)
 ```
 
-**Description:** Compare order of two vectors
+**Description:** Whether vector at index `i` sorts before index `j`.
 
 **Parameters:**
-- `i` (int): First vector index
-- `j` (int): Second vector index
+- `i` (int): First index
+- `j` (int): Second index
 
 **Return Value:**
-- `bool`: Comparison result
+- `bool`: `true` if the first vector precedes the second
 
 ##### Less(KernelVector i, KernelVector j)
 
@@ -301,14 +293,14 @@ public bool Less(int i, int j)
 public bool Less(KernelVector i, KernelVector j)
 ```
 
-**Description:** Compare two vectors
+**Description:** Whether `i` sorts before `j` (row-major: Y then X).
 
 **Parameters:**
 - `i` (KernelVector): First vector
 - `j` (KernelVector): Second vector
 
 **Return Value:**
-- `bool`: Comparison result
+- `bool`: `true` if `i` precedes `j`
 
 ##### Swap(int i, int j)
 
@@ -316,7 +308,7 @@ public bool Less(KernelVector i, KernelVector j)
 public void Swap(int i, int j)
 ```
 
-**Description:** Swap data
+**Description:** Swap two vectors by index.
 
 **Parameters:**
 - `i` (int): First index
@@ -328,13 +320,13 @@ public void Swap(int i, int j)
 public int IndexOfValue(int value)
 ```
 
-**Description:** Find index of specified value
+**Description:** Find the first index whose weight equals `value`.
 
 **Parameters:**
-- `value` (int): Value to find
+- `value` (int): Weight to search for
 
 **Return Value:**
-- `int`: Value index, returns -1 if not found
+- `int`: Index, or -1 if not found
 
 ##### Clone()
 
@@ -342,10 +334,10 @@ public int IndexOfValue(int value)
 public FilterKernel Clone()
 ```
 
-**Description:** Clone filter kernel
+**Description:** Shallow-copy the vector array.
 
 **Return Value:**
-- `FilterKernel`: Cloned object
+- `FilterKernel`: A new kernel with copied vectors
 
 ##### FlipUpDownSelf()
 
@@ -353,7 +345,7 @@ public FilterKernel Clone()
 public void FlipUpDownSelf()
 ```
 
-**Description:** Flip itself upside down
+**Description:** Flip itself upside down.
 
 ##### FlipUuDown()
 
@@ -361,10 +353,10 @@ public void FlipUpDownSelf()
 public FilterKernel FlipUuDown()
 ```
 
-**Description:** Flip upside down
+**Description:** Flip upside down and return a new kernel.
 
 **Return Value:**
-- `FilterKernel`: Flipped filter kernel
+- `FilterKernel`: Flipped copy
 
 ##### FlipLeftRightSelf()
 
@@ -372,7 +364,7 @@ public FilterKernel FlipUuDown()
 public void FlipLeftRightSelf()
 ```
 
-**Description:** Flips itself left and right
+**Description:** Flip itself left and right.
 
 ##### FlipLeftRight()
 
@@ -380,10 +372,10 @@ public void FlipLeftRightSelf()
 public FilterKernel FlipLeftRight()
 ```
 
-**Description:** Flip left and right
+**Description:** Flip left and right and return a new kernel.
 
 **Return Value:**
-- `FilterKernel`: Flipped filter kernel
+- `FilterKernel`: Flipped copy
 
 ##### Rotate90Self(bool clockwise)
 
@@ -391,10 +383,10 @@ public FilterKernel FlipLeftRight()
 public void Rotate90Self(bool clockwise)
 ```
 
-**Description:** Rotate 90 degrees
+**Description:** Rotate 90 degrees in place.
 
 **Parameters:**
-- `clockwise` (bool): Whether clockwise
+- `clockwise` (bool): `true` for clockwise, `false` for counter-clockwise
 
 ##### Rotate90(bool clockwise)
 
@@ -402,13 +394,13 @@ public void Rotate90Self(bool clockwise)
 public FilterKernel Rotate90(bool clockwise)
 ```
 
-**Description:** Rotate 90 degrees
+**Description:** Rotate 90 degrees and return a new kernel.
 
 **Parameters:**
-- `clockwise` (bool): Whether clockwise
+- `clockwise` (bool): `true` for clockwise, `false` for counter-clockwise
 
 **Return Value:**
-- `FilterKernel`: Rotated filter kernel
+- `FilterKernel`: Rotated copy
 
 ##### RotateSelf(bool clockwise, int count90)
 
@@ -416,11 +408,11 @@ public FilterKernel Rotate90(bool clockwise)
 public void RotateSelf(bool clockwise, int count90)
 ```
 
-**Description:** Rotate
+**Description:** Rotate in place by multiples of 90 degrees.
 
 **Parameters:**
-- `clockwise` (bool): Whether clockwise
-- `count90` (int): Number of 90-degree rotations
+- `clockwise` (bool): `true` for clockwise per step
+- `count90` (int): Number of 90° steps (negative values wrap)
 
 ##### Rotate(bool clockwise, int count90)
 
@@ -428,14 +420,14 @@ public void RotateSelf(bool clockwise, int count90)
 public FilterKernel Rotate(bool clockwise, int count90)
 ```
 
-**Description:** Rotate
+**Description:** Rotate by multiples of 90 degrees and return a new kernel.
 
 **Parameters:**
-- `clockwise` (bool): Whether clockwise
-- `count90` (int): Number of 90-degree rotations
+- `clockwise` (bool): `true` for clockwise per step
+- `count90` (int): Number of 90° steps (negative values wrap)
 
 **Return Value:**
-- `FilterKernel`: Rotated filter kernel
+- `FilterKernel`: Rotated copy
 
 ##### Sort()
 
@@ -443,83 +435,202 @@ public FilterKernel Rotate(bool clockwise, int count90)
 public void Sort()
 ```
 
-**Description:** Sort
+**Description:** Sort vectors in row-major order (Y then X).
 
 ---
 
 ### FilterMatrix
 
-Filter matrix class that provides image filtering matrix functionality.
+Image convolution filter matrix (sparse kernel + scale/offset metadata). Implements `ICloneable<FilterMatrix>`.
 
 ```csharp
-public class FilterMatrix
+public class FilterMatrix : ICloneable<FilterMatrix>
 ```
 
-#### Main Methods
+#### Properties
 
-##### Apply(IImage source, IImage target)
+##### Kernel
 
 ```csharp
-public void Apply(IImage source, IImage target)
+public FilterKernel Kernel { get; }
 ```
 
-**Description:** Apply filter to image
+**Description:** Sparse convolution kernel.
+
+##### KernelRadius
+
+```csharp
+public int KernelRadius { get; }
+```
+
+**Description:** Kernel radius (half side length in pixels).
+
+##### KernelSize
+
+```csharp
+public int KernelSize { get; }
+```
+
+**Description:** Kernel side length (`2 * KernelRadius + 1`).
+
+##### KernelScale
+
+```csharp
+public int KernelScale { get; }
+```
+
+**Description:** Divisor applied after convolution (sum of weights should equal this).
+
+##### ResultOffset
+
+```csharp
+public int ResultOffset { get; }
+```
+
+**Description:** Constant offset added to the filtered result.
+
+##### IsScaleMatrix
+
+```csharp
+public bool IsScaleMatrix { get; }
+```
+
+**Description:** Whether it is a magnification filter.
+
+##### IsPixelUnsafe
+
+```csharp
+public bool IsPixelUnsafe { get; }
+```
+
+**Description:** Whether the operation result may exceed the pixel range (unsafe pixel value). `true` when `ResultOffset != 0` or any kernel weight is negative.
+
+#### Methods
+
+##### Clone()
+
+```csharp
+public FilterMatrix Clone()
+```
+
+**Description:** Deep-copy kernel and metadata.
+
+**Return Value:**
+- `FilterMatrix`: A new independent copy
+
+##### FlipUpDown()
+
+```csharp
+public FilterMatrix FlipUpDown()
+```
+
+**Description:** Flip upside down.
+
+**Return Value:**
+- `FilterMatrix`: Flipped copy with sorted kernel
+
+##### FlipLeftRight()
+
+```csharp
+public FilterMatrix FlipLeftRight()
+```
+
+**Description:** Flip left and right.
+
+**Return Value:**
+- `FilterMatrix`: Flipped copy with sorted kernel
+
+##### Rotate(bool clockwise, int count90)
+
+```csharp
+public FilterMatrix Rotate(bool clockwise, int count90)
+```
+
+**Description:** Rotate by multiples of 90 degrees.
 
 **Parameters:**
-- `source` (IImage): Source image
-- `target` (IImage): Target image
+- `clockwise` (bool): `true` for clockwise per step
+- `count90` (int): Number of 90° steps
+
+**Return Value:**
+- `FilterMatrix`: Rotated copy with sorted kernel
+
+##### CheckValidity()
+
+```csharp
+public bool CheckValidity()
+```
+
+**Description:** Check filter template validity (radius, scale, and weight sum).
+
+**Return Value:**
+- `bool`: `true` if radius ≥ 1, scale ≥ 0, and weights sum to `KernelScale`
 
 ---
 
 ### KernelVector
 
-Kernel vector class that represents vectors in the filter kernel.
+Filter vector unit. Compared in row-major order (Y then X).
 
 ```csharp
-public class KernelVector
+public struct KernelVector : IComparable<KernelVector>
 ```
 
-#### Properties
+#### Fields
 
 ##### X
 
 ```csharp
-public int X { get; set; }
+public int X;
 ```
 
-**Description:** X coordinate
+**Description:** Offset along X from kernel center.
 
 ##### Y
 
 ```csharp
-public int Y { get; set; }
+public int Y;
 ```
 
-**Description:** Y coordinate
+**Description:** Offset along Y from kernel center.
 
 ##### Value
 
 ```csharp
-public int Value { get; set; }
+public int Value;
 ```
 
-**Description:** Vector value
+**Description:** Convolution weight at this offset.
 
 #### Methods
 
-##### Less(KernelVector other)
+##### CompareTo(KernelVector j)
 
 ```csharp
-public bool Less(KernelVector other)
+public int CompareTo(KernelVector j)
 ```
 
-**Description:** Compare two vectors
+**Description:** Compare by sort order (Y then X); never returns 0 for equal keys.
 
 **Parameters:**
-- `other` (KernelVector): Another vector
+- `j` (KernelVector): Other vector
 
 **Return Value:**
-- `bool`: Comparison result
+- `int`: -1 if this precedes `j`, otherwise 1
+
+##### Less(KernelVector j)
+
+```csharp
+public bool Less(KernelVector j)
+```
+
+**Description:** Whether this vector sorts before `j` (row-major: Y then X).
+
+**Parameters:**
+- `j` (KernelVector): Other vector
+
+**Return Value:**
+- `bool`: `true` if this is less in sort order
 
 ---
 
@@ -531,10 +642,10 @@ public bool Less(KernelVector other)
 // Create RGBA image
 var image = new RGBA(256, 256);
 
-// Set pixel colors
-uint redColor = 0xFF0000FF;    // Red
-uint greenColor = 0xFF00FF00;  // Green
-uint blueColor = 0xFFFF0000;   // Blue
+// Set pixel colors (packed format 0xRRGGBBAA: R in high byte, A in low byte)
+uint redColor = 0xFF0000FF;    // Opaque red
+uint greenColor = 0x00FF00FF;  // Opaque green
+uint blueColor = 0x0000FFFF;   // Opaque blue
 
 image.Set(100, 100, redColor);
 image.Set(150, 150, greenColor);
@@ -551,11 +662,11 @@ byte alpha = image.AlphaAt(100, 100);
 ### Image Boundary Operations
 
 ```csharp
-// Create image with boundaries
-var bounds = new Bounds2Int(10, 10, 100, 100);
+// Create image with bounds (Bounds2Int is xMin, yMin, xMax, yMax; max is exclusive)
+var bounds = new Bounds2Int(10, 10, 110, 110);
 var image = new RGBA(bounds);
 
-// Check boundaries
+// Check bounds
 Console.WriteLine($"Image bounds: {image.Bounds}");
 Console.WriteLine($"Image width: {image.Bounds.Size.X}");
 Console.WriteLine($"Image height: {image.Bounds.Size.Y}");
@@ -572,82 +683,78 @@ original.Set(50, 50, 0xFFFFFFFF); // White pixel
 var cloned = original.Clone();
 
 // Modify cloned image
-cloned.Set(50, 50, 0xFF000000); // Black pixel
+cloned.Set(50, 50, 0x000000FF); // Opaque black
 
 // Original image is unaffected
 uint originalPixel = original.At(50, 50); // Still white
 uint clonedPixel = cloned.At(50, 50);     // Now black
 ```
 
+### Kernel Vector Comparison
+
+```csharp
+var v1 = new KernelVector { X = -1, Y = -1, Value = 1 };
+var v2 = new KernelVector { X = 0, Y = -1, Value = 2 };
+
+bool less = v1.Less(v2);       // true (smaller X comes first on the same row)
+int cmp = v1.CompareTo(v2);    // -1
+```
+
 ### Filter Operations
 
 ```csharp
-// Create filter kernel
 var kernel = new FilterKernel();
-kernel.Vectors = new KernelVector[]
-{
-    new KernelVector { X = -1, Y = -1, Value = 1 },
-    new KernelVector { X = 0, Y = -1, Value = 2 },
-    new KernelVector { X = 1, Y = -1, Value = 1 },
-    new KernelVector { X = -1, Y = 0, Value = 2 },
-    new KernelVector { X = 0, Y = 0, Value = 4 },
-    new KernelVector { X = 1, Y = 0, Value = 2 },
-    new KernelVector { X = -1, Y = 1, Value = 1 },
-    new KernelVector { X = 0, Y = 1, Value = 2 },
-    new KernelVector { X = 1, Y = 1, Value = 1 }
-};
+Console.WriteLine(kernel.Len); // 0 if unset
 
-// Flip operations
-var flippedUpDown = kernel.FlipUuDown();
-var flippedLeftRight = kernel.FlipLeftRight();
+var clonedKernel = kernel.Clone();
 
-// Rotation operations
-var rotated90 = kernel.Rotate90(true);  // Clockwise rotation 90 degrees
-var rotated180 = kernel.Rotate(true, 2); // Clockwise rotation 180 degrees
+// Geometric transforms on a populated kernel (return new instances; original unchanged)
+FilterKernel source = clonedKernel;
+var flippedUpDown = source.FlipUuDown();
+var flippedLeftRight = source.FlipLeftRight();
+var rotated90 = source.Rotate90(true);   // Clockwise 90 degrees
+var rotated180 = source.Rotate(true, 2); // Clockwise 180 degrees
 
-// Sort
-kernel.Sort();
+source.Sort();
 ```
 
-### Image Processing Pipeline
+### Filter Matrix Transforms
 
 ```csharp
-// Create source and target images
-var sourceImage = new RGBA(512, 512);
-var targetImage = new RGBA(512, 512);
+FilterMatrix matrix = /* an initialized filter matrix */;
 
-// Fill source image
-for (int x = 0; x < 512; x++)
+if (matrix.CheckValidity())
 {
-    for (int y = 0; y < 512; y++)
-    {
-        uint color = (uint)((x + y) % 256) | 0xFF000000;
-        sourceImage.Set(x, y, color);
-    }
+    Console.WriteLine($"Radius: {matrix.KernelRadius}, Size: {matrix.KernelSize}");
+    Console.WriteLine($"Scale: {matrix.KernelScale}, Offset: {matrix.ResultOffset}");
+    Console.WriteLine($"Scale filter: {matrix.IsScaleMatrix}, Unsafe pixels: {matrix.IsPixelUnsafe}");
+
+    var flipped = matrix.FlipUpDown();
+    var mirrored = matrix.FlipLeftRight();
+    var rotated = matrix.Rotate(true, 1);
+
+    FilterKernel kernel = matrix.Kernel;
+    int n = kernel.Len;
 }
-
-// Create filter matrix
-var filterMatrix = new FilterMatrix();
-
-// Apply filter
-filterMatrix.Apply(sourceImage, targetImage);
 ```
 
 ---
 
 ## Notes
 
-1. **Coordinate System:** Images use a coordinate system with the top-left corner as the origin
-2. **Color Format:** RGBA uses 32-bit integer format, formatted as 0xAARRGGBB
-3. **Boundary Checking:** All pixel operations perform boundary checking, operations outside boundaries are ignored
-4. **Memory Management:** Image data is stored in byte arrays, pay attention to memory usage
-5. **Performance Considerations:** Pay attention to performance for large numbers of pixel operations, avoid frequent boundary checking
-6. **Transparency:** Alpha channel value range is 0-255, 0 means completely transparent, 255 means completely opaque
+1. **Coordinate System:** Pixel coordinates match `Bounds`. `RGBA(int, int)` uses origin (0, 0). The max corner of `Bounds2Int` is exclusive.
+2. **Color Format:** Packed uint is 0xRRGGBBAA (R in the high byte, A in the low byte). Backing storage is 4 bytes per pixel (R, G, B, A).
+3. **Boundary Checking:** `At` / `RgbaAt` / `AlphaAt` return 0 when out of bounds; `Set` / `SetAlpha` ignore out-of-bounds writes. `PixOffset` does not check bounds.
+4. **Memory Layout:** Row stride is `4 * width` bytes; `PixOffset` is relative to the minimum corner of `Bounds`.
+5. **Transparency:** Alpha is 0–255; 0 is fully transparent, 255 is fully opaque.
+6. **Kernel Data:** The `FilterKernel` vector array is an internal field with no public setter; `Len` is 0 when unset.
+7. **KernelVector Ordering:** `CompareTo` never returns 0 for equal keys (returns 1 when equal).
+8. **Filter Matrix:** `FilterMatrix` exposes kernel metadata and geometric transforms; it has no Apply API on `IImage`.
 
 ---
 
 ## Dependencies
 
-- `JLGames.Infra.Mathx`: Uses mathematical types like Bounds2Int
-- `JLGames.Infra`: Uses ICloneable interface
-- `System`: Basic types and array operations 
+- `JLGames.Infra.Mathx`: Uses mathematical types such as `Bounds2Int`
+- `JLGames.Infra`: Uses the `ICloneable<T>` interface
+- `System`: `IComparable<T>` and array sorting

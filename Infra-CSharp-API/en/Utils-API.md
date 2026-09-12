@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Utils module provides a rich collection of utility classes, including array operations, bit operations, file operations, path processing, text processing, reflection tools, encryption tools and other practical functions.
+The Utils module provides utility classes for array operations, bit operations, files and directories, path processing, text I/O, reflection, debug printing, and MD5/SHA-1 hashing.
 
 ## Namespace
 
@@ -22,7 +22,7 @@ public static class ArrayUtil
 
 #### Main Methods
 
-##### CloneArray<T, TK>(TK[] source)
+##### CloneArray\<T, TK\>(TK[] source)
 
 ```csharp
 public static T[] CloneArray<T, TK>(TK[] source) where T : class where TK : class
@@ -34,9 +34,9 @@ public static T[] CloneArray<T, TK>(TK[] source) where T : class where TK : clas
 - `source` (TK[]): Source array
 
 **Return Value:**
-- `T[]`: Cloned array
+- `T[]`: Cloned array. Returns `null` when `source` is `null`; returns an empty array when length is 0. Elements are converted with `as T`.
 
-##### NewArray<T>(int len, T @default)
+##### NewArray\<T\>(int len, T @default)
 
 ```csharp
 public static T[] NewArray<T>(int len, T @default)
@@ -51,7 +51,7 @@ public static T[] NewArray<T>(int len, T @default)
 **Return Value:**
 - `T[]`: Created 1D array
 
-##### NewArray<T>(int yLen, int xLen)
+##### NewArray\<T\>(int yLen, int xLen)
 
 ```csharp
 public static T[][] NewArray<T>(int yLen, int xLen)
@@ -66,7 +66,23 @@ public static T[][] NewArray<T>(int yLen, int xLen)
 **Return Value:**
 - `T[][]`: Created 2D array
 
-##### MergeArray<T>(T first, T[] second)
+##### NewArray\<T\>(int yLen, int xLen, T @default)
+
+```csharp
+public static T[][] NewArray<T>(int yLen, int xLen, T @default)
+```
+
+**Description:** Create a 2D array and set the values
+
+**Parameters:**
+- `yLen` (int): Number of rows
+- `xLen` (int): Number of columns
+- `@default` (T): Default value
+
+**Return Value:**
+- `T[][]`: Created 2D array filled with the default value
+
+##### MergeArray\<T\>(T first, T[] second)
 
 ```csharp
 public static T[] MergeArray<T>(T first, T[] second)
@@ -81,7 +97,7 @@ public static T[] MergeArray<T>(T first, T[] second)
 **Return Value:**
 - `T[]`: Merged array (first element + second array, length is sum of both lengths)
 
-##### MergeArray<T>(T[] first, T second)
+##### MergeArray\<T\>(T[] first, T second)
 
 ```csharp
 public static T[] MergeArray<T>(T[] first, T second)
@@ -96,7 +112,7 @@ public static T[] MergeArray<T>(T[] first, T second)
 **Return Value:**
 - `T[]`: Merged array (first array + second element, length is sum of both lengths)
 
-##### MergeArray<T>(T[] first, T[] second)
+##### MergeArray\<T\>(T[] first, T[] second)
 
 ```csharp
 public static T[] MergeArray<T>(T[] first, T[] second)
@@ -111,41 +127,196 @@ public static T[] MergeArray<T>(T[] first, T[] second)
 **Return Value:**
 - `T[]`: Merged array (first array + second array, length is sum of both array lengths)
 
-##### SubArray<T>(T[] source, int startIndex, int len)
+##### MergeArray\<T\>(T[] first, T[] second, params T[][] other)
+
+```csharp
+public static T[] MergeArray<T>(T[] first, T[] second, params T[][] other)
+```
+
+**Description:** Merge array
+
+**Parameters:**
+- `first` (T[]): First array
+- `second` (T[]): Second array
+- `other` (T[][]): Additional arrays
+
+**Return Value:**
+- `T[]`: Merged array (first array + second array, length is sum of both array lengths)
+
+##### MergeArrayX\<T\>(T[][] first, params T[][][] other)
+
+```csharp
+public static T[][] MergeArrayX<T>(T[][] first, params T[][][] other)
+```
+
+**Description:** Merge 2D arrays in X direction
+
+**Parameters:**
+- `first` (T[][]): First 2D array
+- `other` (T[][][]): Additional 2D arrays
+
+**Return Value:**
+- `T[][]`: 2D array merged along X. Returns `null` when `first` is `null` or row widths do not match.
+
+##### MergeArrayY\<T\>(T[][] first, params T[][][] other)
+
+```csharp
+public static T[][] MergeArrayY<T>(T[][] first, params T[][][] other)
+```
+
+**Description:** Merge 2D arrays in Y direction
+
+**Parameters:**
+- `first` (T[][]): First 2D array
+- `other` (T[][][]): Additional 2D arrays
+
+**Return Value:**
+- `T[][]`: 2D array merged along Y. Returns `null` when `first` is `null` or column widths do not match.
+
+##### CopyDataTo\<T\>(T[][] target, T[][] source, uint startTargetX, uint startTargetY)
+
+```csharp
+public static void CopyDataTo<T>(T[][] target, T[][] source, uint startTargetX, uint startTargetY)
+```
+
+**Description:** Copy data
+
+**Parameters:**
+- `target` (T[][]): Target array
+- `source` (T[][]): Source array
+- `startTargetX` (uint): Target start X
+- `startTargetY` (uint): Target start Y
+
+##### ConcatArray\<T\>(T[] source, T element)
+
+```csharp
+public static T[] ConcatArray<T>(T[] source, T element)
+```
+
+**Description:** Concat element to array
+
+**Parameters:**
+- `source` (T[]): Original array
+- `element` (T): Element
+
+**Return Value:**
+- `T[]`: Merged array (array + string)
+
+##### SubArray\<T\>(T[] source, int startIndex, int len)
 
 ```csharp
 public static T[] SubArray<T>(T[] source, int startIndex, int len)
 ```
 
-**Description:** Extract array subset
+**Description:** Cut a part from an array into a new array
 
 **Parameters:**
-- `source` (T[]): Source array
-- `startIndex` (int): Start index
+- `source` (T[]): Original array
+- `startIndex` (int): Start index in the original array
 - `len` (int): Length
 
 **Return Value:**
 - `T[]`: Extracted sub-array
 
-##### Rotated<T>(T[][] array)
+##### SubAry\<T\>(T[] source, int startIndex, int endIndex)
+
+```csharp
+public static T[] SubAry<T>(T[] source, int startIndex, int endIndex)
+```
+
+**Description:** Cut a part from an array into a new array
+
+**Parameters:**
+- `source` (T[]): Original array
+- `startIndex` (int): Start index in the original array
+- `endIndex` (int): End index in the original array (exclusive)
+
+**Return Value:**
+- `T[]`: Extracted sub-array
+
+##### RemoveElement\<T\>(T[] source, int index, int len)
+
+```csharp
+public static T[] RemoveElement<T>(T[] source, int index, int len)
+```
+
+**Description:** remove some elements from an array
+
+**Parameters:**
+- `source` (T[]): Original array
+- `index` (int): Start index
+- `len` (int): Supports negative values
+
+**Return Value:**
+- `T[]`: New array with elements removed. Returns `source` when it is empty or `len` is 0.
+
+##### InsertElement\<T\>(T[] source, T e, int index)
+
+```csharp
+public static T[] InsertElement<T>(T[] source, T e, int index)
+```
+
+**Description:** Insert element into array
+
+**Parameters:**
+- `source` (T[]): Original array
+- `e` (T): Element to insert
+- `index` (int): Insertion index
+
+**Return Value:**
+- `T[]`: New array after insertion. Returns an array containing only `e` when `source` is empty.
+
+##### InsertElement\<T\>(T[] source, IEnumerable\<T\> es, int index)
+
+```csharp
+public static T[] InsertElement<T>(T[] source, IEnumerable<T> es, int index)
+```
+
+**Description:** Insert some elements into array
+
+**Parameters:**
+- `source` (T[]): Original array
+- `es` (IEnumerable\<T\>): Elements to insert
+- `index` (int): Insertion index
+
+**Return Value:**
+- `T[]`: New array after insertion. Returns `source` when `es` is `null`.
+
+##### Rotated\<T\>(T[][] array)
 
 ```csharp
 public static T[][] Rotated<T>(T[][] array)
 ```
 
-**Description:** Rotate 2D array by 90 degrees
+**Description:** Rotate a 2D array
 
 **Parameters:**
 - `array` (T[][]): Source 2D array
 
 **Return Value:**
-- `T[][]`: Rotated 2D array
+- `T[][]`: Rotated 2D array. Returns `null` when `array` is `null` or empty.
+
+##### Rotated\<T\>(T[] array, int width, int height)
+
+```csharp
+public static T[] Rotated<T>(T[] array, int width, int height)
+```
+
+**Description:** Rotate a flattened 1D array using the given width and height
+
+**Parameters:**
+- `array` (T[]): Source 1D array (row-major flattened layout)
+- `width` (int): Width
+- `height` (int): Height
+
+**Return Value:**
+- `T[]`: Rotated 1D array
 
 ---
 
 ### BitUtil
 
-Bit operation utility class that provides bit-level operation functionality.
+Bit operation utility class that provides bit-level checks, updates, and mask generation.
 
 ```csharp
 public static class BitUtil
@@ -153,7 +324,7 @@ public static class BitUtil
 
 #### Main Methods
 
-##### IsValid<T>(T value, int bitIndex)
+##### IsValid
 
 ```csharp
 public static bool IsValid(sbyte value, int bitIndex)
@@ -167,13 +338,13 @@ public static bool IsValid(ulong value, int bitIndex)
 **Description:** Is it effective. 1 is valid, 0 is invalid
 
 **Parameters:**
-- `value` (T): Value to be detected
+- `value`: value to be detected
 - `bitIndex` (int): Starting from the low order, the first bit index is 0
 
 **Return Value:**
 - `bool`: Whether the bit is valid
 
-##### IsValidAnd<T>(T value, int bitIndex, params int[] otherIndexs)
+##### IsValidAnd(value, int bitIndex, params int[] otherIndexs)
 
 ```csharp
 public static bool IsValidAnd(sbyte value, int bitIndex, params int[] otherIndexs)
@@ -187,14 +358,75 @@ public static bool IsValidAnd(ulong value, int bitIndex, params int[] otherIndex
 **Description:** Check if all bits are valid
 
 **Parameters:**
-- `value` (T): Value to check
+- `value`: Value to check
 - `bitIndex` (int): Bit index
 - `otherIndexs` (int[]): Other bit indices
 
 **Return Value:**
 - `bool`: Whether all bits are valid
 
-##### SetValid<T>(T value, int bitIndex, bool isValid)
+##### IsValidAnd(value, int[] bitIndexs)
+
+```csharp
+public static bool IsValidAnd(sbyte value, int[] bitIndexs)
+public static bool IsValidAnd(ushort value, int[] bitIndexs)
+public static bool IsValidAnd(int value, int[] bitIndexs)
+public static bool IsValidAnd(uint value, int[] bitIndexs)
+public static bool IsValidAnd(long value, int[] bitIndexs)
+public static bool IsValidAnd(ulong value, int[] bitIndexs)
+```
+
+**Description:** Check if all bits are valid
+
+**Parameters:**
+- `value`: Value to check
+- `bitIndexs` (int[]): Bit index array
+
+**Return Value:**
+- `bool`: Whether all bits are valid
+
+##### IsValidOr(value, int bitIndex, params int[] otherIndexs)
+
+```csharp
+public static bool IsValidOr(sbyte value, int bitIndex, params int[] otherIndexs)
+public static bool IsValidOr(ushort value, int bitIndex, params int[] otherIndexs)
+public static bool IsValidOr(int value, int bitIndex, params int[] otherIndexs)
+public static bool IsValidOr(uint value, int bitIndex, params int[] otherIndexs)
+public static bool IsValidOr(long value, int bitIndex, params int[] otherIndexs)
+public static bool IsValidOr(ulong value, int bitIndex, params int[] otherIndexs)
+```
+
+**Description:** Check if one of the bits is valid
+
+**Parameters:**
+- `value`: Value to check
+- `bitIndex` (int): Bit index
+- `otherIndexs` (int[]): Other bit indices
+
+**Return Value:**
+- `bool`: Whether at least one of the specified bits is valid
+
+##### IsValidOr(value, int[] bitIndexs)
+
+```csharp
+public static bool IsValidOr(sbyte value, int[] bitIndexs)
+public static bool IsValidOr(ushort value, int[] bitIndexs)
+public static bool IsValidOr(int value, int[] bitIndexs)
+public static bool IsValidOr(uint value, int[] bitIndexs)
+public static bool IsValidOr(long value, int[] bitIndexs)
+public static bool IsValidOr(ulong value, int[] bitIndexs)
+```
+
+**Description:** Check if one of the bits is valid
+
+**Parameters:**
+- `value`: Value to check
+- `bitIndexs` (int[]): Bit index array
+
+**Return Value:**
+- `bool`: Whether at least one of the specified bits is valid
+
+##### SetValid(value, int bitIndex, bool isValid)
 
 ```csharp
 public static sbyte SetValid(sbyte value, int bitIndex, bool isValid)
@@ -205,21 +437,158 @@ public static long SetValid(long value, int bitIndex, bool isValid)
 public static ulong SetValid(ulong value, int bitIndex, bool isValid)
 ```
 
-**Description:** Set bit validity
+**Description:** Set a value to a specified bit of a value
 
 **Parameters:**
-- `value` (T): Original value
+- `value`: Original value
 - `bitIndex` (int): Bit index
 - `isValid` (bool): Whether valid
 
 **Return Value:**
-- `T`: Value after setting
+- Value after setting
+
+##### SetValid(value, int[] bitIndexs, bool isValid)
+
+```csharp
+public static sbyte SetValid(sbyte value, int[] bitIndexs, bool isValid)
+public static ushort SetValid(ushort value, int[] bitIndexs, bool isValid)
+public static int SetValid(int value, int[] bitIndexs, bool isValid)
+public static uint SetValid(uint value, int[] bitIndexs, bool isValid)
+public static long SetValid(long value, int[] bitIndexs, bool isValid)
+public static ulong SetValid(ulong value, int[] bitIndexs, bool isValid)
+```
+
+**Description:** Set a value to a specified bit of a value (multiple bits)
+
+**Parameters:**
+- `value`: Original value
+- `bitIndexs` (int[]): Bit index array
+- `isValid` (bool): Whether valid
+
+**Return Value:**
+- Value after setting. The `sbyte` overload returns the original value when `bitIndexs` is `null` or empty.
+
+##### Gen32BitValue1(int index, params int[] other)
+
+```csharp
+public static uint Gen32BitValue1(int index, params int[] other)
+```
+
+**Description:** Generate 32-bit data, specify the subscript value of 1
+
+**Parameters:**
+- `index` (int): Bit index
+- `other` (int[]): Other bit indices
+
+**Return Value:**
+- `uint`: 32-bit mask with the specified bits set to 1
+
+##### Gen32BitValue1(int[] indexs)
+
+```csharp
+public static uint Gen32BitValue1(int[] indexs)
+```
+
+**Description:** Generate 32-bit data, specify the subscript value of 1
+
+**Parameters:**
+- `indexs` (int[]): Bit index array
+
+**Return Value:**
+- `uint`: 32-bit mask with the specified bits set to 1
+
+##### Gen64BitValue1(int index, params int[] other)
+
+```csharp
+public static ulong Gen64BitValue1(int index, params int[] other)
+```
+
+**Description:** Generate 64-bit data, specify the subscript value of 1
+
+**Parameters:**
+- `index` (int): Bit index
+- `other` (int[]): Other bit indices
+
+**Return Value:**
+- `ulong`: 64-bit mask with the specified bits set to 1
+
+##### Gen64BitValue1(int[] indexs)
+
+```csharp
+public static ulong Gen64BitValue1(int[] indexs)
+```
+
+**Description:** Generate 64-bit data, specify the subscript value of 1
+
+**Parameters:**
+- `indexs` (int[]): Bit index array
+
+**Return Value:**
+- `ulong`: 64-bit mask with the specified bits set to 1
+
+##### Gen32BitValue0(int index, params int[] other)
+
+```csharp
+public static uint Gen32BitValue0(int index, params int[] other)
+```
+
+**Description:** Generate 32-bit data, specify the subscript value of 0
+
+**Parameters:**
+- `index` (int): Bit index
+- `other` (int[]): Other bit indices
+
+**Return Value:**
+- `uint`: 32-bit mask with the specified bits set to 0 and other bits set to 1
+
+##### Gen32BitValue0(int[] indexs)
+
+```csharp
+public static uint Gen32BitValue0(int[] indexs)
+```
+
+**Description:** Generate 32-bit data, specify the subscript value of 0
+
+**Parameters:**
+- `indexs` (int[]): Bit index array
+
+**Return Value:**
+- `uint`: 32-bit mask with the specified bits set to 0 and other bits set to 1
+
+##### Gen64BitValue0(int index, params int[] other)
+
+```csharp
+public static ulong Gen64BitValue0(int index, params int[] other)
+```
+
+**Description:** Generate 64-bit data, specify the subscript value of 0
+
+**Parameters:**
+- `index` (int): Bit index
+- `other` (int[]): Other bit indices
+
+**Return Value:**
+- `ulong`: 64-bit mask with the specified bits set to 0 and other bits set to 1
+
+##### Gen64BitValue0(int[] indexs)
+
+```csharp
+public static ulong Gen64BitValue0(int[] indexs)
+```
+
+**Description:** Generate 64-bit data, specify the subscript value of 0
+
+**Parameters:**
+- `indexs` (int[]): Bit index array
+
+**Return Value:**
+- `ulong`: 64-bit mask with the specified bits set to 0 and other bits set to 1
 
 ---
 
 ### FileUtil
 
-File operation utility class that provides file read/write, copy, delete and other operations.
+File operation utility class that provides existence checks, copy, move, rename, and delete.
 
 ```csharp
 public static class FileUtil
@@ -227,108 +596,19 @@ public static class FileUtil
 
 #### Main Methods
 
-##### ReadAllText(string path)
+##### Exists(string path)
 
 ```csharp
-public static string ReadAllText(string path)
+public static bool Exists(string path)
 ```
 
-**Description:** Read all file content
+**Description:** Check if file exists
 
 **Parameters:**
 - `path` (string): File path
 
 **Return Value:**
-- `string`: File content
-
-##### WriteAllText(string path, string content)
-
-```csharp
-public static void WriteAllText(string path, string content)
-```
-
-**Description:** Write all content to file
-
-**Parameters:**
-- `path` (string): File path
-- `content` (string): Content to write
-
-##### CopyFile(string sourcePath, string targetPath)
-
-```csharp
-public static void CopyFile(string sourcePath, string targetPath)
-```
-
-**Description:** Copy file
-
-**Parameters:**
-- `sourcePath` (string): Source file path
-- `targetPath` (string): Target file path
-
-##### DeleteFile(string path)
-
-```csharp
-public static void DeleteFile(string path)
-```
-
-**Description:** Delete file
-
-**Parameters:**
-- `path` (string): File path
-
----
-
-### PathUtil
-
-Path processing utility class that provides path parsing, combination, validation and other operations.
-
-```csharp
-public static class PathUtil
-```
-
-#### Main Methods
-
-##### Combine(params string[] paths)
-
-```csharp
-public static string Combine(params string[] paths)
-```
-
-**Description:** Combine paths
-
-**Parameters:**
-- `paths` (string[]): Path array
-
-**Return Value:**
-- `string`: Combined path
-
-##### GetDirectoryName(string path)
-
-```csharp
-public static string GetDirectoryName(string path)
-```
-
-**Description:** Get directory name
-
-**Parameters:**
-- `path` (string): Path
-
-**Return Value:**
-- `string`: Directory name
-
-##### GetFileName(string path)
-
-```csharp
-public static string GetFileName(string path)
-```
-
-**Description:** Get file name
-
-**Parameters:**
-- `path` (string): Path
-
-**Return Value:**
-- `string`: File name
+- `bool`: `true` when the path is not empty and the file exists
 
 ##### GetExtension(string path)
 
@@ -339,16 +619,265 @@ public static string GetExtension(string path)
 **Description:** Get file extension
 
 **Parameters:**
+- `path` (string): File path
+
+**Return Value:**
+- `string`: Text after the last `.` (without the dot). Returns an empty string when the path is empty or has no extension.
+
+##### MoveFile(string oldPath, string newPath)
+
+```csharp
+public static void MoveFile(string oldPath, string newPath)
+```
+
+**Description:** Move the file. Note: Self-assurance path existence.
+
+**Parameters:**
+- `oldPath` (string): Source file path
+- `newPath` (string): Destination file path
+
+##### CopyFile(string srcPath, string destPath, bool overwrite = false)
+
+```csharp
+public static void CopyFile(string srcPath, string destPath, bool overwrite = false)
+```
+
+**Description:** Copy the file. Note: Self-assurance path existence.
+
+**Parameters:**
+- `srcPath` (string): Source file path
+- `destPath` (string): Destination file path
+- `overwrite` (bool): Whether to overwrite an existing destination file; default `false`
+
+##### RenameFile(string filePath, string newName)
+
+```csharp
+public static void RenameFile(string filePath, string newName)
+```
+
+**Description:** Rename the file
+
+**Parameters:**
+- `filePath` (string): File path
+- `newName` (string): New file name
+
+##### DeleteFile(string filePath, bool force)
+
+```csharp
+public static void DeleteFile(string filePath, bool force)
+```
+
+**Description:** Delete the file
+
+**Parameters:**
+- `filePath` (string): File path
+- `force` (bool): Whether to force. When `true`, clears the read-only attribute first.
+
+##### DeleteAllFile(string rootPath, bool recursive, bool force)
+
+```csharp
+public static void DeleteAllFile(string rootPath, bool recursive, bool force)
+```
+
+**Description:** Delete all files.
+
+**Parameters:**
+- `rootPath` (string): Root path (file or directory)
+- `recursive` (bool): Whether to recurse
+- `force` (bool): Force
+
+##### IsReadOnly(FileInfo fileInfo)
+
+```csharp
+public static bool IsReadOnly(FileInfo fileInfo)
+```
+
+**Description:** Check whether the file is read-only
+
+**Parameters:**
+- `fileInfo` (FileInfo): File information
+
+**Return Value:**
+- `bool`: Whether the read-only attribute is set
+
+---
+
+### PathUtil
+
+Path processing utility class that provides path formatting, combining, comparison, and parsing.
+
+```csharp
+public static class PathUtil
+```
+
+#### Main Methods
+
+##### IsAbsPath(string path)
+
+```csharp
+public static bool IsAbsPath(string path)
+```
+
+**Description:** Is it an absolute path
+
+**Parameters:**
 - `path` (string): Path
 
 **Return Value:**
-- `string`: File extension
+- `bool`: Whether the path is absolute
+
+##### Format2LinuxPath(string path)
+
+```csharp
+public static string Format2LinuxPath(string path)
+```
+
+**Description:** Format to Linux path format
+
+**Parameters:**
+- `path` (string): Path
+
+**Return Value:**
+- `string`: Path with `\` replaced by `/`
+
+##### Format2WindowsPath(string path)
+
+```csharp
+public static string Format2WindowsPath(string path)
+```
+
+**Description:** Format to Windows path format
+
+**Parameters:**
+- `path` (string): Path
+
+**Return Value:**
+- `string`: Path with `/` replaced by `\`
+
+##### CombineLinuxPath(string basePath, string path, params string[] paths)
+
+```csharp
+public static string CombineLinuxPath(string basePath, string path, params string[] paths)
+```
+
+**Description:** Combine paths and convert to Linux path format
+
+**Parameters:**
+- `basePath` (string): Base path
+- `path` (string): Path to combine
+- `paths` (string[]): Additional path segments
+
+**Return Value:**
+- `string`: Combined path formatted as Linux style
+
+##### CombineWindowsPath(string basePath, string path, params string[] paths)
+
+```csharp
+public static string CombineWindowsPath(string basePath, string path, params string[] paths)
+```
+
+**Description:** Combine paths and convert to Windows path format
+
+**Parameters:**
+- `basePath` (string): Base path
+- `path` (string): Path to combine
+- `paths` (string[]): Additional path segments
+
+**Return Value:**
+- `string`: Combined path formatted as Windows style
+
+##### CombinePath(string basePath, string path, params string[] paths)
+
+```csharp
+public static string CombinePath(string basePath, string path, params string[] paths)
+```
+
+**Description:** Combine paths
+
+**Parameters:**
+- `basePath` (string): Base path
+- `path` (string): Path to combine
+- `paths` (string[]): Additional path segments
+
+**Return Value:**
+- `string`: Combined path. Leading separators on later segments are stripped so `Path.Combine` does not drop the earlier part.
+
+##### GetParentDirectory(string path)
+
+```csharp
+public static string GetParentDirectory(string path)
+```
+
+**Description:** Take the parent directory
+
+**Parameters:**
+- `path` (string): Path
+
+**Return Value:**
+- `string`: Path in Linux format
+
+##### GetFileName(string path)
+
+```csharp
+public static string GetFileName(string path)
+```
+
+**Description:** Take the current file name or current directory name under the path
+
+**Parameters:**
+- `path` (string): Path
+
+**Return Value:**
+- `string`: Current file name or current directory name
+
+##### ClearExtension(string path)
+
+```csharp
+public static string ClearExtension(string path)
+```
+
+**Description:** Clear file path extension
+
+**Parameters:**
+- `path` (string): Path
+
+**Return Value:**
+- `string`: Path with the extension removed
+
+##### ComparePath(string path1, string path2)
+
+```csharp
+public static int ComparePath(string path1, string path2)
+```
+
+**Description:** Compare two paths, often used for path ordering. Comparison condition: levels > characters
+
+**Parameters:**
+- `path1` (string): First path
+- `path2` (string): Second path
+
+**Return Value:**
+- `int`: Compared by level count first, then by case-insensitive character order
+
+##### GetPathLevel(string path)
+
+```csharp
+public static int GetPathLevel(string path)
+```
+
+**Description:** Get the number of levels of the path
+
+**Parameters:**
+- `path` (string): Path
+
+**Return Value:**
+- `int`: Number of `/` characters in the path
 
 ---
 
 ### TextUtil
 
-Text processing utility class that provides string processing, formatting and other operations.
+Text processing utility class that provides reading, overwriting, and appending character files.
 
 ```csharp
 public static class TextUtil
@@ -356,40 +885,90 @@ public static class TextUtil
 
 #### Main Methods
 
-##### IsNullOrEmpty(string text)
+##### ReadText(string filePath)
 
 ```csharp
-public static bool IsNullOrEmpty(string text)
+public static string ReadText(string filePath)
 ```
 
-**Description:** Check if string is empty or null
+**Description:** Read character file content
 
 **Parameters:**
-- `text` (string): String to check
+- `filePath` (string): File path
 
 **Return Value:**
-- `bool`: Whether empty or null
+- `string`: File content read as UTF-8
 
-##### Format(string format, params object[] args)
+##### ReadText(string filePath, Encoding encoding)
 
 ```csharp
-public static string Format(string format, params object[] args)
+public static string ReadText(string filePath, Encoding encoding)
 ```
 
-**Description:** Format string
+**Description:** Read character file content
 
 **Parameters:**
-- `format` (string): Format string
-- `args` (object[]): Parameter array
+- `filePath` (string): File path
+- `encoding` (Encoding): Character encoding
 
 **Return Value:**
-- `string`: Formatted string
+- `string`: File content read with the specified encoding
+
+##### CreateFileWithText(string filePath, string text)
+
+```csharp
+public static void CreateFileWithText(string filePath, string text)
+```
+
+**Description:** Create or open a text file and overwrite the contents
+
+**Parameters:**
+- `filePath` (string): File path
+- `text` (string): File content
+
+##### CreateFileWithText(string filePath, string text, Encoding encoding)
+
+```csharp
+public static void CreateFileWithText(string filePath, string text, Encoding encoding)
+```
+
+**Description:** Create or open a text file and overwrite the contents
+
+**Parameters:**
+- `filePath` (string): File path
+- `text` (string): File content
+- `encoding` (Encoding): Character encoding
+
+##### AppendTextToFile(string filePath, string text)
+
+```csharp
+public static void AppendTextToFile(string filePath, string text)
+```
+
+**Description:** Create or open a text file and append the contents
+
+**Parameters:**
+- `filePath` (string): File path
+- `text` (string): File content
+
+##### AppendTextToFile(string filePath, string text, Encoding encoding)
+
+```csharp
+public static void AppendTextToFile(string filePath, string text, Encoding encoding)
+```
+
+**Description:** Create or open a text file and append the contents
+
+**Parameters:**
+- `filePath` (string): File path
+- `text` (string): File content
+- `encoding` (Encoding): Character encoding
 
 ---
 
 ### DirectoryUtil
 
-Directory operation utility class that provides directory creation, deletion, traversal and other operations.
+Directory operation utility class that provides existence checks, creation, copy, move, clearing, and listing.
 
 ```csharp
 public static class DirectoryUtil
@@ -397,48 +976,153 @@ public static class DirectoryUtil
 
 #### Main Methods
 
-##### CreateDirectory(string path)
+##### Exists(string path)
 
 ```csharp
-public static void CreateDirectory(string path)
+public static bool Exists(string path)
 ```
 
-**Description:** Create directory
+**Description:** Check if the directory exists. This parameter path is allowed to specify relative path or absolute path information. Relative path information will be interpreted relative to the current working directory.
 
 **Parameters:**
 - `path` (string): Directory path
 
-##### DeleteDirectory(string path)
+**Return Value:**
+- `bool`: `true` when the path is not empty and the directory exists
+
+##### IsEmpty(string path)
 
 ```csharp
-public static void DeleteDirectory(string path)
+public static bool IsEmpty(string path)
+```
+
+**Description:** Check if the directory is empty. The current directory does not exist, return true.
+
+**Parameters:**
+- `path` (string): Directory path
+
+**Return Value:**
+- `bool`: `true` when the directory does not exist or has no file-system entries
+
+##### MoveDir(string oldPath, string newPath)
+
+```csharp
+public static void MoveDir(string oldPath, string newPath)
+```
+
+**Description:** Move directory. Note: Self-assurance path existence.
+
+**Parameters:**
+- `oldPath` (string): Source directory path
+- `newPath` (string): Destination directory path
+
+##### CopyDir(string oldPath, string newPath)
+
+```csharp
+public static void CopyDir(string oldPath, string newPath)
+```
+
+**Description:** Copy directory. Note: Self-assurance path existence.
+
+**Parameters:**
+- `oldPath` (string): Source directory path
+- `newPath` (string): Destination directory path
+
+##### RenameDir(string dirPath, string newName)
+
+```csharp
+public static void RenameDir(string dirPath, string newName)
+```
+
+**Description:** Rename directory
+
+**Parameters:**
+- `dirPath` (string): Directory path
+- `newName` (string): New directory name
+
+##### DeleteDir(string dir, bool force)
+
+```csharp
+public static void DeleteDir(string dir, bool force)
 ```
 
 **Description:** Delete directory
 
 **Parameters:**
-- `path` (string): Directory path
+- `dir` (string): Directory path
+- `force` (bool): Force. When `true`, deletes inner files first and tries to clear the read-only attribute.
 
-##### GetFiles(string path, string searchPattern = "*")
+##### ClearDir(string dir, bool force)
 
 ```csharp
-public static string[] GetFiles(string path, string searchPattern = "*")
+public static void ClearDir(string dir, bool force)
 ```
 
-**Description:** Get files in directory
+**Description:** Clear directory
+
+**Parameters:**
+- `dir` (string): Directory path
+- `force` (bool): Force
+
+##### MakeDir(string path, bool keepExist = true)
+
+```csharp
+public static void MakeDir(string path, bool keepExist = true)
+```
+
+**Description:** Create a directory.
 
 **Parameters:**
 - `path` (string): Directory path
-- `searchPattern` (string): Search pattern
+- `keepExist` (bool): Keep the directory if it already exists; default `true`. When `false`, deletes then recreates.
+
+##### MakeDirAll(string path, bool keepExist = true)
+
+```csharp
+public static void MakeDirAll(string path, bool keepExist = true)
+```
+
+**Description:** Create a directory.
+
+**Parameters:**
+- `path` (string): Directory path
+- `keepExist` (bool): Keep the directory if it already exists; default `true`
+
+##### GetFiles(string folderPath, string searchPattern = "*")
+
+```csharp
+public static string[] GetFiles(string folderPath, string searchPattern = "*")
+```
+
+**Description:** Get a list of files in a directory, current directory only
+
+**Parameters:**
+- `folderPath` (string): Directory path
+- `searchPattern` (string): Search pattern, default `"*"`
 
 **Return Value:**
-- `string[]`: File path array
+- `string[]`: File path array. Returns `null` when the path is empty or the directory does not exist.
+
+##### GetAllFiles(string folderPath, string searchPattern = "*")
+
+```csharp
+public static string[] GetAllFiles(string folderPath, string searchPattern = "*")
+```
+
+**Description:** Get a list of files in a directory, recursively
+
+**Parameters:**
+- `folderPath` (string): Directory path
+- `searchPattern` (string): Search pattern, default `"*"`
+
+**Return Value:**
+- `string[]`: Recursively collected file path array. Returns `null` when the path is empty or the directory does not exist.
 
 ---
 
 ### ReflexUtil
 
-Reflection utility class that provides reflection-related operations.
+Reflection utility class that reads object fields and properties via extension methods.
 
 ```csharp
 public static class ReflexUtil
@@ -446,39 +1130,205 @@ public static class ReflexUtil
 
 #### Main Methods
 
-##### GetType(string typeName)
+##### GetFieldInt(this object obj, string name)
 
 ```csharp
-public static Type GetType(string typeName)
+public static int GetFieldInt(this object obj, string name)
 ```
 
-**Description:** Get type by type name
+**Description:** Get the specified field by reflection and convert it to `int`
 
 **Parameters:**
-- `typeName` (string): Type name
+- `obj` (object): Target object
+- `name` (string): Field name
 
 **Return Value:**
-- `Type`: Type object
+- `int`: Field value; returns `0` when the field is missing or `null`
 
-##### CreateInstance<T>(string typeName)
+##### GetFieldUint(this object obj, string name)
 
 ```csharp
-public static T CreateInstance<T>(string typeName)
+public static uint GetFieldUint(this object obj, string name)
 ```
 
-**Description:** Create type instance
+**Description:** Get the specified field by reflection and convert it to `uint`
 
 **Parameters:**
-- `typeName` (string): Type name
+- `obj` (object): Target object
+- `name` (string): Field name
 
 **Return Value:**
-- `T`: Created instance
+- `uint`: Field value; returns `0` when the field is missing or `null`
+
+##### GetFieldString(this object obj, string name)
+
+```csharp
+public static string GetFieldString(this object obj, string name)
+```
+
+**Description:** Get the specified field by reflection and convert it to a string
+
+**Parameters:**
+- `obj` (object): Target object
+- `name` (string): Field name
+
+**Return Value:**
+- `string`: String representation of the field; returns `null` when the value is `null`
+
+##### GetFieldBool(this object obj, string name)
+
+```csharp
+public static bool GetFieldBool(this object obj, string name)
+```
+
+**Description:** Get the specified field by reflection and convert it to `bool`
+
+**Parameters:**
+- `obj` (object): Target object
+- `name` (string): Field name
+
+**Return Value:**
+- `bool`: Field value; returns `false` when the field is missing or `null`
+
+##### GetField(this object obj, string name)
+
+```csharp
+public static object GetField(this object obj, string name)
+```
+
+**Description:** Get the specified field value by reflection
+
+**Parameters:**
+- `obj` (object): Target object
+- `name` (string): Field name
+
+**Return Value:**
+- `object`: Field value; returns `null` when the field does not exist
+
+##### GetField\<T\>(this object obj, string name)
+
+```csharp
+public static T GetField<T>(this object obj, string name)
+```
+
+**Description:** Get the specified field by reflection and convert it to `T`
+
+**Parameters:**
+- `obj` (object): Target object
+- `name` (string): Field name
+
+**Return Value:**
+- `T`: Field value; returns `default(T)` when the type does not match
+
+##### GetPropertyInt(this object obj, string name)
+
+```csharp
+public static int GetPropertyInt(this object obj, string name)
+```
+
+**Description:** Get the specified property by reflection and convert it to `int`
+
+**Parameters:**
+- `obj` (object): Target object
+- `name` (string): Property name
+
+**Return Value:**
+- `int`: Property value; returns `0` when the property is missing or `null`
+
+##### GetPropertyUint(this object obj, string name)
+
+```csharp
+public static uint GetPropertyUint(this object obj, string name)
+```
+
+**Description:** Get the specified property by reflection and convert it to `uint`
+
+**Parameters:**
+- `obj` (object): Target object
+- `name` (string): Property name
+
+**Return Value:**
+- `uint`: Property value; returns `0` when the property is missing or `null`
+
+##### GetPropertyString(this object obj, string name)
+
+```csharp
+public static string GetPropertyString(this object obj, string name)
+```
+
+**Description:** Get the specified property by reflection and convert it to a string
+
+**Parameters:**
+- `obj` (object): Target object
+- `name` (string): Property name
+
+**Return Value:**
+- `string`: String representation of the property; returns `null` when the value is `null`
+
+##### GetPropertyBool(this object obj, string name)
+
+```csharp
+public static bool GetPropertyBool(this object obj, string name)
+```
+
+**Description:** Get the specified property by reflection and convert it to `bool`
+
+**Parameters:**
+- `obj` (object): Target object
+- `name` (string): Property name
+
+**Return Value:**
+- `bool`: Property value; returns `false` when the property is missing or `null`
+
+##### GetProperty(this object obj, string name)
+
+```csharp
+public static object GetProperty(this object obj, string name)
+```
+
+**Description:** Get the specified property value by reflection
+
+**Parameters:**
+- `obj` (object): Target object
+- `name` (string): Property name
+
+**Return Value:**
+- `object`: Property value; returns `null` when the property does not exist
+
+##### GetProperty\<T\>(this object obj, string name)
+
+```csharp
+public static T GetProperty<T>(this object obj, string name)
+```
+
+**Description:** Get the specified property by reflection and convert it to `T`
+
+**Parameters:**
+- `obj` (object): Target object
+- `name` (string): Property name
+
+**Return Value:**
+- `T`: Property value; returns `default(T)` when the type does not match
+
+##### Object2T\<T\>(object value)
+
+```csharp
+public static T Object2T<T>(object value)
+```
+
+**Description:** Convert an `object` to `T`
+
+**Parameters:**
+- `value` (object): Source value
+
+**Return Value:**
+- `T`: Converted value. Returns `default(T)` when `value` is not `T`.
 
 ---
 
 ### PrintUtil
 
-Print utility class that provides console output formatting functionality.
+Print utility class that provides stringify extension methods for objects and arrays, mostly used for debugging or printing.
 
 ```csharp
 public static class PrintUtil
@@ -486,33 +1336,53 @@ public static class PrintUtil
 
 #### Main Methods
 
-##### Print(string message)
+##### ToStringText\<T\>(this T o)
 
 ```csharp
-public static void Print(string message)
+public static string ToStringText<T>(this T o)
 ```
 
-**Description:** Print message
+**Description:** stringify
 
 **Parameters:**
-- `message` (string): Message to print
+- `o` (T): Object to convert
 
-##### PrintLine(string message)
+**Return Value:**
+- `string`: String representation. `int` uses interpolation; other types call `ToString()`.
+
+##### ToStringText\<T\>(this T[] arr)
 
 ```csharp
-public static void PrintLine(string message)
+public static string ToStringText<T>(this T[] arr)
 ```
 
-**Description:** Print message with line break
+**Description:** Convert a 1D array to a string representation, mostly used for debugging or printing
 
 **Parameters:**
-- `message` (string): Message to print
+- `arr` (T[]): 1D array
+
+**Return Value:**
+- `string`: `"null"` when the array is `null`, `"[]"` when empty, otherwise a string like `[a,b,c]`.
+
+##### ToStringText\<T\>(this T[][] arr)
+
+```csharp
+public static string ToStringText<T>(this T[][] arr)
+```
+
+**Description:** Convert a 2D array to a string representation, mostly used for debugging or printing
+
+**Parameters:**
+- `arr` (T[][]): 2D array
+
+**Return Value:**
+- `string`: `"null"` when the array is `null`, `"[]"` when empty, otherwise a multi-line indented string.
 
 ---
 
 ### ConfusedUtil
 
-Obfuscation utility class that provides data obfuscation functionality.
+Hash utility class that computes MD5 and SHA-1 digests.
 
 ```csharp
 public static class ConfusedUtil
@@ -520,157 +1390,61 @@ public static class ConfusedUtil
 
 #### Main Methods
 
-##### Confuse(byte[] data)
+##### Md5(byte[] dataByte)
 
 ```csharp
-public static void Confuse(byte[] data)
+public static string Md5(byte[] dataByte)
 ```
 
-**Description:** Obfuscate data
+**Description:** Compute the MD5 digest of a byte array
 
 **Parameters:**
-- `data` (byte[]): Data to obfuscate
-
-##### Deconfuse(byte[] data)
-
-```csharp
-public static void Deconfuse(byte[] data)
-```
-
-**Description:** Deobfuscate data
-
-**Parameters:**
-- `data` (byte[]): Data to deobfuscate
-
----
-
-## Encryption Utility Classes
-
-### DESUtil
-
-DES encryption utility class.
-
-```csharp
-public static class DESUtil
-```
-
-#### Main Methods
-
-##### Encrypt(string data, string key)
-
-```csharp
-public static string Encrypt(string data, string key)
-```
-
-**Description:** DES encryption
-
-**Parameters:**
-- `data` (string): Data to encrypt
-- `key` (string): Key
+- `dataByte` (byte[]): Input data
 
 **Return Value:**
-- `string`: Encrypted data
+- `string`: 32-character lowercase hexadecimal string (left-padded with `0`)
 
-##### Decrypt(string data, string key)
+##### Md5(string dataStr)
 
 ```csharp
-public static string Decrypt(string data, string key)
+public static string Md5(string dataStr)
 ```
 
-**Description:** DES decryption
+**Description:** Compute the MD5 digest of a string
 
 **Parameters:**
-- `data` (string): Data to decrypt
-- `key` (string): Key
+- `dataStr` (string): Input text (converted to bytes with the default encoding)
 
 **Return Value:**
-- `string`: Decrypted data
+- `string`: 32-character lowercase hexadecimal string
 
----
-
-### RijandelUtil
-
-Rijndael encryption utility class.
+##### Sha1(byte[] dataByte)
 
 ```csharp
-public static class RijandelUtil
+public static string Sha1(byte[] dataByte)
 ```
 
-#### Main Methods
-
-##### Encrypt(string data, string key, string iv)
-
-```csharp
-public static string Encrypt(string data, string key, string iv)
-```
-
-**Description:** Rijndael encryption
+**Description:** Compute the SHA-1 digest of a byte array
 
 **Parameters:**
-- `data` (string): Data to encrypt
-- `key` (string): Key
-- `iv` (string): Initialization vector
+- `dataByte` (byte[]): Input data
 
 **Return Value:**
-- `string`: Encrypted data
+- `string`: Lowercase hexadecimal string
 
-##### Decrypt(string data, string key, string iv)
+##### Sha1(string dataStr)
 
 ```csharp
-public static string Decrypt(string data, string key, string iv)
+public static string Sha1(string dataStr)
 ```
 
-**Description:** Rijndael decryption
+**Description:** Compute the SHA-1 digest of a string
 
 **Parameters:**
-- `data` (string): Data to decrypt
-- `key` (string): Key
-- `iv` (string): Initialization vector
+- `dataStr` (string): Input text (converted to bytes with the default encoding)
 
 **Return Value:**
-- `string`: Decrypted data
-
----
-
-### RSAUtil
-
-RSA encryption utility class.
-
-```csharp
-public static class RSAUtil
-```
-
-#### Main Methods
-
-##### Encrypt(string data, string publicKey)
-
-```csharp
-public static string Encrypt(string data, string publicKey)
-```
-
-**Description:** RSA encryption
-
-**Parameters:**
-- `data` (string): Data to encrypt
-- `publicKey` (string): Public key
-
-**Return Value:**
-- `string`: Encrypted data
-
-##### Decrypt(string data, string privateKey)
-
-```csharp
-public static string Decrypt(string data, string privateKey)
-```
-
-**Description:** RSA decryption
-
-**Parameters:**
-- `data` (string): Data to decrypt
-- `privateKey` (string): Private key
-
-**Return Value:**
-- `string`: Decrypted data
+- `string`: Lowercase hexadecimal string
 
 ---
 
@@ -688,6 +1462,9 @@ var merged = ArrayUtil.MergeArray(array1, new int[] { 6, 7, 8 });
 
 // Extract sub-array
 var subArray = ArrayUtil.SubArray(merged, 1, 3);
+
+// Rotate 2D array
+var rotated = ArrayUtil.Rotated(array2);
 ```
 
 ### Bit Operations
@@ -701,48 +1478,83 @@ int result = BitUtil.SetValid(8, 1, true); // Set bit 1 to 1
 
 // Check multiple bits
 bool allValid = BitUtil.IsValidAnd(15, 0, 1, 2); // Check if bits 0, 1, 2 are all 1
+bool anyValid = BitUtil.IsValidOr(8, 0, 1, 3);
+
+// Generate mask
+uint mask = BitUtil.Gen32BitValue1(0, 2, 4);
 ```
 
 ### File Operations
 
 ```csharp
-// Read file
-string content = FileUtil.ReadAllText("test.txt");
+if (FileUtil.Exists("test.txt"))
+{
+    FileUtil.CopyFile("test.txt", "backup.txt", overwrite: true);
+    FileUtil.RenameFile("backup.txt", "backup-renamed.txt");
+}
 
-// Write file
-FileUtil.WriteAllText("output.txt", "Hello World");
-
-// Copy file
-FileUtil.CopyFile("source.txt", "target.txt");
+FileUtil.DeleteFile("temp.txt", force: true);
+FileUtil.DeleteAllFile("output", recursive: true, force: false);
 ```
 
 ### Path Operations
 
 ```csharp
-// Combine paths
-string path = PathUtil.Combine("C:", "Users", "Documents", "file.txt");
+string path = PathUtil.CombinePath("C:", "Users", "Documents", "file.txt");
+string linuxPath = PathUtil.CombineLinuxPath("home", "user", "docs", "file.txt");
 
-// Get file name
 string fileName = PathUtil.GetFileName(path);
-
-// Get extension
-string extension = PathUtil.GetExtension(path);
+string withoutExt = PathUtil.ClearExtension(path);
+string parent = PathUtil.GetParentDirectory(PathUtil.Format2LinuxPath(path));
 ```
 
-### Encryption Operations
+### Text Operations
 
 ```csharp
-// DES encryption
-string encrypted = DESUtil.Encrypt("Hello World", "mykey123");
+string content = TextUtil.ReadText("test.txt");
+TextUtil.CreateFileWithText("output.txt", "Hello World");
+TextUtil.AppendTextToFile("output.txt", " more");
+```
 
-// DES decryption
-string decrypted = DESUtil.Decrypt(encrypted, "mykey123");
+### Directory Operations
 
-// RSA encryption
-string rsaEncrypted = RSAUtil.Encrypt("Hello World", publicKey);
+```csharp
+DirectoryUtil.MakeDir("data");
+DirectoryUtil.MakeDirAll("data/sub/nested");
 
-// RSA decryption
-string rsaDecrypted = RSAUtil.Decrypt(rsaEncrypted, privateKey);
+string[] files = DirectoryUtil.GetFiles("data", "*.txt");
+string[] allFiles = DirectoryUtil.GetAllFiles("data");
+
+DirectoryUtil.CopyDir("data", "data-backup");
+DirectoryUtil.ClearDir("tmp", force: true);
+```
+
+### Reflection Operations
+
+```csharp
+int id = obj.GetFieldInt("id");
+string name = obj.GetPropertyString("Name");
+var nested = obj.GetField<MyType>("nested");
+```
+
+### Print Operations
+
+```csharp
+int[] nums = { 1, 2, 3 };
+string text = nums.ToStringText(); // [1,2,3]
+
+int[][] grid = ArrayUtil.NewArray<int>(2, 3, 0);
+string gridText = grid.ToStringText();
+```
+
+### Hash Operations
+
+```csharp
+string md5 = ConfusedUtil.Md5("Hello World");
+string sha1 = ConfusedUtil.Sha1("Hello World");
+
+byte[] bytes = Encoding.UTF8.GetBytes("Hello World");
+string md5FromBytes = ConfusedUtil.Md5(bytes);
 ```
 
 ---
@@ -751,14 +1563,20 @@ string rsaDecrypted = RSAUtil.Decrypt(rsaEncrypted, privateKey);
 
 1. **Performance considerations:** Pay attention to memory usage during large array operations
 2. **Bit operations:** Bit indices start from 0, pay attention to boundary checking
-3. **File operations:** Ensure file paths exist and have appropriate permissions
-4. **Encryption security:** Properly store keys, avoid hardcoding
-5. **Reflection performance:** Reflection operations have low performance, avoid frequent use
+3. **Files and directories:** `MoveFile` / `CopyFile` / `MoveDir` / `CopyDir` require the caller to ensure paths exist; delete APIs use `force` for read-only files
+4. **Path combining:** `CombinePath` strips leading separators from later segments so `Path.Combine` does not drop the earlier part
+5. **Text encoding:** Overloads of `ReadText` / `CreateFileWithText` / `AppendTextToFile` without an encoding argument use UTF-8
+6. **Reflection performance:** Reflection operations have low performance, avoid frequent use
+7. **Hashing:** `ConfusedUtil` provides MD5 / SHA-1 digests; it is not symmetric or asymmetric encryption
 
 ---
 
 ## Dependencies
 
-- `System`: Basic types and collections
-- `System.Runtime.CompilerServices`: Compiler services
-- `System.Linq`: LINQ query functionality 
+- `System`: Basic types
+- `System.Collections.Generic`: Collection types
+- `System.IO`: Files and directories
+- `System.Linq`: LINQ queries
+- `System.Runtime.CompilerServices`: Compiler services (bit-operation inlining)
+- `System.Security.Cryptography`: MD5 / SHA-1
+- `System.Text`: Encoding and string building
