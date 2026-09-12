@@ -7,7 +7,7 @@
 在 `master` 上推送符合规则的 tag 后，自动：
 
 1. 确认该 tag 指向的提交位于 `master`
-2. 以 Release 配置打包类库（`netstandard2.0` DLL 压缩包）
+2. 分别以 Debug / Release 配置打包类库（两份 `netstandard2.0` DLL 压缩包）
 3. 生成校验和
 4. 创建（或更新附件的）GitHub Release
 
@@ -86,7 +86,7 @@ git push origin v1.0.3
 | checkout | 完整克隆，以便校验 tag 与 `master` 的祖先关系 |
 | Ensure tag is on master | `git merge-base --is-ancestor $GITHUB_SHA origin/master`，不在 `master` 则失败 |
 | setup-dotnet | 使用 .NET 8 SDK（可同时构建 `netstandard2.0` 类库与 `net8.0` 测试项目） |
-| Build release packages | `dotnet build`、打包 DLL zip、生成 `SHA256SUMS.txt` |
+| Build release packages | `dotnet build` Debug 与 Release、打包两份 DLL zip、生成 `SHA256SUMS.txt` |
 | Create GitHub Release | 组装说明（手写文件 + 自动 notes）、创建 Release；若已存在则覆盖附件并更新正文 |
 
 `GITHUB_REF_NAME` 在本 workflow 中等于 **tag 短名**（如 `v1.0.3`），不是 `refs/tags/v1.0.3`。产物名、Release 标题、说明文件路径都使用该值。
@@ -95,12 +95,13 @@ git push origin v1.0.3
 
 | 类型 | 文件名示例 |
 | --- | --- |
-| DLL 压缩包 | `Infra-CSharp_v1.0.3_netstandard2.0.zip` |
+| Debug DLL 压缩包 | `Infra-CSharp_v1.0.3_debug_netstandard2.0.zip` |
+| Release DLL 压缩包 | `Infra-CSharp_v1.0.3_release_netstandard2.0.zip` |
 | 校验和 | `SHA256SUMS.txt` |
 
 <!-- 暂不启用：NuGet 包 `JLGames.Infra.1.0.3.nupkg`、符号包 `JLGames.Infra.1.0.3.snupkg` -->
 
-DLL 压缩包内包含：`Infra-CSharp.dll`、`LICENSE`、`README.md`、`README_EN.md`。
+每个 zip 内包含：`Infra-CSharp.dll`、`LICENSE`、`README.md`、`README_EN.md`。Debug 包来自 `bin/Debug`，Release 包来自 `bin/Release`。
 
 ## 7. Pre-release
 
