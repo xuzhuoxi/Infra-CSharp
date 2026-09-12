@@ -55,7 +55,7 @@ jobs:
             local dll_dir="Infra-CSharp/bin/${configuration}/${TARGET_TFM}"
             local work_dir
             work_dir="$(mktemp -d)"
-            cp "${dll_dir}/${APP_NAME}.dll" "${work_dir}/"
+            cp "${dll_dir}/${APP_NAME}.dll" "${dll_dir}/${APP_NAME}.pdb" "${dll_dir}/${APP_NAME}.deps.json" "${work_dir}/"
             cp LICENSE README.md README_EN.md "${work_dir}/"
             local archive_base="${APP_NAME}_${version}_${label}_${TARGET_TFM}"
             (cd "${work_dir}" && zip -q "${out_dir}/${archive_base}.zip" ./*)

@@ -8,6 +8,9 @@
         <Nullable>disable</Nullable>
         <ConsoleEncoding>UTF-8</ConsoleEncoding> 
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <DebugType>portable</DebugType>
+        <DebugSymbols>true</DebugSymbols>
+        <GenerateDependencyFile>true</GenerateDependencyFile>
         <!-- NuGet 打包暂不启用
         <PackageId>JLGames.Infra</PackageId>
         <Authors>xuzhuoxi</Authors>

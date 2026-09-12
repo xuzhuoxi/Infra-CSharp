@@ -101,7 +101,7 @@ git push origin v1.0.3
 
 <!-- 暂不启用：NuGet 包 `JLGames.Infra.1.0.3.nupkg`、符号包 `JLGames.Infra.1.0.3.snupkg` -->
 
-每个 zip 内包含：`Infra-CSharp.dll`、`LICENSE`、`README.md`、`README_EN.md`。Debug 包来自 `bin/Debug`，Release 包来自 `bin/Release`。
+每个 zip 内包含：`Infra-CSharp.dll`、`Infra-CSharp.pdb`、`Infra-CSharp.deps.json`、`LICENSE`、`README.md`、`README_EN.md`。Debug 包来自 `bin/Debug`，Release 包来自 `bin/Release`。
 
 ## 7. Pre-release
 
