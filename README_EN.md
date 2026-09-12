@@ -5,11 +5,14 @@
 [![CI](https://github.com/xuzhuoxi/Infra-CSharp/actions/workflows/CI.yml/badge.svg)](https://github.com/xuzhuoxi/Infra-CSharp/actions/workflows/CI.yml)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A comprehensive C# infrastructure framework providing a rich set of utility tools and functional modules for .NET applications.
+[简体中文](README.md) | English
+
+A comprehensive C# infrastructure framework providing a rich set of tools and modules for .NET applications. The Go counterpart is [infra-go](https://github.com/xuzhuoxi/infra-go).
 
 ## 📋 Table of Contents
 
 - [Overview](#overview)
+- [Notes](#notes)
 - [Features](#features)
 - [Technology Stack](#technology-stack)
 - [Installation](#installation)
@@ -26,267 +29,297 @@ A comprehensive C# infrastructure framework providing a rich set of utility tool
 
 ## 🎯 Overview
 
-Infra-CSharp is a feature-rich C# infrastructure framework designed to provide developers with a comprehensive set of tools and utilities for building robust .NET applications. The framework is built on .NET Standard 2.0, ensuring cross-platform compatibility across Windows, macOS, and Linux.
+Infra-CSharp is a C# infrastructure library for building .NET applications. It targets .NET Standard 2.0 and runs on Windows, macOS, and Linux.
+
+This repository is designed to align with [infra-go](https://github.com/xuzhuoxi/infra-go) in module layout and protocol design (networking, buffers, cryptography, events, services), so C# and Go processes can interoperate.
 
 ### Key Benefits
 
-- **Modular Design**: Well-organized modules for different functional areas
-- **Cross-Platform**: Built on .NET Standard 2.0 for maximum compatibility
-- **Performance Optimized**: Efficient implementations with performance considerations
-- **Comprehensive Documentation**: Detailed API documentation in both English and Chinese
-- **Extensible Architecture**: Easy to extend and customize for specific needs
+- **Modular**: Namespaces organized by concern
+- **Cross-platform**: .NET Standard 2.0
+- **Bilingual docs**: API reference under `Infra-CSharp-API/`
+- **Extensible**: Interface-driven implementations
+
+## ⚠️ Notes
+
+- **Match release tags when talking to infra-go.** If you use this library's networking module (`JLGames.Infra.Net`) with [infra-go](https://github.com/xuzhuoxi/infra-go), both sides should use the **same git tag** (for example both `v1.0.3`). Message framing, endianness, and socket parameters evolve across versions; mixing tags can break handshake or parsing.
+- Public APIs follow the source. Historical spellings in source (such as `EndianCoverter`, `StartInitalization`) are kept as-is in docs and samples.
+- Distribution is currently GitHub Release zip packages of Debug/Release DLLs. NuGet packing is not enabled yet.
 
 ## ✨ Features
 
 ### 🔐 Security & Cryptography
-- **AES Encryption**: Advanced Encryption Standard with multiple modes (CBC, CTR, GCM)
-- **RSA Encryption**: Asymmetric encryption with key management
-- **DES Encryption**: Data Encryption Standard support
-- **Hash Functions**: SHA, MD5, and custom hash implementations
-- **Key Management**: Diffie-Hellman key exchange and key derivation
-- **ASN.1 Support**: Certificate and key format processing
+
+- **AES**: CBC, CTR, GCM (GCM by default); 16/24/32-byte keys
+- **RSA**: Asymmetric encryption and key helpers
+- **DES / 3DES / XOR**: Symmetric ciphers
+- **Hashing & keys**: MD5, SHA, Diffie-Hellman, key derivation
+- **ASN.1 / TLV**: Certificate and key formats
 
 ### 🌐 Networking & Communication
-- **Socket Communication**: TCP/UDP/Websocket socket implementations
-- **HTTP Client**: HTTP request/response handling
-- **Message Framing**: Network message serialization/deserialization
-- **Connection Management**: Connection pooling and lifecycle management
+
+- **Sockets**: `SocketFactory` + `SocketParams` for TCP/UDP (WebSocket/QUIC reserved)
+- **HTTP client proxy**: Request/response helpers
+- **Message framing**: Length-prefixed read/write
+- **interop with infra-go `netx`**: same tag required; see [Notes](#notes)
 
 ### 📡 Event System
-- **Event Dispatcher**: Synchronous and asynchronous event processing
-- **Event Groups**: Organized event management with priorities
-- **Event Pooling**: Efficient event object reuse
-- **Event Filtering**: Tag-based event filtering and management
+
+- **Dispatcher**: Weights, tags, listen-count limits
+- **Groups / pool**: `EventGroup`, `EventDispatcherPool`
+- **Thread-context dispatch**: `IThreadEventDispatcher`
 
 ### 🗄️ Data Processing
-- **Buffer Management**: Efficient byte buffer operations
-- **JSON Processing**: Lightweight JSON parser and writer
-- **XML Processing**: XML serialization and deserialization
-- **Base64 Encoding**: Multiple Base64 encoding formats (standard, URL-safe, no-padding)
+
+- **Buffers**: `ByteBuffer` / `DataBuffer`
+- **JSON**: `JSONParser` / `JSONWriter` extension methods
+- **XML**: `XmlUtils`
+- **Base64**: Standard, URL-safe, no-padding
 
 ### 🧮 Algorithms & Mathematics
-- **A* Pathfinding**: Grid-based pathfinding algorithm
-- **Mathematical Utilities**: Point, vector, and geometric operations
-- **Array Operations**: 2D array utilities and matrix operations
-- **Bit Operations**: Efficient bit manipulation utilities
+
+- **A\* pathfinding**: Namespace `JLGames.Infra.AStar`
+- **Geometry**: Points, bounds, lines, intervals, `Array2D`
+- **Bit utilities**: `BitMark`, `BitUtil`
 
 ### 🖼️ Image Processing
-- **RGBA Image Support**: 32-bit RGBA image processing
-- **Image Filters**: Kernel-based image filtering
-- **Alpha Channel**: Transparency processing
-- **Image Transformations**: Rotation, flipping, and scaling
+
+- **RGBA**: 32-bit images, color format `0xRRGGBBAA`
+- **Filters**: `FilterKernel` / `FilterMatrix`
 
 ### 🔧 Utilities & Extensions
-- **String Extensions**: Rich text formatting and regex support
-- **File Operations**: File and directory utilities
-- **Path Management**: Cross-platform path operations
-- **Text Processing**: String manipulation and validation
+
+- **String extensions**: Rich-text formatting, regex split
+- **File / path / directory / text**
+- **Hashing, printing, reflection**: `ConfusedUtil`, `PrintUtil`, `ReflexUtil`
 
 ### ⏰ Time & Date
-- **DateTime Utilities**: Enhanced date/time operations
-- **Time Series**: Time-based data structures
-- **Timestamp Management**: High-precision timing utilities
+
+- **DateTime utilities**, named time slices, pausable `StampTimer`
 
 ### 🎮 Scripting
-- **Lua Interpreter**: Embedded Lua scripting engine
-- **Script Execution**: Runtime script evaluation
-- **Standard Library**: Lua standard library support
 
-### 🏗️ Service Management
-- **Service Lifecycle**: Service initialization and cleanup
-- **Dependency Injection**: Service argument injection
-- **Progress Tracking**: Service execution progress monitoring
-- **Event-Driven Architecture**: Service communication via events
+- **Lua interpreter**: Static `Interpreter` / `RunFile` / `Parse`
+- **Standard libraries** and `LuaInterpreterExtra`
 
-### 🧵 Threading & Concurrency
-- **Thread Contexts**: Fixed thread context management
-- **Work Queues**: Asynchronous work processing
-- **Thread Pools**: Efficient thread resource management
+### 🏗️ Services & Serial Modules
 
-### 📦 Object Pooling
-- **Reusable Pools**: Generic object pooling
-- **Key-Value Pools**: Specialized key-value object pools
-- **Metadata Pools**: Metadata-aware object pooling
+- **Lifecycle**: Init, load/save data, progress events
+- **Registration**: `ServiceConfig.AddConfig` + `ServiceInfo`
+- **Sequential modules**: `SerialManager`
+
+### 🧵 Threading & Pools
+
+- **Fixed thread context**: Background consumer or external `ProcessTasks`
+- **Reuse / key-value / prototype-sized pools**
+
+### 📦 Archives
+
+- **ZIP extraction**: `ArchiveUtil.UnzipFile` / `UnzipFiles`
 
 ## 🛠️ Technology Stack
 
-### Core Technologies
-- **.NET Standard 2.0**: Cross-platform compatibility
-- **C# 7.3+**: Modern C# language features
-- **NUnit**: Unit testing framework
-- **MSBuild**: Build system
+### Core
+
+- **.NET Standard 2.0** (library)
+- **C# 7.3+** (library; tests use C# 10 / net8.0)
+- **NUnit 3**
+- **MSBuild / .NET CLI**
 
 ### Dependencies
-- **Portable.BouncyCastle**: Cryptographic operations (optional)
-- **System.Text.RegularExpressions**: Regular expression support
-- **System.Collections.Generic**: Generic collections
+
+The library currently has **no required third-party NuGet packages**. AES CTR/GCM uses the built-in engines by default. BouncyCastle-backed implementations exist in source, but the package reference is not enabled in the project file.
 
 ### Build Tools
-- **MSBuild**: Primary build system
-- **PowerShell**: Build automation scripts
-- **Batch Scripts**: Windows build automation
+
+- **dotnet CLI / MSBuild**
+- **PowerShell** (`Build/build.ps1`)
+- **Batch scripts** (`Build/build-*.bat`, `publish-*.bat`)
 
 ## 📦 Installation
 
 ### Prerequisites
-- .NET Standard 2.0 compatible runtime
-- Visual Studio 2019+ or .NET CLI
-- PowerShell (for build scripts)
+
+- A .NET Standard 2.0 compatible runtime
+- Visual Studio 2019+ or the .NET SDK (CI uses .NET 8 to build and test)
 
 ### Building from Source
 
-1. **Clone the repository**
+1. **Download from GitHub Releases** (no local build required)
+
+   From [GitHub Releases](https://github.com/xuzhuoxi/Infra-CSharp/releases), download the zip for the target tag (names like `Infra-CSharp_<tag>_release_netstandard2.0.zip` or `..._debug_...`), then reference `Infra-CSharp.dll`. The archive also includes `.pdb`, `.deps.json`, and license/readme files. NuGet packing is not enabled yet.
+
+   For networking with [infra-go](https://github.com/xuzhuoxi/infra-go), download the **same tag**; see [Notes](#notes).
+
+2. **Clone**
+
    ```bash
    git clone https://github.com/xuzhuoxi/Infra-CSharp.git
    cd Infra-CSharp
    ```
 
-2. **Build the solution**
+3. **Build**
+
    ```bash
-   # Using MSBuild
-   msbuild Infra-CSharp.sln /p:Configuration=Release
-   
-   # Using .NET CLI
+   # .NET CLI (recommended)
    dotnet build Infra-CSharp.sln --configuration Release
-   
-   # Using PowerShell script
-   .\Build\build-release.ps1
+
+   # MSBuild
+   msbuild Infra-CSharp.sln /p:Configuration=Release
+
+   # PowerShell
+   .\Build\build.ps1 -configuration Release
+
+   # Windows batch
+   .\Build\build-release.bat
    ```
 
-3. **Run tests**
+4. **Test**
+
    ```bash
    dotnet test Infra-Tests/Infra-Tests.csproj
    ```
 
-### Using as NuGet Package (Future)
-
-```xml
-<PackageReference Include="JLGames.Infra" Version="1.0.0" />
-```
-
 ## 🚀 Quick Start
 
-### Basic Event System Usage
+### Event System
 
 ```csharp
 using JLGames.Infra.Event;
 
-// Create event dispatcher
 var dispatcher = new EventDispatcher();
-
-// Add event listener
-dispatcher.AddEventListener("user.login", (evd) => {
+dispatcher.AddEventListener("user.login", evd =>
+{
     Console.WriteLine($"User logged in: {evd.Data}");
 });
-
-// Dispatch event
 dispatcher.DispatchEvent("user.login", new { userId = 123, username = "john" });
 ```
 
-### Encryption Example
+### AES Encryption
 
 ```csharp
-using JLGames.Infra.Crypto;
+using System.Text;
+using JLGames.Infra.Crypto.Symmetric;
 
-// AES encryption
-var aesCipher = new AesCipher();
-byte[] key = Encoding.UTF8.GetBytes("MySecretKey12345");
+byte[] key = Encoding.UTF8.GetBytes("MySecretKey12345"); // 16 bytes → AES-128
 byte[] data = Encoding.UTF8.GetBytes("Hello, World!");
 
-byte[] encrypted = aesCipher.Encrypt(data, key);
-byte[] decrypted = aesCipher.Decrypt(encrypted, key);
+var aesCipher = new AesCipher(key); // GCM by default
+byte[] encrypted = aesCipher.Encrypt(data);
+byte[] decrypted = aesCipher.Decrypt(encrypted);
 
-Console.WriteLine(Encoding.UTF8.GetString(decrypted)); // "Hello, World!"
+Console.WriteLine(Encoding.UTF8.GetString(decrypted));
 ```
 
-### Network Communication
+### Networking
 
 ```csharp
+using System.Text;
 using JLGames.Infra.Net;
 
-// Create socket client
-var client = new SocketClient();
-client.Connect("127.0.0.1", 8080);
-
-// Send data
-byte[] message = Encoding.UTF8.GetBytes("Hello Server!");
-client.Send(message);
+ISocketClient client = SocketFactory.CreateSocketClient("demo", true, false);
+client.ConnectServer(new SocketParams
+{
+    Network = SocketNetworks.Network.Tcp,
+    RemoteAddress = "127.0.0.1:8080"
+});
+client.SendBytes(Encoding.UTF8.GetBytes("Hello Server!"));
 ```
 
-### JSON Processing
+When interoperating with [infra-go](https://github.com/xuzhuoxi/infra-go), use the **same tag** on both sides.
+
+### JSON
 
 ```csharp
 using JLGames.Infra.TinyJson;
 
-// Serialize object to JSON
-var person = new { Name = "John", Age = 30 };
-string json = JSONWriter.ToJson(person);
+public class Person
+{
+    public string Name;
+    public int Age;
+}
 
-// Deserialize JSON to object
-var deserialized = JSONParser.FromJson<dynamic>(json);
+string json = new Person { Name = "John", Age = 30 }.ToJson();
+Person parsed = json.FromJson<Person>();
 ```
 
 ## 📚 Modules
 
-### Core Modules
-- **[Infra](Infra-CSharp-API/en/Infra-API.md)** - Core interfaces and base classes
-- **[Event](Infra-CSharp-API/en/Event-API.md)** - Event system and dispatching
-- **[Service](Infra-CSharp-API/en/Service-API.md)** - Service lifecycle management
+### Core
+
+- **[Infra](Infra-CSharp-API/en/Infra-API.md)** - `ICloneable<T>`, `Callback`
+- **[Event](Infra-CSharp-API/en/Event-API.md)** - Event system
+- **[Service](Infra-CSharp-API/en/Service-API.md)** - Service lifecycle
+- **[Serial](Infra-CSharp-API/en/Serial-API.md)** - Sequential module start/stop
 
 ### Data & Communication
-- **[Buffer](Infra-CSharp-API/en/Buffer-API.md)** - Byte buffer operations
-- **[Net](Infra-CSharp-API/en/Net-API.md)** - Network communication
-- **[TinyJson](Infra-CSharp-API/en/TinyJson-API.md)** - JSON processing
-- **[Xml](Infra-CSharp-API/en/Xml-API.md)** - XML processing
+
+- **[Buffer](Infra-CSharp-API/en/Buffer-API.md)** - Byte and typed buffers
+- **[Net](Infra-CSharp-API/en/Net-API.md)** - Networking (same tag required for infra-go)
+- **[TinyJson](Infra-CSharp-API/en/TinyJson-API.md)** - JSON
+- **[Xml](Infra-CSharp-API/en/Xml-API.md)** - XML
+- **[Archive](Infra-CSharp-API/en/Archive-API.md)** - ZIP extraction
 
 ### Security & Encoding
-- **[Crypto](Infra-CSharp-API/en/Crypto-API.md)** - Encryption and security
-- **[Encodingx](Infra-CSharp-API/en/Encodingx-API.md)** - Encoding utilities
+
+- **[Crypto](Infra-CSharp-API/en/Crypto-API.md)** - Cryptography
+- **[Encodingx](Infra-CSharp-API/en/Encodingx-API.md)** - Base64 and related encodings
 
 ### Algorithms & Mathematics
-- **[Algs](Infra-CSharp-API/en/Algs-API.md)** - Algorithm implementations (A* pathfinding)
-- **[Mathx](Infra-CSharp-API/en/Mathx-API.md)** - Mathematical utilities
 
-### Utilities & Extensions
+- **[Algs](Infra-CSharp-API/en/Algs-API.md)** - A\* (`JLGames.Infra.AStar`)
+- **[Mathx](Infra-CSharp-API/en/Mathx-API.md)** - Math and geometry
+
+### Utilities
+
 - **[Utils](Infra-CSharp-API/en/Utils-API.md)** - General utilities
 - **[Extensions](Infra-CSharp-API/en/Extensions-API.md)** - Extension methods
 - **[DateTimex](Infra-CSharp-API/en/DateTimex-API.md)** - Time utilities
+- **[Pool](Infra-CSharp-API/en/Pool-API.md)** - Object pools
+- **[Threadx](Infra-CSharp-API/en/Threadx-API.md)** - Thread contexts
 
-### Advanced Features
+### Other
+
 - **[Imagex](Infra-CSharp-API/en/Imagex-API.md)** - Image processing
-- **[Languages](Infra-CSharp-API/en/Languages-API.md)** - Scripting (Lua)
-- **[Pool](Infra-CSharp-API/en/Pool-API.md)** - Object pooling
-- **[Threadx](Infra-CSharp-API/en/Threadx-API.md)** - Threading utilities
+- **[Languages](Infra-CSharp-API/en/Languages-API.md)** - Lua interpreter
 
 ## 💡 Examples
 
-### A* Pathfinding Algorithm
+### A\* Pathfinding
 
 ```csharp
-using JLGames.Infra.Algs;
+using System;
+using JLGames.Infra.AStar;
 
-// Create grid map
-var gridMap = new AStarGridMap(10, 10);
-gridMap.SetWalkable(5, 5, false); // Set obstacle
+var gridMap = new AStarGridMap();
+gridMap.InitGridMap(new Size { Width = 10, Height = 10, Depth = 1 });
 
-// Create A* algorithm
-var astar = new AStarAlg();
-astar.SetGridMap(gridMap);
+var mapData = new int[10][];
+for (int y = 0; y < 10; y++)
+    mapData[y] = new int[10];
+mapData[5][5] = AstarConst.GridObstacle;
+gridMap.SetMapData(mapData);
+gridMap.SetAllowedDirections(DirectionsStatic.DefaultDirections2D);
 
-// Find path
-var path = astar.FindPath(new Position(0, 0), new Position(9, 9));
-foreach (var pos in path)
+Position[] path = gridMap.SearchPath(
+    Positions.NewPosition(0, 0),
+    Positions.NewPosition(9, 9));
+if (path == null)
 {
-    Console.WriteLine($"Path: ({pos.X}, {pos.Y})");
+    Console.WriteLine("No path");
+    return;
 }
+foreach (var pos in path)
+    Console.WriteLine($"Path: ({pos.X}, {pos.Y})");
 ```
 
 ### Service Management
 
 ```csharp
+using System;
+using JLGames.Infra;
 using JLGames.Infra.Service;
 
-// Create service
 public class UserService : ServiceBase, IInitService
 {
     public void Init()
@@ -296,10 +329,11 @@ public class UserService : ServiceBase, IInitService
     }
 }
 
-// Register and initialize services
-var serviceManager = ServiceManager.Shared;
-serviceManager.RegisterService(new UserService());
-serviceManager.InitializeAll();
+ServiceConfig.Shared.AddConfig(new ServiceInfo("UserService", new UserService()));
+ServiceManager.Shared.StartInitalization(new Callback(_ =>
+{
+    Console.WriteLine("Initialization finished");
+}));
 ```
 
 ### Image Processing
@@ -307,126 +341,84 @@ serviceManager.InitializeAll();
 ```csharp
 using JLGames.Infra.Imagex;
 
-// Create RGBA image
 var image = new RGBA(256, 256);
-
-// Set pixel color
-uint redColor = 0xFF0000FF; // Red
+uint redColor = 0xFF0000FF; // 0xRRGGBBAA
 image.Set(100, 100, redColor);
-
-// Set transparency
-image.SetAlpha(100, 100, 128); // Semi-transparent
+image.SetAlpha(100, 100, 128);
 ```
 
 ## 📖 Documentation
 
-Comprehensive API documentation is available in both English and Chinese:
+- **[English API docs](Infra-CSharp-API/en/README.md)**
+- **[Chinese API docs](Infra-CSharp-API/cn/README.md)**
 
-- **[English Documentation](Infra-CSharp-API/en/README.md)**
-- **[Chinese Documentation](Infra-CSharp-API/cn/README.md)**
-
-Each module has detailed documentation including:
-- Interface definitions
-- Class descriptions
-- Method documentation
-- Usage examples
-- Performance considerations
+Release tagging is documented in [Release.md](.github/workflows/Release.md).
 
 ## 🔨 Building
 
-### Build Scripts
-
-The project includes several build scripts for different scenarios:
-
 ```bash
-# Debug build
+# Debug
 .\Build\build-debug.bat
 
-# Release build
+# Release
 .\Build\build-release.bat
 
-# PowerShell build
+# PowerShell (Release by default)
 .\Build\build.ps1 -configuration Release
 
-# Publish
+# Publish output
 .\Build\publish-release.bat
 ```
 
-### Build Outputs
+### Outputs
 
 - **Debug**: `Infra-CSharp/bin/Debug/netstandard2.0/`
 - **Release**: `Infra-CSharp/bin/Release/netstandard2.0/`
-- **Tests**: `Infra-Tests/bin/Debug/net8.0/`
+- **Tests**: `Infra-Tests/bin/Debug/net8.0/` or `Release/net8.0/`
+
+Pushing a `v*.*.*` tag whose commit is on `master` builds and uploads Release assets.
 
 ## 🧪 Testing
 
-The project uses NUnit for unit testing:
-
 ```bash
-# Run all tests
 dotnet test Infra-Tests/Infra-Tests.csproj
-
-# Run specific test category
-dotnet test --filter "Category=Crypto"
 
 # Same as CI: skip tests that need a local server
 dotnet test --filter "Category!=RunOnlyThis"
 
-# Run with coverage
 dotnet test --collect:"XPlat Code Coverage"
 ```
 
-Pushes and pull requests to `master` run build and tests via GitHub Actions (see `.github/workflows/CI.yml`). Tagging `v*.*.*` for a release is documented in [Release.md](.github/workflows/Release.md).
-
-### Test Categories
-
-- **Crypto**: Encryption and security tests
-- **Net**: Network communication tests
-- **Threadx**: Threading utility tests
+Pushes and pull requests to `master` run CI (`.github/workflows/CI.yml`).
 
 ## 🤝 Contributing
 
-We welcome contributions! Please follow these guidelines:
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Add tests and documentation
+4. Ensure tests pass
+5. Open a pull request
 
-1. **Fork the repository**
-2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
-3. **Make your changes** with appropriate tests
-4. **Add documentation** for new features
-5. **Ensure all tests pass**
-6. **Submit a pull request**
+### Style
 
-### Code Style Guidelines
-
-- Follow C# coding conventions
-- Add XML documentation comments
-- Include both English and Chinese comments
-- Write unit tests for new features
-- Update relevant documentation
-
-### Development Setup
-
-1. Install Visual Studio 2019+ or VS Code
-2. Install .NET SDK
-3. Clone the repository
-4. Open `Infra-CSharp.sln` in your IDE
-5. Build and run tests
+- Follow C# conventions
+- Add bilingual XML comments on public APIs
+- Update `Infra-CSharp-API/` when public APIs change
 
 ## 🙏 Acknowledgments
 
-- **Lua Interpreter**: Third-party Lua interpreter library by Liu Junfeng
-- **BouncyCastle**: Cryptographic library for .NET
+- **Lua Interpreter**: Third-party Lua interpreter by Liu Junfeng
 - **NUnit**: Unit testing framework
+- **infra-go**: The author's [Go infrastructure library](https://github.com/xuzhuoxi/infra-go); keep networking tags aligned
 
 ## 📞 Support
 
 - **Issues**: [GitHub Issues](https://github.com/xuzhuoxi/Infra-CSharp/issues)
 - **Documentation**: [API Documentation](Infra-CSharp-API/en/README.md)
-- **Examples**: See the [Examples](#examples) section above
 - **Author**: xuzhuoxi
 - **Email**: xuzhuoxi@gmail.com / mailxuzhuoxi@163.com / m_xuzhuoxi@outlook.com
 - **GitHub**: [@xuzhuoxi](https://github.com/xuzhuoxi)
 
-
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+This project is licensed under the MIT License — see [LICENSE](LICENSE).
