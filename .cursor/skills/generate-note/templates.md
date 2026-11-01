@@ -57,7 +57,7 @@
 - **Changes**：对外行为、配置、默认策略等非修复变更
 - **Notable Fixes**：重要缺陷修复（不必列出全部）
 - **Fixes**：其余修复；与 Notable Fixes 重复的不要再写一遍
-- **Changelog**：范围内全部提交的完整列表（主题 + 短哈希或 PR 号），对应发布页 Changelog
+- **Changelog**：范围内全部提交的完整列表（主题 + 短哈希或 PR 号），对应发布页 Changelog。条目按提交时间**倒序**（最新在最前，与 `git log` 默认顺序一致）。补充已有文件时，新条插在该节已有条目之前，使整节仍为倒序，不要追加到末尾
 - **New Contributors**：该范围内首次出现的提交者；无则省略
 - **Full Changelog**：上一 tag 与本 tag 的对照。有 GitHub 远程时写成 `https://github.com/{owner}/{repo}/compare/{RANGE_START}...{tag}`，否则写成 `{RANGE_START}...{tag}`。仓库无 tag、或没有上一档 tag 时省略该行
 - `Library Changes`：只写范围内 `*.csproj`（及 `Directory.Packages.props`，若有）里实际变化的 NuGet 包与版本（`旧 → 新`）

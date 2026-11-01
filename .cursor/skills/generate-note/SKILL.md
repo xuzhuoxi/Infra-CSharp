@@ -53,7 +53,7 @@ git rev-list --max-parents=0 HEAD
 记为 `FIRST_COMMIT`。多个根提交时取最早的一个。不要用 `FIRST_COMMIT..HEAD`（会漏掉第一个提交）。改为：
 
 ```bash
-git log --format=fuller --reverse HEAD
+git log --format=fuller HEAD
 git diff --stat --root HEAD
 git diff --root HEAD
 ```
@@ -76,6 +76,8 @@ git diff RANGE_START...HEAD
 
 再看该范围内的 `*.csproj`、`Directory.Packages.props`（若有）中的 `PackageReference`（NuGet 包版本）。只根据这个范围归纳，不要编造范围外的改动。
 
+`git log` 默认即时间倒序（新提交在前）。**Changelog** 条目保持这一顺序，不要改成从旧到新。
+
 范围内无提交且目标文件已存在：说明无新变更，不改文件。范围内无提交且文件不存在：不要生成空说明，告知用户。
 
 ## 模板与文风
@@ -92,9 +94,10 @@ git diff RANGE_START...HEAD
 
 1. 先读现有全文，**保留**已有条目、总述和用户手写内容
 2. 只把范围内**尚未写过**的变更并入对应小节
-3. 不整文件覆盖、不删旧条、不重复同义条
-4. 没有对应小节且**确有新条目**时再按模板补标题；不要补空小节
-5. 有新要点时，可改总述一句，使其覆盖新旧内容，不要推翻重写
+3. **Changelog** 整节保持时间倒序（新提交在前）。新条插到该节已有条目之前，不要追加到末尾
+4. 不整文件覆盖、不删旧条、不重复同义条
+5. 没有对应小节且**确有新条目**时再按模板补标题；不要补空小节
+6. 有新要点时，可改总述一句，使其覆盖新旧内容，不要推翻重写
 
 ## 完成后
 
